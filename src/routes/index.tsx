@@ -7,7 +7,7 @@ import {
   Clock,
   Calendar,
   Plane,
-  Route,
+  Route as RouteIcon,
   Car,
   ArrowRight,
   ShieldCheck,
