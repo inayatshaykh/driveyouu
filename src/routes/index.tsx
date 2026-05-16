@@ -35,7 +35,7 @@ const services = [
   { label: "Scheduled", sub: "Plan ahead", icon: Calendar },
   { label: "Hourly", sub: "Pay per hour", icon: Clock },
   { label: "Airport", sub: "IGI · DEL", icon: Plane },
-  { label: "Outstation", sub: "Inter-city", icon: Route },
+  { label: "Outstation", sub: "Inter-city", icon: RouteIcon },
 ];
 
 const recents = [
