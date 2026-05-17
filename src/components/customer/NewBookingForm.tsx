@@ -1,10 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Calendar, Car, Loader2, Navigation } from 'lucide-react';
+import { MapPin, Calendar, Car, Loader2, Navigation, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 type TabType = 'oneway' | 'roundtrip' | 'outstation';
-type CarType = 'sedan' | 'suv' | 'hatchback';
 type WhenNeeded = 'now' | 'schedule';
+
+interface DemoCar {
+  id: number;
+  name: string;
+  type: string;
+  seats: number;
+  transmission: string;
+  emoji: string;
+  hourlyRates: { [hours: number]: number };
+  multiDayRate: number;
+  outstationBase: number;
+}
 
 interface LocationSuggestion {
   name: string;
@@ -19,6 +30,54 @@ interface SelectedLocation {
   lat: number;
   lon: number;
 }
+
+// Demo cars - later admin will manage these
+const DEMO_CARS: DemoCar[] = [
+  {
+    id: 1,
+    name: "Maruti Ertiga",
+    type: "MPV",
+    seats: 7,
+    transmission: "Manual",
+    emoji: "🚐",
+    hourlyRates: { 4: 500, 6: 700, 8: 900, 10: 1000, 12: 1100 },
+    multiDayRate: 1250,
+    outstationBase: 600,
+  },
+  {
+    id: 2,
+    name: "Toyota Fortuner",
+    type: "SUV",
+    seats: 7,
+    transmission: "Automatic",
+    emoji: "🚙",
+    hourlyRates: { 4: 800, 6: 1100, 8: 1400, 10: 1700, 12: 2000 },
+    multiDayRate: 2000,
+    outstationBase: 1000,
+  },
+  {
+    id: 3,
+    name: "Maruti Swift",
+    type: "Hatchback",
+    seats: 5,
+    transmission: "Manual",
+    emoji: "🚗",
+    hourlyRates: { 4: 500, 6: 700, 8: 900, 10: 1000, 12: 1100 },
+    multiDayRate: 1250,
+    outstationBase: 600,
+  },
+  {
+    id: 4,
+    name: "Honda City",
+    type: "Sedan",
+    seats: 5,
+    transmission: "Automatic",
+    emoji: "🚘",
+    hourlyRates: { 4: 600, 6: 850, 8: 1050, 10: 1250, 12: 1400 },
+    multiDayRate: 1500,
+    outstationBase: 750,
+  },
+];
 
 // Pricing constants
 const BASE_FARE = 50;
@@ -44,11 +103,17 @@ function roundPrice(price: number): number {
   return Math.round(price / 10) * 10;
 }
 
+// Get lowest hourly rate for a car
+function getLowestHourlyRate(car: DemoCar): number {
+  return Math.min(...Object.values(car.hourlyRates));
+}
+
 export function NewBookingForm() {
   const [activeTab, setActiveTab] = useState<TabType>('oneway');
-  const [carType, setCarType] = useState<CarType>('sedan');
+  const [selectedCar, setSelectedCar] = useState<DemoCar>(DEMO_CARS[0]); // Default: Maruti Ertiga
   const [whenNeeded, setWhenNeeded] = useState<WhenNeeded>('now');
   const [numberOfDays, setNumberOfDays] = useState(1);
+  const [selectedHours, setSelectedHours] = useState(4);
 
   // Location states
   const [pickupQuery, setPickupQuery] = useState('');
@@ -166,25 +231,25 @@ export function NewBookingForm() {
       );
       setDistance(dist);
 
-      // Calculate price
+      // Calculate price based on selected car
       let calculatedPrice = 0;
       if (activeTab === 'oneway') {
-        calculatedPrice = BASE_FARE + dist * PER_KM_RATE;
+        calculatedPrice = selectedCar.outstationBase + dist * PER_KM_RATE;
       } else if (activeTab === 'roundtrip') {
-        calculatedPrice = BASE_FARE + dist * PER_KM_RATE * ROUND_TRIP_MULTIPLIER;
+        calculatedPrice = selectedCar.outstationBase + dist * PER_KM_RATE * ROUND_TRIP_MULTIPLIER;
       }
       setPrice(roundPrice(calculatedPrice));
       
       setTimeout(() => setIsCalculating(false), 300);
     } else if (activeTab === 'outstation') {
-      // For outstation, price is per day
+      // For outstation, price is per day based on selected car
       setDistance(null);
-      setPrice(roundPrice(OUTSTATION_PER_DAY * numberOfDays));
+      setPrice(roundPrice(selectedCar.multiDayRate * numberOfDays));
     } else {
       setDistance(null);
       setPrice(null);
     }
-  }, [selectedPickup, selectedDrop, activeTab, numberOfDays]);
+  }, [selectedPickup, selectedDrop, activeTab, numberOfDays, selectedCar, selectedHours]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,22 +270,22 @@ export function NewBookingForm() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="w-full max-w-2xl mx-auto bg-gray-50 rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-6 text-center">
+      <div className="bg-gradient-to-r from-slate-800 to-emerald-800 text-white px-6 py-6 text-center">
         <h2 className="text-2xl font-bold">Book Your Ride</h2>
-        <p className="text-sm text-green-50 mt-1">
+        <p className="text-sm text-emerald-50 mt-1">
           We provide the vehicle + driver — you just show up.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-gray-200 bg-white">
         <button
           onClick={() => setActiveTab('oneway')}
           className={`flex-1 py-4 text-sm font-semibold transition-all ${
             activeTab === 'oneway'
-              ? 'border-b-2 border-green-600 text-green-600'
+              ? 'border-b-2 border-emerald-600 text-emerald-700'
               : 'text-gray-400 hover:text-gray-600'
           }`}
         >
@@ -230,7 +295,7 @@ export function NewBookingForm() {
           onClick={() => setActiveTab('roundtrip')}
           className={`flex-1 py-4 text-sm font-semibold transition-all ${
             activeTab === 'roundtrip'
-              ? 'border-b-2 border-green-600 text-green-600'
+              ? 'border-b-2 border-emerald-600 text-emerald-700'
               : 'text-gray-400 hover:text-gray-600'
           }`}
         >
@@ -240,7 +305,7 @@ export function NewBookingForm() {
           onClick={() => setActiveTab('outstation')}
           className={`flex-1 py-4 text-sm font-semibold transition-all ${
             activeTab === 'outstation'
-              ? 'border-b-2 border-green-600 text-green-600'
+              ? 'border-b-2 border-emerald-600 text-emerald-700'
               : 'text-gray-400 hover:text-gray-600'
           }`}
         >
@@ -249,7 +314,7 @@ export function NewBookingForm() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="p-6 space-y-5">
+      <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-white shadow-sm border border-gray-100 rounded-b-2xl">
         {/* ONE WAY */}
         {activeTab === 'oneway' && (
           <>
@@ -266,7 +331,7 @@ export function NewBookingForm() {
                   onChange={(e) => handlePickupChange(e.target.value)}
                   onFocus={() => pickupSuggestions.length > 0 && setShowPickupDropdown(true)}
                   placeholder="Enter 4 letters to search location"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all"
                 />
                 {isSearching && (
                   <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 animate-spin" />
@@ -304,7 +369,7 @@ export function NewBookingForm() {
                   onChange={(e) => handleDropChange(e.target.value)}
                   onFocus={() => dropSuggestions.length > 0 && setShowDropDropdown(true)}
                   placeholder="Enter 4 letters to search location"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all"
                 />
                 {isSearching && (
                   <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 animate-spin" />
@@ -337,7 +402,7 @@ export function NewBookingForm() {
               <select
                 value={whenNeeded}
                 onChange={(e) => setWhenNeeded(e.target.value as WhenNeeded)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all"
               >
                 <option value="now">Now</option>
                 <option value="schedule">Schedule for later</option>
@@ -353,32 +418,46 @@ export function NewBookingForm() {
                   type="datetime-local"
                   value={departureDateTime}
                   onChange={(e) => setDepartureDateTime(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all"
                 />
               </div>
             )}
 
-            {/* Car Type */}
+            {/* Select Vehicle */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Car Type
+                Select Vehicle
               </label>
-              <div className="grid grid-cols-3 gap-3">
-                {(['sedan', 'suv', 'hatchback'] as CarType[]).map((type) => (
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {DEMO_CARS.map((car) => (
                   <button
-                    key={type}
+                    key={car.id}
                     type="button"
-                    onClick={() => setCarType(type)}
-                    className={`py-3 px-4 rounded-xl border-2 font-semibold text-sm capitalize transition-all ${
-                      carType === type
-                        ? 'border-green-600 bg-green-50 text-green-700'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    onClick={() => setSelectedCar(car)}
+                    className={`border-2 rounded-2xl p-3 cursor-pointer transition-all text-left ${
+                      selectedCar.id === car.id
+                        ? 'border-emerald-600 bg-emerald-50/60'
+                        : 'border-gray-200 bg-white hover:border-emerald-300'
                     }`}
                   >
-                    {type}
+                    <div className="flex items-start gap-2">
+                      <span className="text-2xl">{car.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-sm text-gray-900 truncate">{car.name}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {car.type} · {car.seats} seats · {car.transmission}
+                        </div>
+                        <div className="text-emerald-600 font-semibold text-sm mt-1">
+                          From ₹{getLowestHourlyRate(car)}
+                        </div>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
+              <p className="text-xs text-gray-400 mt-2">
+                More vehicles available. Final car assigned based on availability.
+              </p>
             </div>
           </>
         )}
@@ -399,7 +478,7 @@ export function NewBookingForm() {
                   onChange={(e) => handlePickupChange(e.target.value)}
                   onFocus={() => pickupSuggestions.length > 0 && setShowPickupDropdown(true)}
                   placeholder="Enter 4 letters to search location"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all"
                 />
               </div>
               
@@ -433,7 +512,7 @@ export function NewBookingForm() {
                   onChange={(e) => handleDropChange(e.target.value)}
                   onFocus={() => dropSuggestions.length > 0 && setShowDropDropdown(true)}
                   placeholder="Enter 4 letters to search location"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all"
                 />
               </div>
               
@@ -463,7 +542,7 @@ export function NewBookingForm() {
                 type="datetime-local"
                 value={departureDateTime}
                 onChange={(e) => setDepartureDateTime(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all"
               />
             </div>
 
@@ -476,31 +555,45 @@ export function NewBookingForm() {
                 type="datetime-local"
                 value={returnDateTime}
                 onChange={(e) => setReturnDateTime(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all"
               />
             </div>
 
-            {/* Car Type */}
+            {/* Select Vehicle */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Car Type
+                Select Vehicle
               </label>
-              <div className="grid grid-cols-3 gap-3">
-                {(['sedan', 'suv', 'hatchback'] as CarType[]).map((type) => (
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {DEMO_CARS.map((car) => (
                   <button
-                    key={type}
+                    key={car.id}
                     type="button"
-                    onClick={() => setCarType(type)}
-                    className={`py-3 px-4 rounded-xl border-2 font-semibold text-sm capitalize transition-all ${
-                      carType === type
-                        ? 'border-green-600 bg-green-50 text-green-700'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    onClick={() => setSelectedCar(car)}
+                    className={`border-2 rounded-2xl p-3 cursor-pointer transition-all text-left ${
+                      selectedCar.id === car.id
+                        ? 'border-emerald-600 bg-emerald-50/60'
+                        : 'border-gray-200 bg-white hover:border-emerald-300'
                     }`}
                   >
-                    {type}
+                    <div className="flex items-start gap-2">
+                      <span className="text-2xl">{car.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-sm text-gray-900 truncate">{car.name}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {car.type} · {car.seats} seats · {car.transmission}
+                        </div>
+                        <div className="text-emerald-600 font-semibold text-sm mt-1">
+                          From ₹{getLowestHourlyRate(car)}
+                        </div>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
+              <p className="text-xs text-gray-400 mt-2">
+                More vehicles available. Final car assigned based on availability.
+              </p>
             </div>
           </>
         )}
@@ -521,7 +614,7 @@ export function NewBookingForm() {
                   onChange={(e) => handlePickupChange(e.target.value)}
                   onFocus={() => pickupSuggestions.length > 0 && setShowPickupDropdown(true)}
                   placeholder="Enter 4 letters to search city"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all"
                 />
               </div>
               
@@ -552,7 +645,7 @@ export function NewBookingForm() {
                 <input
                   type="text"
                   placeholder="Enter destination city"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -566,7 +659,7 @@ export function NewBookingForm() {
                 type="date"
                 value={departureDate}
                 onChange={(e) => setDepartureDate(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all"
               />
             </div>
 
@@ -599,41 +692,59 @@ export function NewBookingForm() {
               </div>
             </div>
 
-            {/* Car Type */}
+            {/* Select Vehicle */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Car Type
+                Select Vehicle
               </label>
-              <div className="grid grid-cols-3 gap-3">
-                {(['sedan', 'suv', 'hatchback'] as CarType[]).map((type) => (
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {DEMO_CARS.map((car) => (
                   <button
-                    key={type}
+                    key={car.id}
                     type="button"
-                    onClick={() => setCarType(type)}
-                    className={`py-3 px-4 rounded-xl border-2 font-semibold text-sm capitalize transition-all ${
-                      carType === type
-                        ? 'border-green-600 bg-green-50 text-green-700'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    onClick={() => setSelectedCar(car)}
+                    className={`border-2 rounded-2xl p-3 cursor-pointer transition-all text-left ${
+                      selectedCar.id === car.id
+                        ? 'border-emerald-600 bg-emerald-50/60'
+                        : 'border-gray-200 bg-white hover:border-emerald-300'
                     }`}
                   >
-                    {type}
+                    <div className="flex items-start gap-2">
+                      <span className="text-2xl">{car.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-sm text-gray-900 truncate">{car.name}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {car.type} · {car.seats} seats · {car.transmission}
+                        </div>
+                        <div className="text-emerald-600 font-semibold text-sm mt-1">
+                          From ₹{getLowestHourlyRate(car)}
+                        </div>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
+              <p className="text-xs text-gray-400 mt-2">
+                More vehicles available. Final car assigned based on availability.
+              </p>
             </div>
           </>
         )}
 
         {/* Distance & Price Display */}
         {((distance !== null && price !== null) || (activeTab === 'outstation' && price !== null)) && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-4">
+          <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-4 mt-4 shadow-sm">
             {isCalculating ? (
-              <div className="flex items-center justify-center gap-2 text-green-700">
+              <div className="flex items-center justify-center gap-2 text-emerald-700">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <span className="text-sm font-semibold">Calculating...</span>
               </div>
             ) : (
               <>
+                <div className="flex items-center gap-2 text-gray-700 mb-3">
+                  <span className="text-xl">{selectedCar.emoji}</span>
+                  <span className="font-bold text-gray-900">{selectedCar.name}</span>
+                </div>
                 {distance !== null && (
                   <div className="flex items-center gap-2 text-gray-700 mb-2">
                     <span className="text-lg">📍</span>
@@ -644,13 +755,19 @@ export function NewBookingForm() {
                     )}
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-gray-700">
-                  <span className="text-lg">💰</span>
-                  <span className="font-semibold">Estimated Fare:</span>
-                  <span className="font-bold text-green-700 text-xl">₹{price}</span>
+                {activeTab === 'outstation' && (
+                  <div className="flex items-center gap-2 text-gray-700 mb-2">
+                    <span className="text-lg">⏱️</span>
+                    <span className="font-semibold">{numberOfDays} {numberOfDays === 1 ? 'Day' : 'Days'}</span>
+                  </div>
+                )}
+                <div className="border-t border-emerald-200 my-2"></div>
+                <div className="flex items-center justify-between text-gray-700">
+                  <span className="font-semibold">✅ Total:</span>
+                  <span className="font-bold text-emerald-700 text-2xl">₹{price}</span>
                 </div>
                 <div className="text-xs text-gray-600 mt-2">
-                  (Inclusive of driver + vehicle)
+                  Car + Driver included
                 </div>
               </>
             )}
@@ -660,7 +777,7 @@ export function NewBookingForm() {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-xl mt-6"
+          className="w-full bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-800 hover:to-emerald-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg hover:shadow-xl mt-6"
         >
           Book Now
         </button>
@@ -673,3 +790,4 @@ export function NewBookingForm() {
     </div>
   );
 }
+
