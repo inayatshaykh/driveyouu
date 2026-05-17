@@ -1,5 +1,5 @@
-import { db, drivers, users, customers, bookings, kycDocuments, pricingConfig } from '../db';
-import { eq, and, sql, desc, gte, lte } from 'drizzle-orm';
+import { db, drivers, users, customers, bookings, kycDocuments, pricingConfig, vehicleProfiles } from '../db';
+import { eq, and, sql, desc, gte, lte, count } from 'drizzle-orm';
 import type { Driver, Booking, PricingConfig } from '../types';
 
 export class AdminService {
@@ -115,7 +115,7 @@ export class AdminService {
   }
 
   /**
-   * Get all customers
+   * Get all customers with booking stats
    */
   async getAllCustomers(search?: string): Promise<any[]> {
     const results = await db
@@ -126,14 +126,112 @@ export class AdminService {
       .from(customers)
       .innerJoin(users, eq(customers.userId, users.id));
 
-    return results.map(({ customer, user }) => ({
-      id: user.id,
+    // Get booking stats for each customer
+    const customersWithStats = await Promise.all(
+      results.map(async ({ customer, user }) => {
+        const customerBookings = await db
+          .select()
+          .from(bookings)
+          .where(eq(bookings.customerId, customer.id));
+
+        const totalBookings = customerBookings.length;
+        const completedBookings = customerBookings.filter((b) => b.status === 'completed').length;
+        const cancelledBookings = customerBookings.filter((b) => b.status === 'cancelled').length;
+        const totalSpent = customerBookings
+          .filter((b) => b.status === 'completed')
+          .reduce((sum, b) => sum + Number(b.totalFare || 0), 0);
+
+        return {
+          id: customer.id,
+          userId: user.id,
+          mobile: user.mobile,
+          name: user.name,
+          email: user.email || null,
+          createdAt: user.createdAt,
+          totalBookings,
+          completedBookings,
+          cancelledBookings,
+          totalSpent,
+        };
+      })
+    );
+
+    return customersWithStats;
+  }
+
+  /**
+   * Get customer details with bookings and vehicles
+   */
+  async getCustomerDetails(customerId: string): Promise<any> {
+    const [result] = await db
+      .select({
+        customer: customers,
+        user: users,
+      })
+      .from(customers)
+      .innerJoin(users, eq(customers.userId, users.id))
+      .where(eq(customers.id, customerId))
+      .limit(1);
+
+    if (!result) {
+      throw new Error('Customer not found');
+    }
+
+    const { customer, user } = result;
+
+    // Get booking stats
+    const customerBookings = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.customerId, customer.id))
+      .orderBy(desc(bookings.createdAt));
+
+    const totalBookings = customerBookings.length;
+    const completedBookings = customerBookings.filter((b) => b.status === 'completed').length;
+    const cancelledBookings = customerBookings.filter((b) => b.status === 'cancelled').length;
+    const totalSpent = customerBookings
+      .filter((b) => b.status === 'completed')
+      .reduce((sum, b) => sum + Number(b.totalFare || 0), 0);
+
+    // Get recent bookings (last 10)
+    const recentBookings = customerBookings.slice(0, 10).map((booking) => ({
+      id: booking.id,
+      bookingType: booking.bookingType,
+      status: booking.status,
+      pickupAddress: booking.pickupAddress,
+      dropAddress: booking.dropAddress || null,
+      totalFare: Number(booking.totalFare || 0),
+      createdAt: booking.createdAt,
+    }));
+
+    // Get vehicles
+    const customerVehicles = await db
+      .select()
+      .from(vehicleProfiles)
+      .where(eq(vehicleProfiles.customerId, customer.id));
+
+    const vehicles = customerVehicles.map((vehicle) => ({
+      id: vehicle.id,
+      make: vehicle.make,
+      model: vehicle.model,
+      registrationNumber: vehicle.registrationNumber,
+      isDefault: vehicle.isDefault || false,
+    }));
+
+    return {
+      id: customer.id,
+      userId: user.id,
       mobile: user.mobile,
       name: user.name,
-      email: user.email || undefined,
+      email: user.email || null,
       createdAt: user.createdAt,
-      totalBookings: 0, // Will be calculated separately
-    }));
+      totalBookings,
+      completedBookings,
+      cancelledBookings,
+      totalSpent,
+      recentBookings,
+      vehicles,
+    };
   }
 
   /**
