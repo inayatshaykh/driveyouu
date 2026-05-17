@@ -64,11 +64,15 @@
   * {
     border-color: var(--color-border);
   }
+  html {
+    scroll-behavior: smooth;
+  }
   html, body {
     font-family: var(--font-sans);
     background-color: var(--color-background);
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
   .font-mono, .money {
     font-family: var(--font-mono);
