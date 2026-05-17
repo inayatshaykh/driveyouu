@@ -8,7 +8,8 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  AlertCircle
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../../components/ui/button';
@@ -41,6 +42,7 @@ function AdminLayout() {
     { name: 'Drivers', href: '/admin/drivers', icon: Car },
     { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
     { name: 'Customers', href: '/admin/customers', icon: Users },
+    { name: 'SOS Alerts', href: '/admin/sos', icon: AlertCircle },
     { name: 'Pricing', href: '/admin/pricing', icon: Settings },
   ];
 

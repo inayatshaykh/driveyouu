@@ -4,19 +4,20 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { MapPin, Navigation, Phone, Share2, AlertCircle } from 'lucide-react';
 import { useBookingTracking } from '../../hooks/useWebSocket';
+import { SOSAlert } from './SOSAlert';
 import type { Booking, Coordinates } from '../../types';
 
 interface LiveTrackingProps {
   booking: Booking;
-  onSOS?: () => void;
   onShare?: () => void;
 }
 
-export function LiveTracking({ booking, onSOS, onShare }: LiveTrackingProps) {
+export function LiveTracking({ booking, onShare }: LiveTrackingProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [driverMarker, setDriverMarker] = useState<google.maps.Marker | null>(null);
   const [eta, setEta] = useState<string>('Calculating...');
+  const [isSOSOpen, setIsSOSOpen] = useState(false);
   
   // Use WebSocket hook for real-time updates
   const { driverLocation, bookingStatus, isConnected } = useBookingTracking(booking.id);
@@ -260,7 +261,7 @@ export function LiveTracking({ booking, onSOS, onShare }: LiveTrackingProps) {
               <Share2 className="mr-2 h-4 w-4" />
               Share Trip
             </Button>
-            <Button variant="destructive" onClick={onSOS}>
+            <Button variant="destructive" onClick={() => setIsSOSOpen(true)}>
               <AlertCircle className="mr-2 h-4 w-4" />
               SOS
             </Button>
@@ -275,6 +276,13 @@ export function LiveTracking({ booking, onSOS, onShare }: LiveTrackingProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* SOS Alert Dialog */}
+      <SOSAlert
+        booking={booking}
+        isOpen={isSOSOpen}
+        onClose={() => setIsSOSOpen(false)}
+      />
     </div>
   );
 }

@@ -9,8 +9,9 @@ A comprehensive driver booking platform built with modern web technologies. Book
 - **Vehicle Management** - Add and manage multiple vehicles
 - **Smart Booking Flow** - On-demand, scheduled, hourly, and outstation bookings
 - **Live Tracking** - Real-time driver location tracking with Google Maps & WebSocket
+- **SOS Alert System** - Emergency button with instant notifications
+- **Emergency Contacts** - Automatic SMS alerts to saved contacts
 - **Trip History** - View past bookings and receipts
-- **SOS Alert** - Emergency assistance during trips
 - **Trip Sharing** - Share live trip details with family/friends
 
 ### Driver Portal
@@ -26,6 +27,7 @@ A comprehensive driver booking platform built with modern web technologies. Book
 - **Driver Management** - Verify KYC, approve/reject drivers, manage status
 - **Booking Management** - Monitor all bookings, manual driver assignment
 - **Customer Management** - View customer profiles, booking history, vehicles
+- **SOS Alert Management** - Monitor and respond to emergency alerts
 - **Pricing Configuration** - Set pricing rules by city and booking type
 - **Commission Tracking** - Monitor 80/20 revenue split
 - **Real-time Monitoring** - Live driver locations and booking status
@@ -261,6 +263,7 @@ The entire platform is fully responsive and optimized for mobile devices with:
 ## 🚧 Upcoming Features
 
 - [x] WebSocket integration for real-time updates
+- [x] SOS alert system with emergency notifications
 - [ ] Push notifications
 - [ ] In-app chat between customer and driver
 - [ ] Payment gateway integration (Razorpay)
@@ -270,7 +273,6 @@ The entire platform is fully responsive and optimized for mobile devices with:
 - [ ] Multi-language support
 - [ ] Driver heat maps
 - [ ] Advanced analytics and reporting
-- [ ] SOS alert system
 
 ## 📝 Scripts
 
