@@ -264,9 +264,9 @@ The entire platform is fully responsive and optimized for mobile devices with:
 
 - [x] WebSocket integration for real-time updates
 - [x] SOS alert system with emergency notifications
+- [x] Payment gateway integration (Razorpay)
 - [ ] Push notifications
 - [ ] In-app chat between customer and driver
-- [ ] Payment gateway integration (Razorpay)
 - [ ] Automated driver matching algorithm
 - [ ] Rating and review system
 - [ ] Referral program
