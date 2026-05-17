@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -29,6 +29,13 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
   const [step, setStep] = useState<'type' | 'details' | 'confirm'>('type');
   const [isLoading, setIsLoading] = useState(false);
   const [estimatedFare, setEstimatedFare] = useState<number | null>(null);
+  const [mapsLoaded, setMapsLoaded] = useState(false);
+
+  // Refs for Google Maps autocomplete
+  const pickupInputRef = useRef<HTMLInputElement>(null);
+  const dropInputRef = useRef<HTMLInputElement>(null);
+  const pickupAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const dropAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -38,6 +45,90 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
   });
 
   const bookingType = form.watch('bookingType');
+
+  // Initialize Google Maps Places Autocomplete - runs only once
+  useEffect(() => {
+    // Check if Google Maps is already loaded
+    if (window.google?.maps?.places) {
+      setMapsLoaded(true);
+      return;
+    }
+
+    // Check if script is already being loaded
+    if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+      // Wait for it to load
+      const checkInterval = setInterval(() => {
+        if (window.google?.maps?.places) {
+          setMapsLoaded(true);
+          clearInterval(checkInterval);
+        }
+      }, 100);
+      return () => clearInterval(checkInterval);
+    }
+
+    // Load Google Maps script
+    try {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        setMapsLoaded(true);
+      };
+      script.onerror = (e) => {
+        console.error('Failed to load Google Maps script', e);
+        toast.error('Failed to load maps. Please refresh the page.');
+      };
+      document.head.appendChild(script);
+    } catch (error) {
+      console.error('Error loading Google Maps:', error);
+    }
+  }, []);
+
+  // Initialize autocomplete on inputs when Maps API is ready
+  useEffect(() => {
+    if (!mapsLoaded || !window.google?.maps?.places) return;
+
+    try {
+      // Initialize pickup autocomplete
+      if (pickupInputRef.current && !pickupAutocompleteRef.current) {
+        pickupAutocompleteRef.current = new google.maps.places.Autocomplete(
+          pickupInputRef.current,
+          {
+            componentRestrictions: { country: 'in' },
+            fields: ['address_components', 'geometry', 'formatted_address'],
+          }
+        );
+
+        pickupAutocompleteRef.current.addListener('place_changed', () => {
+          const place = pickupAutocompleteRef.current?.getPlace();
+          if (place?.formatted_address) {
+            form.setValue('pickupAddress', place.formatted_address);
+          }
+        });
+      }
+
+      // Initialize drop autocomplete
+      if (dropInputRef.current && !dropAutocompleteRef.current) {
+        dropAutocompleteRef.current = new google.maps.places.Autocomplete(
+          dropInputRef.current,
+          {
+            componentRestrictions: { country: 'in' },
+            fields: ['address_components', 'geometry', 'formatted_address'],
+          }
+        );
+
+        dropAutocompleteRef.current.addListener('place_changed', () => {
+          const place = dropAutocompleteRef.current?.getPlace();
+          if (place?.formatted_address) {
+            form.setValue('dropAddress', place.formatted_address);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error initializing autocomplete:', error);
+    }
+  }, [mapsLoaded, form]);
 
   const handleCreateBooking = async (data: BookingFormData) => {
     setIsLoading(true);
@@ -184,10 +275,12 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
                 <div className="flex gap-2">
                   <MapPin className="h-5 w-5 text-muted-foreground" />
                   <input
+                    ref={pickupInputRef}
                     id="pickupAddress"
                     type="text"
-                    placeholder="Enter pickup address"
-                    className="flex-1 rounded-md border px-3 py-2"
+                    placeholder={mapsLoaded ? "Enter pickup address" : "Loading..."}
+                    disabled={!mapsLoaded}
+                    className="flex-1 rounded-md border px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     {...form.register('pickupAddress')}
                   />
                 </div>
@@ -205,10 +298,12 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
                   <div className="flex gap-2">
                     <MapPin className="h-5 w-5 text-muted-foreground" />
                     <input
+                      ref={dropInputRef}
                       id="dropAddress"
                       type="text"
-                      placeholder="Enter drop address"
-                      className="flex-1 rounded-md border px-3 py-2"
+                      placeholder={mapsLoaded ? "Enter drop address" : "Loading..."}
+                      disabled={!mapsLoaded}
+                      className="flex-1 rounded-md border px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       {...form.register('dropAddress')}
                     />
                   </div>

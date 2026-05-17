@@ -189,6 +189,124 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* PREMIUM CHAUFFEUR SERVICES */}
+      <section className="bg-slate-900 text-white py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-4xl font-black text-yellow-400 text-center mb-12 uppercase tracking-wide">
+            Premium Chauffeur Services
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Card 1 */}
+            <div className="bg-slate-800 rounded-2xl p-6 border border-yellow-400/20">
+              <div className="text-4xl mb-3">🛡️</div>
+              <h3 className="text-yellow-400 font-bold text-lg mb-2">Trust & Safety First</h3>
+              <div className="text-gray-300 text-sm space-y-1">
+                <p>• Your Journey, Our Responsibility</p>
+                <p>• Safe Rides. Every Time.</p>
+                <p>• Where Reliability Meets the Road</p>
+              </div>
+            </div>
+
+            {/* Card 2 */}
+            <div className="bg-slate-800 rounded-2xl p-6 border border-yellow-400/20">
+              <div className="text-4xl mb-3">👔</div>
+              <h3 className="text-yellow-400 font-bold text-lg mb-2">Professional & Premium</h3>
+              <div className="text-gray-300 text-sm space-y-1">
+                <p>• Driven by Excellence</p>
+                <p>• Arrive in Style, Arrive on Time</p>
+                <p>• The Professional Way to Travel</p>
+              </div>
+            </div>
+
+            {/* Card 3 */}
+            <div className="bg-slate-800 rounded-2xl p-6 border border-yellow-400/20">
+              <div className="text-4xl mb-3">🤝</div>
+              <h3 className="text-yellow-400 font-bold text-lg mb-2">Friendly & Local</h3>
+              <div className="text-gray-300 text-sm space-y-1">
+                <p>• Your City, Our Drivers</p>
+                <p>• Yes Boss, We're On The Way</p>
+                <p>• Neighbours Driving Neighbours</p>
+              </div>
+            </div>
+
+            {/* Card 4 */}
+            <div className="bg-slate-800 rounded-2xl p-6 border border-yellow-400/20">
+              <div className="text-4xl mb-3">⚡</div>
+              <h3 className="text-yellow-400 font-bold text-lg mb-2">Speed & Convenience</h3>
+              <div className="text-gray-300 text-sm space-y-1">
+                <p>• One Call. We're There.</p>
+                <p>• Skip the Hassle, Book a Driver</p>
+                <p>• Your Destination, No Detours</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-yellow-400 text-black rounded-xl p-4 text-center mt-8 font-semibold max-w-3xl mx-auto">
+            Explore at your own pace: Hourly Rates · Daily Packages · Multi-Day Tours
+          </div>
+        </div>
+      </section>
+
+      {/* OUR TAILORED CHAUFFEUR SERVICES */}
+      <section className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-3xl font-black text-slate-900 text-center mb-12">
+            Our Tailored Chauffeur Services
+          </h2>
+
+          <div className="max-w-2xl mx-auto space-y-6">
+            {/* Card 1: Hourly */}
+            <div className="bg-slate-900 text-white rounded-2xl p-6 flex gap-4 items-start">
+              <div className="text-4xl">🕐</div>
+              <div className="flex-1">
+                <h3 className="text-yellow-400 font-black text-xl">HOURLY BASIS</h3>
+                <p className="text-gray-400 text-sm">(By The Hour)</p>
+                <p className="text-gray-300 text-sm mt-2">
+                  Perfect for city meetings, shopping trips, or quick transfers. 
+                  Minimum booking applies. Flexible, on-demand service.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 2: Daily */}
+            <div className="bg-slate-900 text-white rounded-2xl p-6 flex gap-4 items-start">
+              <div className="text-4xl">📅</div>
+              <div className="flex-1">
+                <h3 className="text-yellow-400 font-black text-xl">DAILY BASIS</h3>
+                <p className="text-gray-400 text-sm">(Full Day Rental)</p>
+                <p className="text-gray-300 text-sm mt-2">
+                  Complete mobility for 8-12 hours. Business itineraries, 
+                  sightseeing tours, and multi-stop engagements. All-inclusive daily rate.
+                </p>
+              </div>
+            </div>
+
+            {/* Card 3: Multiple Day */}
+            <div className="bg-slate-900 text-white rounded-2xl p-6 flex gap-4 items-start">
+              <div className="text-4xl">🗺️</div>
+              <div className="flex-1">
+                <h3 className="text-yellow-400 font-black text-xl">MULTIPLE DAY</h3>
+                <p className="text-gray-400 text-sm">(Extended Engagements)</p>
+                <p className="text-gray-300 text-sm mt-2">
+                  Long-distance travel, corporate roadshows, and leisure getaways. 
+                  Travel with confidence across cities. Custom pricing and vehicle consistency.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-10 text-center">
+            <Link 
+              to="/booking" 
+              className="inline-block bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-lg px-12 py-4 rounded-full transition-all hover:scale-105"
+            >
+              Book Your Chauffeur →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* HOW IT WORKS */}
       <section id="how-it-works" className="bg-white py-20">
         <div className="max-w-7xl mx-auto px-6">
