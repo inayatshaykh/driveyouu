@@ -7,8 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { toast } from 'sonner';
-import { MapPin, Calendar, Clock, Car } from 'lucide-react';
+import { MapPin, Calendar, Clock, Car, Loader2 } from 'lucide-react';
 import type { BookingType, Location } from '../../types';
+
+interface LocationSuggestion {
+  name: string;
+  lat: number;
+  lon: number;
+}
 
 const bookingSchema = z.object({
   bookingType: z.enum(['on-demand', 'scheduled', 'hourly', 'outstation']),
@@ -29,13 +35,19 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
   const [step, setStep] = useState<'type' | 'details' | 'confirm'>('type');
   const [isLoading, setIsLoading] = useState(false);
   const [estimatedFare, setEstimatedFare] = useState<number | null>(null);
-  const [mapsLoaded, setMapsLoaded] = useState(false);
-
-  // Refs for Google Maps autocomplete
-  const pickupInputRef = useRef<HTMLInputElement>(null);
-  const dropInputRef = useRef<HTMLInputElement>(null);
-  const pickupAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const dropAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  
+  // Location autocomplete states
+  const [pickupQuery, setPickupQuery] = useState('');
+  const [dropQuery, setDropQuery] = useState('');
+  const [pickupSuggestions, setPickupSuggestions] = useState<LocationSuggestion[]>([]);
+  const [dropSuggestions, setDropSuggestions] = useState<LocationSuggestion[]>([]);
+  const [showPickupDropdown, setShowPickupDropdown] = useState(false);
+  const [showDropDropdown, setShowDropDropdown] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Refs for debouncing
+  const pickupDebounceRef = useRef<NodeJS.Timeout>();
+  const dropDebounceRef = useRef<NodeJS.Timeout>();
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -46,89 +58,96 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
 
   const bookingType = form.watch('bookingType');
 
-  // Initialize Google Maps Places Autocomplete - runs only once
-  useEffect(() => {
-    // Check if Google Maps is already loaded
-    if (window.google?.maps?.places) {
-      setMapsLoaded(true);
+  // Search locations using Nominatim API
+  const searchLocation = async (query: string) => {
+    if (query.length < 4) return [];
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&countrycodes=in`,
+      { headers: { 'Accept-Language': 'en' } }
+    );
+    const data = await res.json();
+    return data.map((item: any) => ({
+      name: item.display_name.split(',').slice(0, 2).join(','),
+      lat: parseFloat(item.lat),
+      lon: parseFloat(item.lon),
+    }));
+  };
+
+  // Debounced search handlers
+  const handlePickupChange = async (value: string) => {
+    setPickupQuery(value);
+    form.setValue('pickupAddress', value);
+    
+    if (pickupDebounceRef.current) clearTimeout(pickupDebounceRef.current);
+    
+    if (value.length < 4) {
+      setPickupSuggestions([]);
+      setShowPickupDropdown(false);
       return;
     }
+    
+    pickupDebounceRef.current = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const suggestions = await searchLocation(value);
+        setPickupSuggestions(suggestions);
+        setShowPickupDropdown(suggestions.length > 0);
+      } catch (error) {
+        console.error('Error searching location:', error);
+        toast.error('Failed to search location');
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+  };
 
-    // Check if script is already being loaded
-    if (document.querySelector('script[src*="maps.googleapis.com"]')) {
-      // Wait for it to load
-      const checkInterval = setInterval(() => {
-        if (window.google?.maps?.places) {
-          setMapsLoaded(true);
-          clearInterval(checkInterval);
-        }
-      }, 100);
-      return () => clearInterval(checkInterval);
+  const handleDropChange = async (value: string) => {
+    setDropQuery(value);
+    form.setValue('dropAddress', value);
+    
+    if (dropDebounceRef.current) clearTimeout(dropDebounceRef.current);
+    
+    if (value.length < 4) {
+      setDropSuggestions([]);
+      setShowDropDropdown(false);
+      return;
     }
+    
+    dropDebounceRef.current = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const suggestions = await searchLocation(value);
+        setDropSuggestions(suggestions);
+        setShowDropDropdown(suggestions.length > 0);
+      } catch (error) {
+        console.error('Error searching location:', error);
+        toast.error('Failed to search location');
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+  };
 
-    // Load Google Maps script
-    try {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        setMapsLoaded(true);
-      };
-      script.onerror = (e) => {
-        console.error('Failed to load Google Maps script', e);
-        toast.error('Failed to load maps. Please refresh the page.');
-      };
-      document.head.appendChild(script);
-    } catch (error) {
-      console.error('Error loading Google Maps:', error);
-    }
-  }, []);
+  // Select location from suggestions
+  const selectPickup = (suggestion: LocationSuggestion) => {
+    setPickupQuery(suggestion.name);
+    form.setValue('pickupAddress', suggestion.name);
+    setShowPickupDropdown(false);
+  };
 
-  // Initialize autocomplete on inputs when Maps API is ready
+  const selectDrop = (suggestion: LocationSuggestion) => {
+    setDropQuery(suggestion.name);
+    form.setValue('dropAddress', suggestion.name);
+    setShowDropDropdown(false);
+  };
+
+  // Cleanup debounce timers
   useEffect(() => {
-    if (!mapsLoaded || !window.google?.maps?.places) return;
-
-    try {
-      // Initialize pickup autocomplete
-      if (pickupInputRef.current && !pickupAutocompleteRef.current) {
-        pickupAutocompleteRef.current = new google.maps.places.Autocomplete(
-          pickupInputRef.current,
-          {
-            componentRestrictions: { country: 'in' },
-            fields: ['address_components', 'geometry', 'formatted_address'],
-          }
-        );
-
-        pickupAutocompleteRef.current.addListener('place_changed', () => {
-          const place = pickupAutocompleteRef.current?.getPlace();
-          if (place?.formatted_address) {
-            form.setValue('pickupAddress', place.formatted_address);
-          }
-        });
-      }
-
-      // Initialize drop autocomplete
-      if (dropInputRef.current && !dropAutocompleteRef.current) {
-        dropAutocompleteRef.current = new google.maps.places.Autocomplete(
-          dropInputRef.current,
-          {
-            componentRestrictions: { country: 'in' },
-            fields: ['address_components', 'geometry', 'formatted_address'],
-          }
-        );
-
-        dropAutocompleteRef.current.addListener('place_changed', () => {
-          const place = dropAutocompleteRef.current?.getPlace();
-          if (place?.formatted_address) {
-            form.setValue('dropAddress', place.formatted_address);
-          }
-        });
-      }
-    } catch (error) {
-      console.error('Error initializing autocomplete:', error);
-    }
-  }, [mapsLoaded, form]);
+    return () => {
+      if (pickupDebounceRef.current) clearTimeout(pickupDebounceRef.current);
+      if (dropDebounceRef.current) clearTimeout(dropDebounceRef.current);
+    };
+  }, []);
 
   const handleCreateBooking = async (data: BookingFormData) => {
     setIsLoading(true);
@@ -270,43 +289,81 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
           <CardContent>
             <form onSubmit={form.handleSubmit(handleCreateBooking)} className="space-y-4">
               {/* Pickup Location */}
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label htmlFor="pickupAddress">Pickup Location</Label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 relative">
                   <MapPin className="h-5 w-5 text-muted-foreground" />
                   <input
-                    ref={pickupInputRef}
                     id="pickupAddress"
                     type="text"
-                    placeholder={mapsLoaded ? "Enter pickup address" : "Loading..."}
-                    disabled={!mapsLoaded}
-                    className="flex-1 rounded-md border px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    {...form.register('pickupAddress')}
+                    value={pickupQuery}
+                    onChange={(e) => handlePickupChange(e.target.value)}
+                    onFocus={() => pickupSuggestions.length > 0 && setShowPickupDropdown(true)}
+                    placeholder="Enter 4 letters to search location"
+                    className="flex-1 rounded-md border px-3 py-2"
                   />
+                  {isSearching && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin" />
+                  )}
                 </div>
                 {form.formState.errors.pickupAddress && (
                   <p className="text-sm text-destructive">
                     {form.formState.errors.pickupAddress.message}
                   </p>
                 )}
+                
+                {/* Pickup Suggestions Dropdown */}
+                {showPickupDropdown && pickupSuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto">
+                    {pickupSuggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => selectPickup(suggestion)}
+                        className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                      >
+                        <div className="font-semibold text-sm text-gray-900">{suggestion.name}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Drop Location (not for hourly) */}
               {bookingType !== 'hourly' && (
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <Label htmlFor="dropAddress">Drop Location</Label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 relative">
                     <MapPin className="h-5 w-5 text-muted-foreground" />
                     <input
-                      ref={dropInputRef}
                       id="dropAddress"
                       type="text"
-                      placeholder={mapsLoaded ? "Enter drop address" : "Loading..."}
-                      disabled={!mapsLoaded}
-                      className="flex-1 rounded-md border px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      {...form.register('dropAddress')}
+                      value={dropQuery}
+                      onChange={(e) => handleDropChange(e.target.value)}
+                      onFocus={() => dropSuggestions.length > 0 && setShowDropDropdown(true)}
+                      placeholder="Enter 4 letters to search location"
+                      className="flex-1 rounded-md border px-3 py-2"
                     />
+                    {isSearching && (
+                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin" />
+                    )}
                   </div>
+                  
+                  {/* Drop Suggestions Dropdown */}
+                  {showDropDropdown && dropSuggestions.length > 0 && (
+                    <div className="absolute z-50 w-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto">
+                      {dropSuggestions.map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => selectDrop(suggestion)}
+                          className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                        >
+                          <div className="font-semibold text-sm text-gray-900">{suggestion.name}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
