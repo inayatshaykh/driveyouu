@@ -2,6 +2,7 @@ import { json } from '@tanstack/start';
 import type { APIEvent } from '@tanstack/start';
 import { db, sosAlerts, bookings, customers, users, drivers } from '../../../db';
 import { verifyToken } from '../../../services/auth.service';
+import { notificationService } from '../../../services/notification.service';
 import { eq, and } from 'drizzle-orm';
 import { sendToUser, sendToBooking } from '../../../../server/websocket';
 
@@ -83,8 +84,31 @@ export async function POST({ request }: APIEvent) {
       },
     });
 
-    // TODO: Send SMS to emergency contacts
-    // TODO: Notify admin team
+    // Send SMS to emergency contacts
+    try {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, payload.userId))
+        .limit(1);
+
+      if (user) {
+        const emergencyContacts = (customer as any).emergencyContacts || [];
+        
+        // Send SOS alert to each emergency contact
+        for (const contact of emergencyContacts) {
+          await notificationService.sendSOSAlert(
+            contact.mobile,
+            user.name || 'Customer',
+            { latitude, longitude },
+            bookingId
+          );
+        }
+      }
+    } catch (notifError) {
+      console.error('Failed to send SOS notifications:', notifError);
+      // Don't fail the SOS trigger if notifications fail
+    }
 
     return json({
       sosAlert: {

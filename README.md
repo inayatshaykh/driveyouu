@@ -13,6 +13,8 @@ A comprehensive driver booking platform built with modern web technologies. Book
 - **Emergency Contacts** - Automatic SMS alerts to saved contacts
 - **Trip History** - View past bookings and receipts
 - **Trip Sharing** - Share live trip details with family/friends
+- **Payment Integration** - Multiple payment methods via Razorpay
+- **Notification Preferences** - Customize SMS, push, and email notifications
 
 ### Driver Portal
 - **KYC Upload System** - Upload Aadhaar, PAN, License, RC, and photo
@@ -265,7 +267,7 @@ The entire platform is fully responsive and optimized for mobile devices with:
 - [x] WebSocket integration for real-time updates
 - [x] SOS alert system with emergency notifications
 - [x] Payment gateway integration (Razorpay)
-- [ ] Push notifications
+- [x] Notification system with SMS and push notifications
 - [ ] In-app chat between customer and driver
 - [ ] Automated driver matching algorithm
 - [ ] Rating and review system

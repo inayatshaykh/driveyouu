@@ -2,6 +2,7 @@ import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { bookingService } from '../../../../services/booking.service';
 import { authService } from '../../../../services/auth.service';
+import { notificationService } from '../../../../services/notification.service';
 import { z } from 'zod';
 
 const createBookingSchema = z.object({
@@ -57,6 +58,19 @@ export const Route = createAPIFileRoute('/api/customer/bookings/')({
       const bookingData = createBookingSchema.parse(body);
 
       const result = await bookingService.createBooking(user.id, bookingData);
+
+      // Send booking confirmation notification
+      try {
+        await notificationService.sendBookingConfirmation(
+          user.mobile,
+          result.booking.id,
+          bookingData.pickupLocation.address,
+          bookingData.scheduledTime ? new Date(bookingData.scheduledTime) : undefined
+        );
+      } catch (notifError) {
+        console.error('Failed to send booking confirmation:', notifError);
+        // Don't fail the booking if notification fails
+      }
 
       return json(result, { status: 201 });
     } catch (error: any) {
