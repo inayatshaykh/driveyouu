@@ -23,17 +23,17 @@ import { useState } from "react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "UR's Chauffeur — Professional Drivers for Your Own Car | North India" },
+      { title: "UR's Chauffeur — Premium Cab Service with Driver | North India" },
       {
         name: "description",
         content:
-          "Book a police-verified professional chauffeur to drive your own car. On-demand, scheduled, hourly, airport & outstation across North India. 30-min arrival.",
+          "Book a complete cab service with verified driver. We provide the car + driver. On-demand, scheduled, hourly, airport & outstation across North India. 30-min arrival.",
       },
-      { property: "og:title", content: "UR's Chauffeur — Your Car. Our Driver." },
+      { property: "og:title", content: "UR's Chauffeur — We Provide Car + Driver" },
       {
         property: "og:description",
         content:
-          "Premium on-demand chauffeur service across North India. Police-verified, background-checked drivers in 30 minutes.",
+          "Premium cab service with verified drivers across North India. We provide the vehicle + driver — you just sit back.",
       },
     ],
   }),
@@ -148,16 +148,16 @@ function LandingPage() {
       <section className="min-h-screen flex items-center justify-center text-center px-6 py-20 bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight">
-            Your Car. Our Driver. Anytime.
+            We Provide Car + Driver. Anytime.
           </h1>
           <p className="text-xl text-gray-300 mt-4 max-w-xl mx-auto">
-            Background-verified chauffeurs at your doorstep — across North India
+            Complete cab service with background-verified drivers — across North India
           </p>
           <Link 
             to="/booking" 
             className="mt-8 inline-block bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-lg px-10 py-4 rounded-full transition-all duration-200 shadow-lg hover:shadow-yellow-400/40 hover:scale-105"
           >
-            Book a Driver →
+            Book a Cab →
           </Link>
           <p className="mt-5 text-gray-400 text-sm">
             ⭐ 4.8 Rated  ·  500+ Verified Drivers  ·  Across North India
@@ -327,7 +327,7 @@ function LandingPage() {
             <div className="rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
               <div className="text-5xl mb-4">🌟</div>
               <h3 className="text-xl font-bold text-primary mb-3">Sit Back & Relax</h3>
-              <p className="text-muted-foreground">Your driver arrives in your own car. You enjoy the ride.</p>
+              <p className="text-muted-foreground">We provide the car + driver. You just sit back and enjoy the ride.</p>
             </div>
           </div>
         </div>
@@ -404,10 +404,10 @@ function LandingPage() {
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold">Ready for your next ride?</h2>
           <p className="mt-3 text-white/80">
-            A verified chauffeur is 30 minutes away. Your car stays with you.
+            A verified cab with driver is 30 minutes away. We provide the vehicle + driver.
           </p>
           <Link to="/booking" className="btn-saffron mt-6 inline-flex px-8">
-            Book a Driver <ArrowRight size={18} />
+            Book a Cab <ArrowRight size={18} />
           </Link>
         </div>
       </section>
