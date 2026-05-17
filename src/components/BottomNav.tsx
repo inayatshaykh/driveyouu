@@ -1,13 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Car, Wallet, User } from "lucide-react";
+import { Home, Car, History, Shield, User } from "lucide-react";
 
 export function BottomNav() {
   const path = useRouterState({ select: (r) => r.location.pathname });
   const items = [
-    { to: "/", label: "Home", icon: Home },
-    { to: "/rides", label: "My Rides", icon: Car },
-    { to: "/wallet", label: "Wallet", icon: Wallet },
-    { to: "/profile", label: "Profile", icon: User },
+    { to: "/customer", label: "Home", icon: Home },
+    { to: "/customer/history", label: "History", icon: History },
+    { to: "/customer/emergency", label: "Safety", icon: Shield },
+    { to: "/customer/profile", label: "Profile", icon: User },
   ];
   return (
     <nav className="absolute bottom-0 left-0 right-0 bg-white border-t border-border shadow-[0_-4px_14px_-6px_rgba(26,60,94,0.12)] px-2 py-2 flex items-center justify-around">

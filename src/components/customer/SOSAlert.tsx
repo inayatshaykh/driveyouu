@@ -157,7 +157,9 @@ export function SOSAlert({ booking, isOpen, onClose }: SOSAlertProps) {
   };
 
   const callEmergency = () => {
-    window.location.href = 'tel:112'; // Emergency number in India
+    // Get emergency contacts from customer profile
+    // For now, show a message to add emergency contacts
+    toast.info('Please add emergency contacts in your profile settings');
   };
 
   return (
@@ -219,10 +221,9 @@ export function SOSAlert({ booking, isOpen, onClose }: SOSAlertProps) {
                   Trigger SOS Alert
                 </Button>
 
-                <Button variant="outline" className="w-full" onClick={callEmergency}>
-                  <Phone className="mr-2 h-4 w-4" />
-                  Call Emergency (112)
-                </Button>
+                <p className="text-center text-xs text-muted-foreground">
+                  Make sure you have added emergency contacts in your profile
+                </p>
               </div>
             </>
           )}
@@ -294,14 +295,13 @@ export function SOSAlert({ booking, isOpen, onClose }: SOSAlertProps) {
               </div>
 
               <div className="space-y-2">
-                <Button variant="outline" className="w-full" onClick={callEmergency}>
-                  <Phone className="mr-2 h-4 w-4" />
-                  Call Emergency (112)
-                </Button>
-
                 <Button variant="default" className="w-full" onClick={handleResolveSOS}>
                   Mark as Safe / Resolve Alert
                 </Button>
+
+                <p className="text-center text-xs text-muted-foreground">
+                  Your emergency contacts have been notified
+                </p>
               </div>
 
               <p className="text-center text-xs text-muted-foreground">
