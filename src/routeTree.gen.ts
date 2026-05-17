@@ -11,42 +11,235 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminSosRouteImport } from './routes/admin/sos'
+import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
+import { Route as AdminPricingRouteImport } from './routes/admin/pricing'
+import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
+import { Route as AdminDriversRouteImport } from './routes/admin/drivers'
+import { Route as CustomerIndexRouteImport } from './routes/customer/index'
+import { Route as CustomerProfileRouteImport } from './routes/customer/profile'
+import { Route as CustomerNotificationsRouteImport } from './routes/customer/notifications'
+import { Route as CustomerEmergencyRouteImport } from './routes/customer/emergency'
 
 const BookingRoute = BookingRouteImport.update({
   id: '/booking',
   path: '/booking',
   getParentRoute: () => rootRouteImport,
 } as any)
+
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminIndexRoute,
+} as any)
+
+const AdminSosRoute = AdminSosRouteImport.update({
+  id: '/sos',
+  path: '/sos',
+  getParentRoute: () => AdminIndexRoute,
+} as any)
+
+const AdminCustomersRoute = AdminCustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => AdminIndexRoute,
+} as any)
+
+const AdminPricingRoute = AdminPricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => AdminIndexRoute,
+} as any)
+
+const AdminBookingsRoute = AdminBookingsRouteImport.update({
+  id: '/bookings',
+  path: '/bookings',
+  getParentRoute: () => AdminIndexRoute,
+} as any)
+
+const AdminDriversRoute = AdminDriversRouteImport.update({
+  id: '/drivers',
+  path: '/drivers',
+  getParentRoute: () => AdminIndexRoute,
+} as any)
+
+const CustomerIndexRoute = CustomerIndexRouteImport.update({
+  id: '/customer',
+  path: '/customer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const CustomerProfileRoute = CustomerProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => CustomerIndexRoute,
+} as any)
+
+const CustomerNotificationsRoute = CustomerNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => CustomerIndexRoute,
+} as any)
+
+const CustomerEmergencyRoute = CustomerEmergencyRouteImport.update({
+  id: '/emergency',
+  path: '/emergency',
+  getParentRoute: () => CustomerIndexRoute,
+} as any)
+
+interface AdminIndexRouteChildren {
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminSosRoute: typeof AdminSosRoute
+  AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminPricingRoute: typeof AdminPricingRoute
+  AdminBookingsRoute: typeof AdminBookingsRoute
+  AdminDriversRoute: typeof AdminDriversRoute
+}
+
+const AdminIndexRouteChildren: AdminIndexRouteChildren = {
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminSosRoute: AdminSosRoute,
+  AdminCustomersRoute: AdminCustomersRoute,
+  AdminPricingRoute: AdminPricingRoute,
+  AdminBookingsRoute: AdminBookingsRoute,
+  AdminDriversRoute: AdminDriversRoute,
+}
+
+const AdminIndexRouteWithChildren = AdminIndexRoute._addFileChildren(
+  AdminIndexRouteChildren,
+)
+
+interface CustomerIndexRouteChildren {
+  CustomerProfileRoute: typeof CustomerProfileRoute
+  CustomerNotificationsRoute: typeof CustomerNotificationsRoute
+  CustomerEmergencyRoute: typeof CustomerEmergencyRoute
+}
+
+const CustomerIndexRouteChildren: CustomerIndexRouteChildren = {
+  CustomerProfileRoute: CustomerProfileRoute,
+  CustomerNotificationsRoute: CustomerNotificationsRoute,
+  CustomerEmergencyRoute: CustomerEmergencyRoute,
+}
+
+const CustomerIndexRouteWithChildren = CustomerIndexRoute._addFileChildren(
+  CustomerIndexRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/admin': typeof AdminIndexRouteWithChildren
+  '/admin/': typeof AdminDashboardRoute
+  '/admin/sos': typeof AdminSosRoute
+  '/admin/customers': typeof AdminCustomersRoute
+  '/admin/pricing': typeof AdminPricingRoute
+  '/admin/bookings': typeof AdminBookingsRoute
+  '/admin/drivers': typeof AdminDriversRoute
+  '/customer': typeof CustomerIndexRouteWithChildren
+  '/customer/profile': typeof CustomerProfileRoute
+  '/customer/notifications': typeof CustomerNotificationsRoute
+  '/customer/emergency': typeof CustomerEmergencyRoute
 }
+
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/admin': typeof AdminDashboardRoute
+  '/admin/sos': typeof AdminSosRoute
+  '/admin/customers': typeof AdminCustomersRoute
+  '/admin/pricing': typeof AdminPricingRoute
+  '/admin/bookings': typeof AdminBookingsRoute
+  '/admin/drivers': typeof AdminDriversRoute
+  '/customer': typeof CustomerIndexRouteWithChildren
+  '/customer/profile': typeof CustomerProfileRoute
+  '/customer/notifications': typeof CustomerNotificationsRoute
+  '/customer/emergency': typeof CustomerEmergencyRoute
 }
+
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/admin': typeof AdminIndexRouteWithChildren
+  '/admin/': typeof AdminDashboardRoute
+  '/admin/sos': typeof AdminSosRoute
+  '/admin/customers': typeof AdminCustomersRoute
+  '/admin/pricing': typeof AdminPricingRoute
+  '/admin/bookings': typeof AdminBookingsRoute
+  '/admin/drivers': typeof AdminDriversRoute
+  '/customer': typeof CustomerIndexRouteWithChildren
+  '/customer/profile': typeof CustomerProfileRoute
+  '/customer/notifications': typeof CustomerNotificationsRoute
+  '/customer/emergency': typeof CustomerEmergencyRoute
 }
+
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/booking'
+  fullPaths:
+    | '/'
+    | '/booking'
+    | '/admin'
+    | '/admin/'
+    | '/admin/sos'
+    | '/admin/customers'
+    | '/admin/pricing'
+    | '/admin/bookings'
+    | '/admin/drivers'
+    | '/customer'
+    | '/customer/profile'
+    | '/customer/notifications'
+    | '/customer/emergency'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/booking'
-  id: '__root__' | '/' | '/booking'
+  to:
+    | '/'
+    | '/booking'
+    | '/admin'
+    | '/admin/sos'
+    | '/admin/customers'
+    | '/admin/pricing'
+    | '/admin/bookings'
+    | '/admin/drivers'
+    | '/customer'
+    | '/customer/profile'
+    | '/customer/notifications'
+    | '/customer/emergency'
+  id:
+    | '__root__'
+    | '/'
+    | '/booking'
+    | '/admin'
+    | '/admin/'
+    | '/admin/sos'
+    | '/admin/customers'
+    | '/admin/pricing'
+    | '/admin/bookings'
+    | '/admin/drivers'
+    | '/customer'
+    | '/customer/profile'
+    | '/customer/notifications'
+    | '/customer/emergency'
   fileRoutesById: FileRoutesById
 }
+
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookingRoute: typeof BookingRoute
+  AdminIndexRoute: typeof AdminIndexRouteWithChildren
+  CustomerIndexRoute: typeof CustomerIndexRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -65,13 +258,93 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof AdminIndexRoute
+    }
+    '/admin/sos': {
+      id: '/admin/sos'
+      path: '/sos'
+      fullPath: '/admin/sos'
+      preLoaderRoute: typeof AdminSosRouteImport
+      parentRoute: typeof AdminIndexRoute
+    }
+    '/admin/customers': {
+      id: '/admin/customers'
+      path: '/customers'
+      fullPath: '/admin/customers'
+      preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof AdminIndexRoute
+    }
+    '/admin/pricing': {
+      id: '/admin/pricing'
+      path: '/pricing'
+      fullPath: '/admin/pricing'
+      preLoaderRoute: typeof AdminPricingRouteImport
+      parentRoute: typeof AdminIndexRoute
+    }
+    '/admin/bookings': {
+      id: '/admin/bookings'
+      path: '/bookings'
+      fullPath: '/admin/bookings'
+      preLoaderRoute: typeof AdminBookingsRouteImport
+      parentRoute: typeof AdminIndexRoute
+    }
+    '/admin/drivers': {
+      id: '/admin/drivers'
+      path: '/drivers'
+      fullPath: '/admin/drivers'
+      preLoaderRoute: typeof AdminDriversRouteImport
+      parentRoute: typeof AdminIndexRoute
+    }
+    '/customer': {
+      id: '/customer'
+      path: '/customer'
+      fullPath: '/customer'
+      preLoaderRoute: typeof CustomerIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/customer/profile': {
+      id: '/customer/profile'
+      path: '/profile'
+      fullPath: '/customer/profile'
+      preLoaderRoute: typeof CustomerProfileRouteImport
+      parentRoute: typeof CustomerIndexRoute
+    }
+    '/customer/notifications': {
+      id: '/customer/notifications'
+      path: '/notifications'
+      fullPath: '/customer/notifications'
+      preLoaderRoute: typeof CustomerNotificationsRouteImport
+      parentRoute: typeof CustomerIndexRoute
+    }
+    '/customer/emergency': {
+      id: '/customer/emergency'
+      path: '/emergency'
+      fullPath: '/customer/emergency'
+      preLoaderRoute: typeof CustomerEmergencyRouteImport
+      parentRoute: typeof CustomerIndexRoute
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookingRoute: BookingRoute,
+  AdminIndexRoute: AdminIndexRouteWithChildren,
+  CustomerIndexRoute: CustomerIndexRouteWithChildren,
 }
+
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
