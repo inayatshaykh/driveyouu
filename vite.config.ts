@@ -21,8 +21,10 @@ export default defineConfig({
     rollupOptions: {
       external: ['pg', 'drizzle-orm', 'ws', 'jsonwebtoken', 'bcryptjs'],
     },
+    outDir: 'dist',
   },
   ssr: {
-    noExternal: ['@tanstack/react-start'],
+    noExternal: ['@tanstack/react-router', '@tanstack/react-query'],
+    external: ['pg', 'drizzle-orm', 'ws', 'jsonwebtoken', 'bcryptjs'],
   },
 });
