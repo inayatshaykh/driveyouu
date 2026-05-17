@@ -1,0 +1,124 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: "Poppins", system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+}
+
+:root {
+  --radius: 1rem;
+  /* UR's Chauffeur palette */
+  --background: oklch(0.972 0.005 250);          /* #F4F6FA */
+  --foreground: oklch(0.18 0.03 270);             /* #1A1A2E */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.03 270);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.03 270);
+  --primary: oklch(0.34 0.06 245);                /* #1A3C5E deep blue */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0.01 250);
+  --secondary-foreground: oklch(0.18 0.03 270);
+  --muted: oklch(0.95 0.01 250);
+  --muted-foreground: oklch(0.5 0.02 250);        /* #5A6A7A */
+  --accent: oklch(0.78 0.15 75);                  /* #F5A623 saffron */
+  --accent-foreground: oklch(0.18 0.03 270);
+  --success: oklch(0.62 0.18 145);                /* #16A34A */
+  --destructive: oklch(0.6 0.22 27);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.92 0.01 250);
+  --input: oklch(0.92 0.01 250);
+  --ring: oklch(0.78 0.15 75);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html, body {
+    font-family: var(--font-sans);
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+  .font-mono, .money {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum";
+  }
+}
+
+@layer components {
+  .btn-saffron {
+    background-color: var(--color-accent);
+    color: var(--color-accent-foreground);
+    font-weight: 600;
+    border-radius: 9999px;
+    height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: transform .15s ease, filter .15s ease;
+  }
+  .btn-saffron:hover { filter: brightness(1.05); }
+  .btn-saffron:active { transform: scale(0.98); }
+
+  .btn-ghost {
+    border: 1px solid var(--color-border);
+    background: white;
+    color: var(--color-foreground);
+    border-radius: 9999px;
+    height: 56px;
+    font-weight: 600;
+    display: inline-flex; align-items:center; justify-content:center; gap:.5rem;
+  }
+
+  .card-base {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 14px -6px rgba(26,60,94,.12), 0 2px 4px -2px rgba(26,60,94,.06);
+    padding: 1rem;
+  }
+
+  .pulse-dot {
+    animation: pulseDot 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes pulseDot {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(.9); }
+}
+
+@keyframes drawCheck {
+  to { stroke-dashoffset: 0; }
+}
