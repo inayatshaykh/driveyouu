@@ -8,7 +8,7 @@ A comprehensive driver booking platform built with modern web technologies. Book
 - **OTP-based Authentication** - Secure login without passwords
 - **Vehicle Management** - Add and manage multiple vehicles
 - **Smart Booking Flow** - On-demand, scheduled, hourly, and outstation bookings
-- **Live Tracking** - Real-time driver location tracking with Google Maps
+- **Live Tracking** - Real-time driver location tracking with Google Maps & WebSocket
 - **Trip History** - View past bookings and receipts
 - **SOS Alert** - Emergency assistance during trips
 - **Trip Sharing** - Share live trip details with family/friends
@@ -16,8 +16,9 @@ A comprehensive driver booking platform built with modern web technologies. Book
 ### Driver Portal
 - **KYC Upload System** - Upload Aadhaar, PAN, License, RC, and photo
 - **Ride Management** - Accept/reject bookings, start/end trips
+- **Real-time Location Sharing** - Automatic GPS tracking during trips
 - **Earnings Dashboard** - Track earnings with 80/20 split (Driver/Platform)
-- **Real-time Location** - Auto-update location for customer tracking
+- **Live Trip Updates** - WebSocket-powered instant notifications
 - **Trip History** - View completed trips and earnings
 
 ### Admin Dashboard
@@ -27,6 +28,7 @@ A comprehensive driver booking platform built with modern web technologies. Book
 - **Customer Management** - View customer profiles, booking history, vehicles
 - **Pricing Configuration** - Set pricing rules by city and booking type
 - **Commission Tracking** - Monitor 80/20 revenue split
+- **Real-time Monitoring** - Live driver locations and booking status
 
 ## 🛠️ Tech Stack
 
@@ -127,16 +129,26 @@ This will create:
 
 ### 6. Start Development Server
 
+Start both the app and WebSocket server:
+```bash
+bun run dev:all
+```
+
+Or start them separately:
+
+**Terminal 1 - Main App:**
 ```bash
 bun run dev
 ```
 
-Or with npm:
+**Terminal 2 - WebSocket Server:**
 ```bash
-npm run dev
+bun run dev:ws
 ```
 
-The application will be available at `http://localhost:3000`
+The application will be available at:
+- App: `http://localhost:3000`
+- WebSocket: `ws://localhost:3001`
 
 ## 👥 Demo Accounts
 
@@ -248,7 +260,7 @@ The entire platform is fully responsive and optimized for mobile devices with:
 
 ## 🚧 Upcoming Features
 
-- [ ] WebSocket integration for real-time updates
+- [x] WebSocket integration for real-time updates
 - [ ] Push notifications
 - [ ] In-app chat between customer and driver
 - [ ] Payment gateway integration (Razorpay)
@@ -258,14 +270,18 @@ The entire platform is fully responsive and optimized for mobile devices with:
 - [ ] Multi-language support
 - [ ] Driver heat maps
 - [ ] Advanced analytics and reporting
+- [ ] SOS alert system
 
 ## 📝 Scripts
 
 ```bash
 # Development
 bun run dev              # Start dev server
+bun run dev:ws           # Start WebSocket server
+bun run dev:all          # Start both app and WebSocket
 bun run build            # Build for production
 bun run start            # Start production server
+bun run start:ws         # Start WebSocket in production
 
 # Database
 bun run db:push          # Push schema changes

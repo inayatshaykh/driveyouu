@@ -2,18 +2,37 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { MapPin, Navigation, Phone, IndianRupee } from 'lucide-react';
+import { MapPin, Navigation, Phone, IndianRupee, Radio } from 'lucide-react';
 import { toast } from 'sonner';
+import { useDriverLocationUpdates, useWebSocket } from '../../hooks/useWebSocket';
 import type { Booking } from '../../types';
 
 export function RideManagement() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // WebSocket for real-time updates
+  const { isConnected, updateBookingStatus } = useWebSocket();
+  const { isTracking, startTracking, stopTracking } = useDriverLocationUpdates(activeBooking?.id || null);
 
   useEffect(() => {
     fetchBookings();
   }, []);
+
+  // Start location tracking when trip is in progress
+  useEffect(() => {
+    if (activeBooking && (activeBooking.status === 'driver_en_route' || activeBooking.status === 'in_progress')) {
+      if (!isTracking && isConnected) {
+        startTracking();
+        toast.success('Location tracking started');
+      }
+    } else {
+      if (isTracking) {
+        stopTracking();
+      }
+    }
+  }, [activeBooking, isConnected, isTracking, startTracking, stopTracking]);
 
   const fetchBookings = async () => {
     try {
@@ -69,6 +88,61 @@ export function RideManagement() {
       fetchBookings();
     } catch (error: any) {
       toast.error(error.message || 'Failed to accept booking');
+    }
+  };
+
+  const handleStartTrip = async (bookingId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/driver/bookings/${bookingId}/start`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to start trip');
+      }
+
+      // Update booking status via WebSocket
+      updateBookingStatus(bookingId, 'in_progress');
+      
+      toast.success('Trip started successfully');
+      fetchBookings();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to start trip');
+    }
+  };
+
+  const handleCompleteTrip = async (bookingId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/driver/bookings/${bookingId}/complete`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to complete trip');
+      }
+
+      // Update booking status via WebSocket
+      updateBookingStatus(bookingId, 'completed');
+      
+      // Stop location tracking
+      stopTracking();
+      
+      toast.success('Trip completed successfully');
+      fetchBookings();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to complete trip');
     }
   };
 
@@ -167,11 +241,38 @@ export function RideManagement() {
             </div>
 
             {activeBooking.status === 'assigned' && (
-              <Button className="w-full">Start Trip</Button>
+              <Button 
+                className="w-full"
+                onClick={() => handleStartTrip(activeBooking.id)}
+              >
+                Start Trip
+              </Button>
             )}
 
             {activeBooking.status === 'in_progress' && (
-              <Button className="w-full">Complete Trip</Button>
+              <Button 
+                className="w-full"
+                onClick={() => handleCompleteTrip(activeBooking.id)}
+              >
+                Complete Trip
+              </Button>
+            )}
+
+            {/* Location Tracking Status */}
+            {(activeBooking.status === 'driver_en_route' || activeBooking.status === 'in_progress') && (
+              <div className="flex items-center justify-center gap-2 rounded-lg border bg-muted/50 p-2 text-sm">
+                {isTracking ? (
+                  <>
+                    <Radio className="h-4 w-4 animate-pulse text-green-600" />
+                    <span className="text-green-600">Location tracking active</span>
+                  </>
+                ) : (
+                  <>
+                    <Radio className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Location tracking inactive</span>
+                  </>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { MapPin, Navigation, Phone, Share2, AlertCircle } from 'lucide-react';
+import { useBookingTracking } from '../../hooks/useWebSocket';
 import type { Booking, Coordinates } from '../../types';
 
 interface LiveTrackingProps {
@@ -15,9 +16,10 @@ export function LiveTracking({ booking, onSOS, onShare }: LiveTrackingProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [driverMarker, setDriverMarker] = useState<google.maps.Marker | null>(null);
-  const [driverLocation, setDriverLocation] = useState<Coordinates | null>(null);
   const [eta, setEta] = useState<string>('Calculating...');
-  const wsRef = useRef<WebSocket | null>(null);
+  
+  // Use WebSocket hook for real-time updates
+  const { driverLocation, bookingStatus, isConnected } = useBookingTracking(booking.id);
 
   // Initialize Google Maps
   useEffect(() => {
@@ -90,55 +92,26 @@ export function LiveTracking({ booking, onSOS, onShare }: LiveTrackingProps) {
     }
   }, [booking, map]);
 
-  // WebSocket connection for real-time location updates
+  // WebSocket connection status indicator
   useEffect(() => {
-    if (!booking.driverId || booking.status === 'completed' || booking.status === 'cancelled') {
-      return;
+    if (isConnected) {
+      console.log('✅ Real-time tracking active');
     }
+  }, [isConnected]);
 
-    // Connect to WebSocket server
-    const ws = new WebSocket(
-      `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`
-    );
-
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-      // Subscribe to booking updates
-      ws.send(
-        JSON.stringify({
-          type: 'booking:subscribe',
-          payload: { bookingId: booking.id },
-        })
-      );
-    };
-
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-
-      if (message.type === 'driver:location:updated') {
-        const { location } = message.payload;
-        setDriverLocation(location);
-        updateDriverMarker(location);
-        calculateETA(location);
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket disconnected');
-    };
-
-    wsRef.current = ws;
-
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, [booking.id, booking.driverId, booking.status]);
+  // Update driver marker when location changes
+  useEffect(() => {
+    if (driverLocation && map) {
+      updateDriverMarker({
+        latitude: driverLocation.latitude,
+        longitude: driverLocation.longitude,
+      });
+      calculateETA({
+        latitude: driverLocation.latitude,
+        longitude: driverLocation.longitude,
+      });
+    }
+  }, [driverLocation, map]);
 
   const updateDriverMarker = (location: Coordinates) => {
     if (!map) return;
@@ -247,6 +220,12 @@ export function LiveTracking({ booking, onSOS, onShare }: LiveTrackingProps) {
                   <p className="text-2xl font-bold">{eta}</p>
                 </div>
               </div>
+              {isConnected && (
+                <div className="flex items-center gap-1 text-xs text-green-600">
+                  <div className="h-2 w-2 animate-pulse rounded-full bg-green-600" />
+                  Live
+                </div>
+              )}
             </div>
           )}
 
