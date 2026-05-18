@@ -40,13 +40,18 @@ export function AuthModal({ open, onClose, onVerified }: AuthModalProps) {
   };
 
   const verifyOtp = (digits: string[]) => {
-    if (digits.join('') === DEMO_OTP) {
+    const enteredOtp = digits.join('');
+    if (enteredOtp === DEMO_OTP) {
       setUrsUser({ mobile, verified: true });
       setStep('success');
       setTimeout(() => {
         onVerified();
         onClose();
       }, 1000);
+    } else if (enteredOtp.length === 4) {
+      // Invalid OTP - reset
+      setOtp(['', '', '', '']);
+      setTimeout(() => otpRefs.current[0]?.focus(), 100);
     }
   };
 
@@ -109,8 +114,11 @@ export function AuthModal({ open, onClose, onVerified }: AuthModalProps) {
         {step === 'otp' && (
           <>
             <h3 className="text-xl font-bold text-gray-900 mb-1">Verify OTP</h3>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-gray-500 mb-2">
               Sent to +91 {mobile}
+            </p>
+            <p className="text-xs text-blue-600 font-semibold mb-6 bg-blue-50 p-2 rounded-lg text-center">
+              Demo OTP: 1234
             </p>
             <div className="flex justify-center gap-3 mb-6">
               {otp.map((digit, i) => (
