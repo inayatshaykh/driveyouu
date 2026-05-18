@@ -1,243 +1,241 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
-import { ShieldCheck, User, UserCog, Car } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
 });
 
-// Demo accounts
-const DEMO_ACCOUNTS = [
-  {
-    mobile: '9876543210',
-    role: 'customer',
-    name: 'Demo Customer',
-    email: 'customer@demo.com',
-    icon: User,
-    color: 'bg-blue-500',
-    description: 'Access customer booking panel',
-  },
-  {
-    mobile: '9876543212',
-    role: 'admin',
-    name: 'Demo Admin',
-    email: 'admin@demo.com',
-    icon: UserCog,
-    color: 'bg-purple-500',
-    description: 'Access admin dashboard',
-  },
-  {
-    mobile: '9876543211',
-    role: 'driver',
-    name: 'Demo Driver',
-    email: 'driver@demo.com',
-    icon: Car,
-    color: 'bg-green-500',
-    description: 'Access driver portal',
-  },
-];
+const DEMO_OTP = '1234';
 
-const DEMO_OTP = '123456';
+// Demo user database
+const DEMO_USERS: Record<string, { role: 'customer' | 'admin' | 'driver'; name: string; email: string }> = {
+  '9876543210': { role: 'customer', name: 'Demo Customer', email: 'customer@demo.com' },
+  '9876543212': { role: 'admin', name: 'Demo Admin', email: 'admin@demo.com' },
+  '9876543211': { role: 'driver', name: 'Demo Driver', email: 'driver@demo.com' },
+};
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<'select' | 'otp'>('select');
-  const [selectedAccount, setSelectedAccount] = useState<typeof DEMO_ACCOUNTS[0] | null>(null);
-  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'mobile' | 'otp' | 'success'>('mobile');
+  const [mobile, setMobile] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '']);
+  const [countdown, setCountdown] = useState(0);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const handleAccountSelect = (account: typeof DEMO_ACCOUNTS[0]) => {
-    setSelectedAccount(account);
-    setStep('otp');
-    setOtp('');
-  };
+  useEffect(() => {
+    if (step !== 'otp' || countdown <= 0) return;
+    const timer = setInterval(() => setCountdown((c) => c - 1), 1000);
+    return () => clearInterval(timer);
+  }, [step, countdown]);
 
-  const handleOtpSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (otp !== DEMO_OTP) {
-      toast.error('Invalid OTP. Use: 123456');
+  const sendOtp = () => {
+    if (!/^\d{10}$/.test(mobile)) {
+      toast.error('Please enter a valid 10-digit mobile number');
       return;
     }
+    setStep('otp');
+    setCountdown(30);
+    setOtp(['', '', '', '']);
+    setTimeout(() => otpRefs.current[0]?.focus(), 100);
+  };
 
-    if (!selectedAccount) return;
-
-    // Set auth data in localStorage
-    localStorage.setItem('auth_token', 'demo-token-' + Date.now());
-    localStorage.setItem('auth_user', JSON.stringify({
-      id: selectedAccount.mobile,
-      mobile: selectedAccount.mobile,
-      role: selectedAccount.role,
-      name: selectedAccount.name,
-      email: selectedAccount.email,
-    }));
-
-    toast.success(`Logged in as ${selectedAccount.name}`);
-
-    // Redirect based on role
-    setTimeout(() => {
-      if (selectedAccount.role === 'admin') {
-        navigate({ to: '/admin' });
-      } else if (selectedAccount.role === 'driver') {
-        navigate({ to: '/driver' });
-      } else {
-        navigate({ to: '/booking' });
+  const verifyOtp = (digits: string[]) => {
+    const enteredOtp = digits.join('');
+    if (enteredOtp === DEMO_OTP) {
+      const userInfo = DEMO_USERS[mobile];
+      
+      if (!userInfo) {
+        // Default to customer if not in demo database
+        userInfo = { role: 'customer', name: 'Customer', email: `${mobile}@demo.com` };
       }
-    }, 500);
+
+      // Set auth data in localStorage
+      localStorage.setItem('auth_token', 'demo-token-' + Date.now());
+      localStorage.setItem('auth_user', JSON.stringify({
+        id: mobile,
+        mobile: mobile,
+        role: userInfo.role,
+        name: userInfo.name,
+        email: userInfo.email,
+      }));
+
+      setStep('success');
+      toast.success(`Welcome, ${userInfo.name}!`);
+
+      // Redirect based on role
+      setTimeout(() => {
+        if (userInfo.role === 'admin') {
+          navigate({ to: '/admin' });
+        } else if (userInfo.role === 'driver') {
+          navigate({ to: '/driver' });
+        } else {
+          navigate({ to: '/booking' });
+        }
+      }, 1000);
+    } else if (enteredOtp.length === 4) {
+      // Invalid OTP
+      toast.error('Invalid OTP. Please try again.');
+      setOtp(['', '', '', '']);
+      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d?$/.test(value)) return;
+    const next = [...otp];
+    next[index] = value;
+    setOtp(next);
+    if (value && index < 3) otpRefs.current[index + 1]?.focus();
+    if (next.every((d) => d)) verifyOtp(next);
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
   };
 
   const handleBack = () => {
-    setStep('select');
-    setSelectedAccount(null);
-    setOtp('');
+    setStep('mobile');
+    setOtp(['', '', '', '']);
+    setCountdown(0);
   };
 
   return (
     <div className="min-h-screen bg-slate-950">
       <Navbar />
       
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-md mx-auto px-4 py-12">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 mb-4">
             <ShieldCheck size={32} className="text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Demo Login System</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
           <p className="text-slate-400">
-            Select a demo account to access different panels
+            Login to access your account
           </p>
         </div>
 
-        {step === 'select' && (
-          <div className="space-y-4">
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 mb-6">
-              <p className="text-yellow-500 text-sm font-medium text-center">
-                🔐 Demo Mode: Use OTP <span className="font-bold">123456</span> for all accounts
-              </p>
-            </div>
+        {/* Login Card */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+          {step === 'mobile' && (
+            <>
+              <h2 className="text-xl font-bold text-white mb-6">Enter Mobile Number</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Mobile Number
+                  </label>
+                  <div className="flex gap-2">
+                    <div className="flex items-center px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white font-semibold">
+                      +91
+                    </div>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
+                      value={mobile}
+                      onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="10 digit number"
+                      className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      autoFocus
+                    />
+                  </div>
+                </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
-              {DEMO_ACCOUNTS.map((account) => {
-                const Icon = account.icon;
-                return (
-                  <button
-                    key={account.mobile}
-                    onClick={() => handleAccountSelect(account)}
-                    className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-left hover:border-slate-700 hover:bg-slate-800/50 transition-all group"
-                  >
-                    <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${account.color} mb-4`}>
-                      <Icon size={24} className="text-white" />
-                    </div>
-                    <h3 className="text-lg font-bold text-white mb-1">{account.name}</h3>
-                    <p className="text-sm text-slate-400 mb-3">{account.description}</p>
-                    <div className="text-xs text-slate-500 space-y-1">
-                      <div>📱 {account.mobile}</div>
-                      <div>✉️ {account.email}</div>
-                    </div>
-                    <div className="mt-4 text-sm font-medium text-slate-400 group-hover:text-white transition-colors">
-                      Login as {account.role} →
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                <button
+                  type="button"
+                  disabled={mobile.length !== 10}
+                  onClick={sendOtp}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all"
+                >
+                  Send OTP
+                </button>
+              </div>
+            </>
+          )}
 
-        {step === 'otp' && selectedAccount && (
-          <div className="max-w-md mx-auto">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+          {step === 'otp' && (
+            <>
               <button
                 onClick={handleBack}
                 className="text-slate-400 hover:text-white text-sm mb-6 flex items-center gap-2"
               >
-                ← Back to accounts
+                ← Change number
               </button>
 
-              <div className="text-center mb-6">
-                <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl ${selectedAccount.color} mb-4`}>
-                  {selectedAccount.icon && <selectedAccount.icon size={32} className="text-white" />}
-                </div>
-                <h2 className="text-xl font-bold text-white mb-1">Enter OTP</h2>
-                <p className="text-sm text-slate-400">
-                  Logging in as <span className="text-white font-medium">{selectedAccount.name}</span>
-                </p>
-                <p className="text-xs text-slate-500 mt-2">
-                  Mobile: {selectedAccount.mobile}
-                </p>
-              </div>
+              <h2 className="text-xl font-bold text-white mb-2">Verify OTP</h2>
+              <p className="text-sm text-slate-400 mb-6">
+                Sent to +91 {mobile}
+              </p>
 
-              <form onSubmit={handleOtpSubmit} className="space-y-6">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Enter 6-digit OTP
+                  <label className="block text-sm font-medium text-slate-300 mb-3">
+                    Enter 4-digit OTP
                   </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="123456"
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-center text-2xl tracking-widest focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    autoFocus
-                  />
-                  <p className="text-xs text-slate-500 mt-2 text-center">
-                    Demo OTP: <span className="text-blue-400 font-bold">123456</span>
+                  <div className="flex justify-center gap-3 mb-4">
+                    {otp.map((digit, i) => (
+                      <input
+                        key={i}
+                        ref={(el) => { otpRefs.current[i] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpChange(i, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                        className="w-14 h-14 text-center bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-xl font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                      />
+                    ))}
+                  </div>
+                  <p className="text-xs text-blue-400 text-center bg-blue-500/10 py-2 rounded-lg">
+                    Demo OTP: <span className="font-bold">1234</span>
                   </p>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={otp.length !== 6}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all"
-                >
-                  Verify & Login
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
+                {countdown > 0 ? (
+                  <p className="text-center text-sm text-slate-400">
+                    Resend OTP in {countdown}s
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={sendOtp}
+                    className="w-full text-blue-400 hover:text-blue-300 font-semibold text-sm"
+                  >
+                    Resend OTP
+                  </button>
+                )}
+              </div>
+            </>
+          )}
 
-        {/* Info Section */}
-        <div className="mt-12 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h3 className="text-lg font-bold text-white mb-4">📋 Demo Account Details</h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                <User size={16} className="text-blue-500" />
-              </div>
-              <div>
-                <div className="text-white font-medium">Customer Account</div>
-                <div className="text-slate-400">Mobile: 9876543210 | Access booking and customer features</div>
-              </div>
+          {step === 'success' && (
+            <div className="text-center py-8">
+              <div className="text-5xl mb-4">✅</div>
+              <p className="text-xl font-bold text-white mb-2">
+                Verified Successfully!
+              </p>
+              <p className="text-slate-400">
+                Redirecting you...
+              </p>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-                <UserCog size={16} className="text-purple-500" />
-              </div>
-              <div>
-                <div className="text-white font-medium">Admin Account</div>
-                <div className="text-slate-400">Mobile: 9876543212 | Full admin dashboard access</div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                <Car size={16} className="text-green-500" />
-              </div>
-              <div>
-                <div className="text-white font-medium">Driver Account</div>
-                <div className="text-slate-400">Mobile: 9876543211 | Driver portal and ride management</div>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 pt-4 border-t border-slate-800">
+          )}
+        </div>
+
+        {/* Info */}
+        {step === 'mobile' && (
+          <div className="mt-6 text-center">
             <p className="text-xs text-slate-500">
-              💡 <span className="text-slate-400">All accounts use the same OTP:</span> <span className="text-blue-400 font-bold">123456</span>
+              By continuing, you agree to our Terms of Service and Privacy Policy
             </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
