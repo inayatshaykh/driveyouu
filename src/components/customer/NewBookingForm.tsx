@@ -77,6 +77,7 @@ export function NewBookingForm() {
   const [selectedCategory, setSelectedCategory] = useState<CarCategory>('Sedan');
   const [selectedTransmission, setSelectedTransmission] = useState<TransmissionType>('Manual');
   const [selectedHours, setSelectedHours] = useState(4);
+  const [driverNeeded, setDriverNeeded] = useState<'now' | 'schedule'>('now');
 
   const [pickupQuery, setPickupQuery] = useState('');
   const [dropQuery, setDropQuery] = useState('');
@@ -134,9 +135,10 @@ export function NewBookingForm() {
       pickup: selectedPickup?.address ?? pickupQuery,
       carCategory: selectedCategory,
       transmission: selectedTransmission,
+      driverNeeded,
       date:
         activeTab === 'hourly'
-          ? formatDateLabel(bookingDate)
+          ? driverNeeded === 'now' ? 'Now (within 30 min)' : formatDateLabel(bookingDate)
           : activeTab === 'multiday'
             ? `${formatDateLabel(startDate)} – ${formatDateLabel(endDate)}`
             : formatDateLabel(outstationDate),
@@ -180,13 +182,15 @@ export function NewBookingForm() {
       return false;
     }
     if (activeTab === 'hourly') {
-      if (!bookingDate) {
-        toast.error('Please select a date');
-        return false;
-      }
-      if (!startTime) {
-        toast.error('Please select start time');
-        return false;
+      if (driverNeeded === 'schedule') {
+        if (!bookingDate) {
+          toast.error('Please select a date');
+          return false;
+        }
+        if (!startTime) {
+          toast.error('Please select start time');
+          return false;
+        }
       }
     }
     if (activeTab === 'multiday') {
@@ -259,6 +263,37 @@ export function NewBookingForm() {
         </div>
 
         <form onSubmit={handleBookNow} className="p-6 space-y-5 bg-white rounded-b-2xl">
+          {/* When is driver needed */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-800 mb-1">When is driver needed?</h3>
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <button
+                type="button"
+                onClick={() => setDriverNeeded('now')}
+                className={`px-6 py-4 rounded-2xl border-2 font-semibold text-base transition-all ${
+                  driverNeeded === 'now'
+                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                <div className="text-2xl mb-1">⚡</div>
+                Now
+              </button>
+              <button
+                type="button"
+                onClick={() => setDriverNeeded('schedule')}
+                className={`px-6 py-4 rounded-2xl border-2 font-semibold text-base transition-all ${
+                  driverNeeded === 'schedule'
+                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                <div className="text-2xl mb-1">📅</div>
+                Schedule
+              </button>
+            </div>
+          </div>
+
           {activeTab === 'hourly' && (
             <>
               <LocationInput
@@ -270,35 +305,46 @@ export function NewBookingForm() {
                 }}
                 onSelect={setSelectedPickup}
               />
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <Calendar className="inline h-4 w-4 mr-1" />
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={bookingDate}
-                  onChange={(e) => setBookingDate(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <Clock className="inline h-4 w-4 mr-1" />
-                  Start Time
-                </label>
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none"
-                />
-                {hasNightCharge(startTime) && (
-                  <p className="text-orange-600 text-sm mt-2 font-semibold">
-                    + {inr.format(NIGHT_CHARGE)} Night Charge (after 9 PM)
+              {driverNeeded === 'schedule' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Calendar className="inline h-4 w-4 mr-1" />
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      value={bookingDate}
+                      onChange={(e) => setBookingDate(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Clock className="inline h-4 w-4 mr-1" />
+                      Start Time
+                    </label>
+                    <input
+                      type="time"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+                    />
+                    {hasNightCharge(startTime) && (
+                      <p className="text-orange-600 text-sm mt-2 font-semibold">
+                        + {inr.format(NIGHT_CHARGE)} Night Charge (after 9 PM)
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+              {driverNeeded === 'now' && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+                  <p className="text-sm text-emerald-800">
+                    <span className="font-semibold">⚡ Instant Booking:</span> Driver will be assigned immediately and arrive within 30 minutes
                   </p>
-                )}
-              </div>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Duration</label>
                 <div className="flex gap-2 flex-wrap">

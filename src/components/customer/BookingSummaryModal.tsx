@@ -15,6 +15,7 @@ export interface BookingSummaryData {
   days?: number;
   carCategory: CarCategory;
   transmission: TransmissionType;
+  driverNeeded?: 'now' | 'schedule';
   baseFare?: number;
   nightCharge?: number;
   total?: number;
@@ -63,6 +64,12 @@ export function BookingSummaryModal({
         <h3 className="text-xl font-bold text-gray-900 mb-4">Booking Summary</h3>
 
         <div className="bg-white rounded-2xl shadow p-5 mb-4 space-y-2 text-sm">
+          {data.driverNeeded && (
+            <p>
+              <span className="text-gray-500">⚡ Driver Needed:</span>{' '}
+              <span className="font-medium">{data.driverNeeded === 'now' ? 'Now (within 30 min)' : 'Scheduled'}</span>
+            </p>
+          )}
           <p><span className="text-gray-500">📍 Pickup:</span> <span className="font-medium">{data.pickup}</span></p>
           {data.destination && (
             <p><span className="text-gray-500">📍 Destination:</span> <span className="font-medium">{data.destination}</span></p>

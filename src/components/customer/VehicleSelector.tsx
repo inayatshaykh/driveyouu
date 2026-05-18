@@ -29,12 +29,10 @@ export function VehicleSelector({
   onTransmissionChange,
 }: VehicleSelectorProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Your Car Type
-        </label>
-        <p className="text-xs text-gray-500 mb-3">
+        <h3 className="text-lg font-bold text-gray-800 mb-1">Your Car Type</h3>
+        <p className="text-sm text-gray-500 mb-4">
           We'll assign a driver experienced with your vehicle type
         </p>
         <div className="grid grid-cols-2 gap-3">
@@ -43,15 +41,18 @@ export function VehicleSelector({
               key={category}
               type="button"
               onClick={() => onCategoryChange(category)}
-              className={`p-4 rounded-2xl border-2 text-left transition-all ${
+              className={`p-5 rounded-3xl border-3 text-left transition-all ${
                 selectedCategory === category
-                  ? 'border-emerald-600 bg-emerald-50/40'
-                  : 'border-gray-200 hover:border-emerald-300 bg-white'
+                  ? 'border-emerald-500 bg-emerald-50 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 bg-white'
               }`}
+              style={{
+                borderWidth: selectedCategory === category ? '3px' : '2px',
+              }}
             >
-              <div className="text-3xl mb-2">{CAR_CATEGORIES[category].emoji}</div>
-              <div className="font-bold text-gray-900 text-sm">{category}</div>
-              <p className="text-xs text-gray-500 mt-1">
+              <div className="text-4xl mb-3">{CAR_CATEGORIES[category].emoji}</div>
+              <div className="font-bold text-gray-900 text-base mb-1">{category}</div>
+              <p className="text-xs text-gray-500 leading-relaxed">
                 {CAR_CATEGORIES[category].description}
               </p>
             </button>
@@ -60,35 +61,39 @@ export function VehicleSelector({
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Transmission Type
-        </label>
-        <p className="text-xs text-gray-500 mb-3">
+        <h3 className="text-lg font-bold text-gray-800 mb-1">Transmission Type</h3>
+        <p className="text-sm text-gray-500 mb-4">
           Driver will be assigned based on your car's transmission
         </p>
-        <div className="flex gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => onTransmissionChange('Manual')}
-            className={`flex-1 px-6 py-4 rounded-2xl border-2 font-semibold transition-all ${
+            className={`px-6 py-6 rounded-3xl border-3 font-bold text-lg transition-all ${
               selectedTransmission === 'Manual'
-                ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-300'
+                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-md'
+                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
             }`}
+            style={{
+              borderWidth: selectedTransmission === 'Manual' ? '3px' : '2px',
+            }}
           >
-            <div className="text-2xl mb-1">⚙️</div>
+            <div className="text-3xl mb-2">⚙️</div>
             Manual
           </button>
           <button
             type="button"
             onClick={() => onTransmissionChange('Automatic')}
-            className={`flex-1 px-6 py-4 rounded-2xl border-2 font-semibold transition-all ${
+            className={`px-6 py-6 rounded-3xl border-3 font-bold text-lg transition-all ${
               selectedTransmission === 'Automatic'
-                ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-300'
+                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-md'
+                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
             }`}
+            style={{
+              borderWidth: selectedTransmission === 'Automatic' ? '3px' : '2px',
+            }}
           >
-            <div className="text-2xl mb-1">🔄</div>
+            <div className="text-3xl mb-2">🔄</div>
             Automatic
           </button>
         </div>
