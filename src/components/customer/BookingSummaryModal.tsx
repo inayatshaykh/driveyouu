@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { inr } from '@/utils/ursSession';
 import type { CarCategory, TransmissionType } from './VehicleSelector';
@@ -42,7 +42,7 @@ const CAR_EMOJIS: Record<CarCategory, string> = {
   Luxury: '🏎️',
 };
 
-export function BookingSummaryModal({
+export const BookingSummaryModal = memo(function BookingSummaryModal({
   open,
   data,
   onEdit,
@@ -204,4 +204,4 @@ export function BookingSummaryModal({
       </div>
     </div>
   );
-}
+});

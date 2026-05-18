@@ -96,7 +96,12 @@ export function NewBookingForm() {
 
   const [showAuth, setShowAuth] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
-  const [user, setUser] = useState(() => getUrsUser());
+  const [user, setUser] = useState<ReturnType<typeof getUrsUser> | null>(null);
+
+  // Initialize user only once on mount
+  useEffect(() => {
+    setUser(getUrsUser());
+  }, []);
 
   const multidayDays = useMemo(
     () => daysBetween(startDate, endDate),
@@ -130,10 +135,6 @@ export function NewBookingForm() {
     : (MULTIDAY_RATE * outstationTripDays);
   const outstationBase = Math.round(outstationBaseRate * totalMultiplier);
   const outstationTotal = outstationBase + nightChargeOutstation;
-
-  useEffect(() => {
-    setUser(getUrsUser());
-  }, [showAuth, showSummary]);
 
   const buildSummaryData = (): BookingSummaryData => {
     const base: BookingSummaryData = {

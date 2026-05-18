@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo, useCallback } from 'react';
 import { MapPin, Navigation, Loader2 } from 'lucide-react';
 
 export interface LocationResult {
@@ -61,7 +61,7 @@ interface LocationInputProps {
   icon?: 'pickup' | 'drop';
 }
 
-export function LocationInput({
+export const LocationInput = memo(function LocationInput({
   label,
   value,
   onValueChange,
@@ -91,7 +91,7 @@ export function LocationInput({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleChange = (text: string) => {
+  const handleChange = useCallback((text: string) => {
     onValueChange(text);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (text.length < 3) {
@@ -112,7 +112,7 @@ export function LocationInput({
         setIsSearching(false);
       }
     }, 300);
-  };
+  }, [onValueChange]);
 
   const Icon = icon === 'drop' ? Navigation : MapPin;
 
@@ -154,4 +154,4 @@ export function LocationInput({
       )}
     </div>
   );
-}
+});

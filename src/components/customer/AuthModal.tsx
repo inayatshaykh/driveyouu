@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { setUrsUser } from '@/utils/ursSession';
 
 const DEMO_OTP = '1234'; // TODO: replace with MSG91
@@ -9,7 +9,7 @@ interface AuthModalProps {
   onVerified: () => void;
 }
 
-export function AuthModal({ open, onClose, onVerified }: AuthModalProps) {
+export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: AuthModalProps) {
   const [step, setStep] = useState<'mobile' | 'otp' | 'success'>('mobile');
   const [mobile, setMobile] = useState('');
   const [otp, setOtp] = useState(['', '', '', '']);
@@ -166,4 +166,4 @@ export function AuthModal({ open, onClose, onVerified }: AuthModalProps) {
       </div>
     </div>
   );
-}
+});

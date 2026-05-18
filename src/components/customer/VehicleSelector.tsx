@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 export type CarCategory = 'Hatchback' | 'Sedan' | 'SUV' | 'Luxury';
 export type TransmissionType = 'Manual' | 'Automatic';
 
@@ -22,7 +24,7 @@ interface VehicleSelectorProps {
   onTransmissionChange: (transmission: TransmissionType) => void;
 }
 
-export function VehicleSelector({
+export const VehicleSelector = memo(function VehicleSelector({
   selectedCategory,
   selectedTransmission,
   onCategoryChange,
@@ -76,4 +78,4 @@ export function VehicleSelector({
       </div>
     </div>
   );
-}
+});
