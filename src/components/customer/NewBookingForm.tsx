@@ -263,48 +263,38 @@ export function NewBookingForm() {
         </div>
 
         <form onSubmit={handleBookNow} className="p-6 space-y-5 bg-white rounded-b-2xl">
-          {/* When is driver needed */}
+          <LocationInput
+            label="Pickup Location"
+            value={pickupQuery}
+            onValueChange={(v) => {
+              setPickupQuery(v);
+              if (!v) setSelectedPickup(null);
+            }}
+            onSelect={setSelectedPickup}
+          />
+
+          {/* When is driver needed - Dropdown */}
           <div>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">When is driver needed?</h3>
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <button
-                type="button"
-                onClick={() => setDriverNeeded('now')}
-                className={`px-6 py-4 rounded-2xl border-2 font-semibold text-base transition-all ${
-                  driverNeeded === 'now'
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-                }`}
+            <h3 className="text-base font-bold text-gray-700 mb-3">When is driver needed?</h3>
+            <div className="relative">
+              <select
+                value={driverNeeded}
+                onChange={(e) => setDriverNeeded(e.target.value as 'now' | 'schedule')}
+                className="w-full px-4 py-4 pr-10 text-base text-gray-700 bg-white border border-gray-300 rounded-xl appearance-none focus:ring-2 focus:ring-emerald-600 focus:outline-none cursor-pointer"
               >
-                <div className="text-2xl mb-1">⚡</div>
-                Now
-              </button>
-              <button
-                type="button"
-                onClick={() => setDriverNeeded('schedule')}
-                className={`px-6 py-4 rounded-2xl border-2 font-semibold text-base transition-all ${
-                  driverNeeded === 'schedule'
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
-                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-                }`}
-              >
-                <div className="text-2xl mb-1">📅</div>
-                Schedule
-              </button>
+                <option value="now">Now</option>
+                <option value="schedule">Schedule</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
           </div>
 
           {activeTab === 'hourly' && (
             <>
-              <LocationInput
-                label="Pickup Location"
-                value={pickupQuery}
-                onValueChange={(v) => {
-                  setPickupQuery(v);
-                  if (!v) setSelectedPickup(null);
-                }}
-                onSelect={setSelectedPickup}
-              />
               {driverNeeded === 'schedule' && (
                 <>
                   <div>
@@ -345,6 +335,8 @@ export function NewBookingForm() {
                   </p>
                 </div>
               )}
+            </>
+          )}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Duration</label>
                 <div className="flex gap-2 flex-wrap">
@@ -409,6 +401,15 @@ export function NewBookingForm() {
                 }}
                 onSelect={setSelectedPickup}
               />
+              <LocationInput
+                label="Pickup Location"
+                value={pickupQuery}
+                onValueChange={(v) => {
+                  setPickupQuery(v);
+                  if (!v) setSelectedPickup(null);
+                }}
+                onSelect={setSelectedPickup}
+              />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
@@ -461,6 +462,15 @@ export function NewBookingForm() {
 
           {activeTab === 'outstation' && (
             <>
+              <LocationInput
+                label="Pickup Location"
+                value={pickupQuery}
+                onValueChange={(v) => {
+                  setPickupQuery(v);
+                  if (!v) setSelectedPickup(null);
+                }}
+                onSelect={setSelectedPickup}
+              />
               <LocationInput
                 label="Pickup Location"
                 value={pickupQuery}

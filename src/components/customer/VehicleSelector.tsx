@@ -29,73 +29,43 @@ export function VehicleSelector({
   onTransmissionChange,
 }: VehicleSelectorProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
-        <h3 className="text-lg font-bold text-gray-800 mb-1">Your Car Type</h3>
-        <p className="text-sm text-gray-500 mb-4">
-          We'll assign a driver experienced with your vehicle type
-        </p>
+        <h3 className="text-base font-bold text-gray-700 mb-3">Car Type</h3>
         <div className="grid grid-cols-2 gap-3">
-          {(Object.keys(CAR_CATEGORIES) as CarCategory[]).map((category) => (
-            <button
-              key={category}
-              type="button"
-              onClick={() => onCategoryChange(category)}
-              className={`p-5 rounded-3xl border-3 text-left transition-all ${
-                selectedCategory === category
-                  ? 'border-emerald-500 bg-emerald-50 shadow-md'
-                  : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
-              style={{
-                borderWidth: selectedCategory === category ? '3px' : '2px',
-              }}
+          <div className="relative">
+            <select
+              value={selectedTransmission}
+              onChange={(e) => onTransmissionChange(e.target.value as TransmissionType)}
+              className="w-full px-4 py-4 pr-10 text-base text-gray-700 bg-white border border-gray-300 rounded-xl appearance-none focus:ring-2 focus:ring-emerald-600 focus:outline-none cursor-pointer"
             >
-              <div className="text-4xl mb-3">{CAR_CATEGORIES[category].emoji}</div>
-              <div className="font-bold text-gray-900 text-base mb-1">{category}</div>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                {CAR_CATEGORIES[category].description}
-              </p>
-            </button>
-          ))}
-        </div>
-      </div>
+              <option value="Manual">Manual</option>
+              <option value="Automatic">Automatic</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
 
-      <div>
-        <h3 className="text-lg font-bold text-gray-800 mb-1">Transmission Type</h3>
-        <p className="text-sm text-gray-500 mb-4">
-          Driver will be assigned based on your car's transmission
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => onTransmissionChange('Manual')}
-            className={`px-6 py-6 rounded-3xl border-3 font-bold text-lg transition-all ${
-              selectedTransmission === 'Manual'
-                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-md'
-                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-            }`}
-            style={{
-              borderWidth: selectedTransmission === 'Manual' ? '3px' : '2px',
-            }}
-          >
-            <div className="text-3xl mb-2">⚙️</div>
-            Manual
-          </button>
-          <button
-            type="button"
-            onClick={() => onTransmissionChange('Automatic')}
-            className={`px-6 py-6 rounded-3xl border-3 font-bold text-lg transition-all ${
-              selectedTransmission === 'Automatic'
-                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-md'
-                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-            }`}
-            style={{
-              borderWidth: selectedTransmission === 'Automatic' ? '3px' : '2px',
-            }}
-          >
-            <div className="text-3xl mb-2">🔄</div>
-            Automatic
-          </button>
+          <div className="relative">
+            <select
+              value={selectedCategory}
+              onChange={(e) => onCategoryChange(e.target.value as CarCategory)}
+              className="w-full px-4 py-4 pr-10 text-base text-gray-700 bg-white border border-gray-300 rounded-xl appearance-none focus:ring-2 focus:ring-emerald-600 focus:outline-none cursor-pointer"
+            >
+              <option value="Hatchback">Hatchback</option>
+              <option value="Sedan">Sedan</option>
+              <option value="SUV">SUV</option>
+              <option value="Luxury">Luxury</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
 
