@@ -22,7 +22,10 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
   useEffect(() => {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        clearInterval(timerRef.current);
+      }
     };
   }, []);
 
@@ -59,12 +62,10 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
     setCountdown(30);
     setOtp(['', '', '', '']);
     
-    // Use requestAnimationFrame for smooth focus on mobile
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = requestAnimationFrame(() => {
-        otpRefs.current[0]?.focus();
-      });
-    });
+    // Use setTimeout for reliable focus on mobile
+    timerRef.current = setTimeout(() => {
+      otpRefs.current[0]?.focus();
+    }, 100);
   }, [mobile]);
 
   const verifyOtp = useCallback((digits: string[]) => {
@@ -73,21 +74,17 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
       setUrsUser({ mobile, verified: true });
       setStep('success');
       
-      // Use requestAnimationFrame for smooth transition
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = requestAnimationFrame(() => {
-          onVerified();
-          onClose();
-        });
-      });
+      // Use setTimeout for reliable transition
+      timerRef.current = setTimeout(() => {
+        onVerified();
+        onClose();
+      }, 100);
     } else if (enteredOtp.length === 4) {
       // Invalid OTP - reset
       setOtp(['', '', '', '']);
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = requestAnimationFrame(() => {
-          otpRefs.current[0]?.focus();
-        });
-      });
+      timerRef.current = setTimeout(() => {
+        otpRefs.current[0]?.focus();
+      }, 100);
     }
   }, [mobile, onVerified, onClose]);
 
@@ -100,16 +97,16 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
       
       // Auto-focus next input
       if (value && index < 3) {
-        rafRef.current = requestAnimationFrame(() => {
+        timerRef.current = setTimeout(() => {
           otpRefs.current[index + 1]?.focus();
-        });
+        }, 10);
       }
       
       // Auto-verify when all filled
       if (next.every((d) => d)) {
-        rafRef.current = requestAnimationFrame(() => {
+        timerRef.current = setTimeout(() => {
           verifyOtp(next);
-        });
+        }, 10);
       }
       
       return next;
@@ -120,9 +117,9 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
     if (e.key === 'Backspace') {
       setOtp(prev => {
         if (!prev[index] && index > 0) {
-          rafRef.current = requestAnimationFrame(() => {
+          timerRef.current = setTimeout(() => {
             otpRefs.current[index - 1]?.focus();
-          });
+          }, 10);
         }
         return prev;
       });
