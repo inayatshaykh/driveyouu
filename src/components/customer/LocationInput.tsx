@@ -73,14 +73,23 @@ export const LocationInput = memo(function LocationInput({
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const searchIdRef = useRef(0); // Track search requests to prevent stale updates
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMountedRef = useRef(true);
 
+  // Cleanup on unmount
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      isMountedRef.current = false;
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = undefined;
+      }
     };
   }, []);
 
+  // Click outside handler - only when dropdown is shown
   useEffect(() => {
     if (!showDropdown) return;
     
@@ -111,22 +120,39 @@ export const LocationInput = memo(function LocationInput({
       return;
     }
     
+    // Increment search ID to track this request
+    const currentSearchId = ++searchIdRef.current;
+    
     // Debounced search
     setIsSearching(true);
     debounceRef.current = setTimeout(async () => {
       try {
         const results = await searchLocation(text);
-        setSuggestions(results.slice(0, 5));
-        setShowDropdown(results.length > 0);
+        
+        // Only update if this is still the latest search and component is mounted
+        if (currentSearchId === searchIdRef.current && isMountedRef.current) {
+          setSuggestions(results.slice(0, 5));
+          setShowDropdown(results.length > 0);
+        }
       } catch (error) {
         console.error('Search error:', error);
-        setSuggestions([]);
-        setShowDropdown(false);
+        if (currentSearchId === searchIdRef.current && isMountedRef.current) {
+          setSuggestions([]);
+          setShowDropdown(false);
+        }
       } finally {
-        setIsSearching(false);
+        if (currentSearchId === searchIdRef.current && isMountedRef.current) {
+          setIsSearching(false);
+        }
       }
     }, 300);
   }, [onValueChange]);
+
+  const handleSelect = useCallback((location: SelectedLocation) => {
+    onSelect(location);
+    onValueChange(location.address);
+    setShowDropdown(false);
+  }, [onSelect, onValueChange]);
 
   const Icon = icon === 'drop' ? Navigation : MapPin;
 
@@ -134,7 +160,7 @@ export const LocationInput = memo(function LocationInput({
     <div className="relative" ref={containerRef}>
       <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
       <div className="relative">
-        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
         <input
           type="text"
           value={value}
@@ -146,9 +172,10 @@ export const LocationInput = memo(function LocationInput({
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck={false}
+          inputMode="text"
         />
         {isSearching && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 animate-spin" />
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 animate-spin pointer-events-none" />
         )}
       </div>
       {showDropdown && suggestions.length > 0 && (
@@ -157,11 +184,7 @@ export const LocationInput = memo(function LocationInput({
             <button
               key={`${s.lat}-${s.lon}-${idx}`}
               type="button"
-              onClick={() => {
-                onSelect({ address: s.name, lat: s.lat, lon: s.lon });
-                onValueChange(s.name);
-                setShowDropdown(false);
-              }}
+              onClick={() => handleSelect({ address: s.name, lat: s.lat, lon: s.lon })}
               className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
             >
               <span className="font-semibold text-sm text-gray-900">{s.name}</span>

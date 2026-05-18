@@ -24,11 +24,33 @@ function LoginPage() {
   const [otp, setOtp] = useState(['', '', '', '']);
   const [countdown, setCountdown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const rafRef = useRef<number>();
+  const timerRef = useRef<ReturnType<typeof setInterval>>();
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
-    if (step !== 'otp' || countdown <= 0) return;
-    const timer = setInterval(() => setCountdown((c) => c - 1), 1000);
-    return () => clearInterval(timer);
+    if (step !== 'otp' || countdown <= 0) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = undefined;
+      }
+      return;
+    }
+    
+    timerRef.current = setInterval(() => setCountdown((c) => c - 1), 1000);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = undefined;
+      }
+    };
   }, [step, countdown]);
 
   const sendOtp = useCallback(() => {
@@ -39,7 +61,13 @@ function LoginPage() {
     setStep('otp');
     setCountdown(30);
     setOtp(['', '', '', '']);
-    setTimeout(() => otpRefs.current[0]?.focus(), 100);
+    
+    // Use requestAnimationFrame for smooth focus
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = requestAnimationFrame(() => {
+        otpRefs.current[0]?.focus();
+      });
+    });
   }, [mobile]);
 
   const verifyOtp = useCallback((digits: string[]) => {
@@ -48,11 +76,9 @@ function LoginPage() {
       let userInfo = DEMO_USERS[mobile];
       
       if (!userInfo) {
-        // Default to customer if not in demo database
         userInfo = { role: 'customer', name: 'Customer', email: `${mobile}@demo.com` };
       }
 
-      // Set auth data in localStorage
       localStorage.setItem('auth_token', 'demo-token-' + Date.now());
       localStorage.setItem('auth_user', JSON.stringify({
         id: mobile,
@@ -65,38 +91,66 @@ function LoginPage() {
       setStep('success');
       toast.success(`Welcome, ${userInfo.name}!`);
 
-      // Redirect based on role
-      setTimeout(() => {
-        if (userInfo.role === 'admin') {
-          navigate({ to: '/admin' });
-        } else if (userInfo.role === 'driver') {
-          navigate({ to: '/driver' });
-        } else {
-          navigate({ to: '/booking' });
-        }
-      }, 1000);
+      // Use requestAnimationFrame for smooth redirect
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = requestAnimationFrame(() => {
+          if (userInfo.role === 'admin') {
+            navigate({ to: '/admin' });
+          } else if (userInfo.role === 'driver') {
+            navigate({ to: '/driver' });
+          } else {
+            navigate({ to: '/booking' });
+          }
+        });
+      });
     } else if (enteredOtp.length === 4) {
-      // Invalid OTP
       toast.error('Invalid OTP. Please try again.');
       setOtp(['', '', '', '']);
-      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = requestAnimationFrame(() => {
+          otpRefs.current[0]?.focus();
+        });
+      });
     }
   }, [mobile, navigate]);
 
   const handleOtpChange = useCallback((index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
-    const next = [...otp];
-    next[index] = value;
-    setOtp(next);
-    if (value && index < 3) otpRefs.current[index + 1]?.focus();
-    if (next.every((d) => d)) verifyOtp(next);
-  }, [otp, verifyOtp]);
+    
+    setOtp(prev => {
+      const next = [...prev];
+      next[index] = value;
+      
+      // Auto-focus next input
+      if (value && index < 3) {
+        rafRef.current = requestAnimationFrame(() => {
+          otpRefs.current[index + 1]?.focus();
+        });
+      }
+      
+      // Auto-verify when all filled
+      if (next.every((d) => d)) {
+        rafRef.current = requestAnimationFrame(() => {
+          verifyOtp(next);
+        });
+      }
+      
+      return next;
+    });
+  }, [verifyOtp]);
 
   const handleOtpKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus();
+    if (e.key === 'Backspace') {
+      setOtp(prev => {
+        if (!prev[index] && index > 0) {
+          rafRef.current = requestAnimationFrame(() => {
+            otpRefs.current[index - 1]?.focus();
+          });
+        }
+        return prev;
+      });
     }
-  }, [otp]);
+  }, []);
 
   const handleBack = useCallback(() => {
     setStep('mobile');
@@ -147,6 +201,10 @@ function LoginPage() {
                       placeholder="10 digit number"
                       className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       autoFocus
+                      autoComplete="tel"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
                     />
                   </div>
                 </div>
@@ -194,6 +252,10 @@ function LoginPage() {
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
                         className="w-14 h-14 text-center bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-xl font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                        autoComplete="one-time-code"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
                       />
                     ))}
                   </div>

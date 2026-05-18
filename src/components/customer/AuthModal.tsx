@@ -15,6 +15,16 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
   const [otp, setOtp] = useState(['', '', '', '']);
   const [countdown, setCountdown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const rafRef = useRef<number>();
+  const timerRef = useRef<ReturnType<typeof setInterval>>();
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) {
@@ -26,9 +36,21 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
   }, [open]);
 
   useEffect(() => {
-    if (step !== 'otp' || countdown <= 0) return;
-    const t = setInterval(() => setCountdown((c) => c - 1), 1000);
-    return () => clearInterval(t);
+    if (step !== 'otp' || countdown <= 0) {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = undefined;
+      }
+      return;
+    }
+    
+    timerRef.current = setInterval(() => setCountdown((c) => c - 1), 1000);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = undefined;
+      }
+    };
   }, [step, countdown]);
 
   const sendOtp = useCallback(() => {
@@ -36,7 +58,13 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
     setStep('otp');
     setCountdown(30);
     setOtp(['', '', '', '']);
-    setTimeout(() => otpRefs.current[0]?.focus(), 100);
+    
+    // Use requestAnimationFrame for smooth focus on mobile
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = requestAnimationFrame(() => {
+        otpRefs.current[0]?.focus();
+      });
+    });
   }, [mobile]);
 
   const verifyOtp = useCallback((digits: string[]) => {
@@ -44,31 +72,62 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
     if (enteredOtp === DEMO_OTP) {
       setUrsUser({ mobile, verified: true });
       setStep('success');
-      setTimeout(() => {
-        onVerified();
-        onClose();
-      }, 1000);
+      
+      // Use requestAnimationFrame for smooth transition
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = requestAnimationFrame(() => {
+          onVerified();
+          onClose();
+        });
+      });
     } else if (enteredOtp.length === 4) {
       // Invalid OTP - reset
       setOtp(['', '', '', '']);
-      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = requestAnimationFrame(() => {
+          otpRefs.current[0]?.focus();
+        });
+      });
     }
   }, [mobile, onVerified, onClose]);
 
   const handleOtpChange = useCallback((index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
-    const next = [...otp];
-    next[index] = value;
-    setOtp(next);
-    if (value && index < 3) otpRefs.current[index + 1]?.focus();
-    if (next.every((d) => d)) verifyOtp(next);
-  }, [otp, verifyOtp]);
+    
+    setOtp(prev => {
+      const next = [...prev];
+      next[index] = value;
+      
+      // Auto-focus next input
+      if (value && index < 3) {
+        rafRef.current = requestAnimationFrame(() => {
+          otpRefs.current[index + 1]?.focus();
+        });
+      }
+      
+      // Auto-verify when all filled
+      if (next.every((d) => d)) {
+        rafRef.current = requestAnimationFrame(() => {
+          verifyOtp(next);
+        });
+      }
+      
+      return next;
+    });
+  }, [verifyOtp]);
 
   const handleOtpKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus();
+    if (e.key === 'Backspace') {
+      setOtp(prev => {
+        if (!prev[index] && index > 0) {
+          rafRef.current = requestAnimationFrame(() => {
+            otpRefs.current[index - 1]?.focus();
+          });
+        }
+        return prev;
+      });
     }
-  }, [otp]);
+  }, []);
 
   const handleMobileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setMobile(e.target.value.replace(/\D/g, '').slice(0, 10));
@@ -106,6 +165,10 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
                 onChange={handleMobileChange}
                 placeholder="10 digit number"
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none text-base"
+                autoComplete="tel"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck={false}
               />
             </div>
             <button
@@ -140,6 +203,10 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
                   onChange={(e) => handleOtpChange(i, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(i, e)}
                   className="w-12 h-12 text-center border-2 border-gray-300 rounded-xl text-lg font-bold focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 focus:outline-none"
+                  autoComplete="one-time-code"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
                 />
               ))}
             </div>
