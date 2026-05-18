@@ -455,32 +455,24 @@ export function NewBookingForm() {
               />
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Trip Duration</label>
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => setOutstationDays(1)}
-                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-                      outstationDays === 1
-                        ? 'bg-emerald-700 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
+                <div className="relative">
+                  <select
+                    value={outstationDays}
+                    onChange={(e) => setOutstationDays(parseInt(e.target.value, 10))}
+                    className="w-full px-4 py-4 pr-10 text-base text-gray-700 bg-white border border-gray-300 rounded-xl appearance-none focus:ring-2 focus:ring-emerald-600 focus:outline-none cursor-pointer"
                   >
-                    Single Day
-                  </button>
-                  {[2, 3, 4, 5].map((days) => (
-                    <button
-                      key={days}
-                      type="button"
-                      onClick={() => setOutstationDays(days)}
-                      className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-                        outstationDays === days
-                          ? 'bg-emerald-700 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {days} Days
-                    </button>
-                  ))}
+                    <option value={1}>Single Day</option>
+                    {[2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30].map((days) => (
+                      <option key={days} value={days}>
+                        {days} Days
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
               </div>
               {outstationDays === 1 && (
