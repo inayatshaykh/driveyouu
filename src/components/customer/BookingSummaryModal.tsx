@@ -17,6 +17,7 @@ export interface BookingSummaryData {
   baseFare?: number;
   nightCharge?: number;
   total?: number;
+  cancellationCharge?: number;
 }
 
 interface BookingSummaryModalProps {
@@ -82,7 +83,7 @@ export function BookingSummaryModal({
               </div>
               {(data.nightCharge ?? 0) > 0 && (
                 <div className="flex justify-between text-orange-600">
-                  <span>Night Charge</span>
+                  <span>Night Charge (after 9 PM)</span>
                   <span className="font-semibold">{inr.format(data.nightCharge!)}</span>
                 </div>
               )}
@@ -90,18 +91,54 @@ export function BookingSummaryModal({
                 <span>Total</span>
                 <span>{inr.format(data.total ?? data.baseFare + (data.nightCharge ?? 0))}</span>
               </div>
+              {data.cancellationCharge && (
+                <div className="flex justify-between text-xs text-gray-600 pt-2 border-t border-emerald-100">
+                  <span>Cancellation Charge</span>
+                  <span className="font-semibold">{inr.format(data.cancellationCharge)}</span>
+                </div>
+              )}
             </div>
           )}
-          {data.tab === 'multiday' && data.days != null && (
-            <div className="flex justify-between text-sm">
-              <span>{inr.format(1250)} × {data.days} days</span>
-              <span className="font-bold text-emerald-800">{inr.format(1250 * data.days)}</span>
+          {data.tab === 'multiday' && data.total != null && (
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>{data.days} {data.days === 1 ? 'day' : 'days'}</span>
+                <span className="font-bold text-emerald-800">{inr.format(data.total)}</span>
+              </div>
+              {data.cancellationCharge && (
+                <div className="flex justify-between text-xs text-gray-600 pt-2 border-t border-emerald-100">
+                  <span>Cancellation Charge</span>
+                  <span className="font-semibold">{inr.format(data.cancellationCharge)}</span>
+                </div>
+              )}
             </div>
           )}
-          {data.tab === 'outstation' && (
-            <p className="text-sm text-gray-700">
-              Starting {inr.format(600)} — final fare confirmed after booking by our team.
-            </p>
+          {data.tab === 'outstation' && data.baseFare != null && (
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Base Fare</span>
+                <span className="font-semibold">{inr.format(data.baseFare)}</span>
+              </div>
+              {(data.nightCharge ?? 0) > 0 && (
+                <div className="flex justify-between text-orange-600">
+                  <span>Night Charge (after 9 PM)</span>
+                  <span className="font-semibold">{inr.format(data.nightCharge!)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold text-emerald-800 pt-2 border-t border-emerald-200">
+                <span>Total</span>
+                <span>{inr.format(data.total ?? data.baseFare + (data.nightCharge ?? 0))}</span>
+              </div>
+              {data.cancellationCharge && (
+                <div className="flex justify-between text-xs text-gray-600 pt-2 border-t border-emerald-100">
+                  <span>Cancellation Charge</span>
+                  <span className="font-semibold">{inr.format(data.cancellationCharge)}</span>
+                </div>
+              )}
+              <p className="text-xs text-gray-600 mt-2 pt-2 border-t border-emerald-100">
+                * Fooding & Lodging from customer side
+              </p>
+            </div>
           )}
         </div>
 

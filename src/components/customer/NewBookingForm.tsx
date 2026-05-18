@@ -14,7 +14,8 @@ import { getUrsUser, inr } from '@/utils/ursSession';
 
 type TabType = 'hourly' | 'multiday' | 'outstation';
 
-const HOURLY_RATES: Record<number, number> = {
+// Base rates for local (4 hours minimum)
+const LOCAL_HOURLY_RATES: Record<number, number> = {
   4: 500,
   6: 700,
   8: 900,
@@ -22,8 +23,27 @@ const HOURLY_RATES: Record<number, number> = {
   12: 1100,
 };
 
-const NIGHT_CHARGE = 200;
-const MULTIDAY_RATE = 1250;
+// Outstation base rates (4 hours minimum)
+const OUTSTATION_HOURLY_RATES: Record<number, number> = {
+  4: 600,
+  6: 800,
+  8: 1000,
+  10: 1200,
+  12: 1400,
+};
+
+const NIGHT_CHARGE = 200; // After 9 PM
+const MULTIDAY_RATE = 1250; // Per day
+const CANCELLATION_CHARGE = 500;
+
+// Car multipliers based on category
+const CAR_MULTIPLIERS: Record<string, number> = {
+  Hatchback: 1.0,
+  Sedan: 1.2,
+  MPV: 1.0,
+  SUV: 1.3,
+  Premium: 2.0,
+};
 
 function hasNightCharge(time: string): boolean {
   if (!time) return false;
@@ -65,6 +85,8 @@ export function NewBookingForm() {
   const [endDate, setEndDate] = useState('');
   const [outstationDate, setOutstationDate] = useState('');
   const [outstationTime, setOutstationTime] = useState('');
+  const [outstationDays, setOutstationDays] = useState(1);
+  const [outstationHours, setOutstationHours] = useState(4);
 
   const [showAuth, setShowAuth] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
@@ -75,10 +97,26 @@ export function NewBookingForm() {
     [startDate, endDate]
   );
 
-  const nightCharge = hasNightCharge(startTime) ? NIGHT_CHARGE : 0;
-  const hourlyBase = HOURLY_RATES[selectedHours] ?? 500;
-  const hourlyTotal = hourlyBase + nightCharge;
-  const multidayTotal = multidayDays * MULTIDAY_RATE;
+  // Get car multiplier
+  const carMultiplier = CAR_MULTIPLIERS[selectedCategory] || 1.0;
+
+  // Hourly calculations (local)
+  const nightChargeHourly = hasNightCharge(startTime) ? NIGHT_CHARGE : 0;
+  const hourlyBaseRate = LOCAL_HOURLY_RATES[selectedHours] ?? 500;
+  const hourlyBase = Math.round(hourlyBaseRate * carMultiplier);
+  const hourlyTotal = hourlyBase + nightChargeHourly;
+
+  // Multi-day calculations
+  const multidayBaseRate = MULTIDAY_RATE * multidayDays;
+  const multidayTotal = Math.round(multidayBaseRate * carMultiplier);
+
+  // Outstation calculations
+  const nightChargeOutstation = hasNightCharge(outstationTime) ? NIGHT_CHARGE : 0;
+  const outstationBaseRate = outstationDays === 1 
+    ? (OUTSTATION_HOURLY_RATES[outstationHours] ?? 600)
+    : (MULTIDAY_RATE * outstationDays);
+  const outstationBase = Math.round(outstationBaseRate * carMultiplier);
+  const outstationTotal = outstationBase + nightChargeOutstation;
 
   useEffect(() => {
     setUser(getUrsUser());
@@ -103,17 +141,29 @@ export function NewBookingForm() {
         time: startTime,
         duration: `${selectedHours} hours`,
         baseFare: hourlyBase,
-        nightCharge,
+        nightCharge: nightChargeHourly,
         total: hourlyTotal,
+        cancellationCharge: CANCELLATION_CHARGE,
       };
     }
     if (activeTab === 'multiday') {
-      return { ...base, days: multidayDays, total: multidayTotal };
+      return { 
+        ...base, 
+        days: multidayDays, 
+        total: multidayTotal,
+        cancellationCharge: CANCELLATION_CHARGE,
+      };
     }
     return {
       ...base,
       destination: selectedDrop?.address ?? dropQuery,
       time: outstationTime,
+      days: outstationDays,
+      duration: outstationDays === 1 ? `${outstationHours} hours` : undefined,
+      baseFare: outstationBase,
+      nightCharge: nightChargeOutstation,
+      total: outstationTotal,
+      cancellationCharge: CANCELLATION_CHARGE,
     };
   };
 
@@ -238,14 +288,14 @@ export function NewBookingForm() {
                 />
                 {hasNightCharge(startTime) && (
                   <p className="text-orange-600 text-sm mt-2 font-semibold">
-                    + {inr.format(NIGHT_CHARGE)} Night Charge
+                    + {inr.format(NIGHT_CHARGE)} Night Charge (after 9 PM)
                   </p>
                 )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Duration</label>
                 <div className="flex gap-2 flex-wrap">
-                  {Object.keys(HOURLY_RATES).map((hours) => (
+                  {Object.keys(LOCAL_HOURLY_RATES).map((hours) => (
                     <button
                       key={hours}
                       type="button"
@@ -260,7 +310,7 @@ export function NewBookingForm() {
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-2">Minimum booking: 4 hours</p>
+                <p className="text-xs text-gray-500 mt-2">Minimum booking: 4 hours (Local)</p>
               </div>
               <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mt-4">
                 <div className="space-y-2 text-sm">
@@ -269,18 +319,22 @@ export function NewBookingForm() {
                     <span className="font-semibold">{selectedHours} Hours</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-700">Base Fare</span>
+                    <span className="text-gray-700">Base Fare ({selectedCategory})</span>
                     <span className="font-semibold">{inr.format(hourlyBase)}</span>
                   </div>
-                  {nightCharge > 0 && (
+                  {nightChargeHourly > 0 && (
                     <div className="flex justify-between text-orange-600">
-                      <span>Night Charge</span>
-                      <span className="font-semibold">{inr.format(nightCharge)}</span>
+                      <span>Night Charge (after 9 PM)</span>
+                      <span className="font-semibold">{inr.format(nightChargeHourly)}</span>
                     </div>
                   )}
                   <div className="border-t border-emerald-300 pt-2 flex justify-between font-bold text-emerald-700">
                     <span>Total</span>
                     <span>{inr.format(hourlyTotal)}</span>
+                  </div>
+                  <div className="border-t border-emerald-200 pt-2 flex justify-between text-xs text-gray-600">
+                    <span>Cancellation Charge</span>
+                    <span className="font-semibold">{inr.format(CANCELLATION_CHARGE)}</span>
                   </div>
                 </div>
               </div>
@@ -320,11 +374,26 @@ export function NewBookingForm() {
                 </div>
               </div>
               {startDate && endDate && (
-                <p className="text-sm text-gray-600">
-                  <span className="font-semibold text-emerald-700">{multidayDays}</span>{' '}
-                  {multidayDays === 1 ? 'day' : 'days'} · {inr.format(MULTIDAY_RATE)}/day ={' '}
-                  <span className="font-bold text-emerald-700">{inr.format(multidayTotal)}</span>
-                </p>
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-700">Duration</span>
+                      <span className="font-semibold">{multidayDays} {multidayDays === 1 ? 'day' : 'days'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700">Rate ({selectedCategory})</span>
+                      <span className="font-semibold">{inr.format(Math.round(MULTIDAY_RATE * carMultiplier))}/day</span>
+                    </div>
+                    <div className="border-t border-emerald-300 pt-2 flex justify-between font-bold text-emerald-700">
+                      <span>Total</span>
+                      <span>{inr.format(multidayTotal)}</span>
+                    </div>
+                    <div className="border-t border-emerald-200 pt-2 flex justify-between text-xs text-gray-600">
+                      <span>Cancellation Charge</span>
+                      <span className="font-semibold">{inr.format(CANCELLATION_CHARGE)}</span>
+                    </div>
+                  </div>
+                </div>
               )}
             </>
           )}
@@ -351,6 +420,58 @@ export function NewBookingForm() {
                 icon="drop"
                 placeholder="Enter destination"
               />
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Trip Duration</label>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setOutstationDays(1)}
+                    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                      outstationDays === 1
+                        ? 'bg-emerald-700 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Single Day
+                  </button>
+                  {[2, 3, 4, 5].map((days) => (
+                    <button
+                      key={days}
+                      type="button"
+                      onClick={() => setOutstationDays(days)}
+                      className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                        outstationDays === days
+                          ? 'bg-emerald-700 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {days} Days
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {outstationDays === 1 && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Duration (Hours)</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {Object.keys(OUTSTATION_HOURLY_RATES).map((hours) => (
+                      <button
+                        key={hours}
+                        type="button"
+                        onClick={() => setOutstationHours(parseInt(hours, 10))}
+                        className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                          outstationHours === parseInt(hours, 10)
+                            ? 'bg-emerald-700 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {hours} hrs
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Minimum booking: 4 hours (Outstation)</p>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
@@ -369,11 +490,44 @@ export function NewBookingForm() {
                     onChange={(e) => setOutstationTime(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none"
                   />
+                  {hasNightCharge(outstationTime) && (
+                    <p className="text-orange-600 text-sm mt-2 font-semibold">
+                      + {inr.format(NIGHT_CHARGE)} Night Charge (after 9 PM)
+                    </p>
+                  )}
                 </div>
               </div>
-              <p className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-sm text-gray-700">
-                Starting from {inr.format(600)}, final fare confirmed after booking.
-              </p>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-700">Duration</span>
+                    <span className="font-semibold">
+                      {outstationDays === 1 ? `${outstationHours} Hours` : `${outstationDays} Days`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700">Base Fare ({selectedCategory})</span>
+                    <span className="font-semibold">{inr.format(outstationBase)}</span>
+                  </div>
+                  {nightChargeOutstation > 0 && (
+                    <div className="flex justify-between text-orange-600">
+                      <span>Night Charge (after 9 PM)</span>
+                      <span className="font-semibold">{inr.format(nightChargeOutstation)}</span>
+                    </div>
+                  )}
+                  <div className="border-t border-emerald-300 pt-2 flex justify-between font-bold text-emerald-700">
+                    <span>Total</span>
+                    <span>{inr.format(outstationTotal)}</span>
+                  </div>
+                  <div className="border-t border-emerald-200 pt-2 flex justify-between text-xs text-gray-600">
+                    <span>Cancellation Charge</span>
+                    <span className="font-semibold">{inr.format(CANCELLATION_CHARGE)}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-3">
+                  * Fooding & Lodging from customer side
+                </p>
+              </div>
             </>
           )}
 
