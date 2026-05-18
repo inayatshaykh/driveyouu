@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { inr } from '@/utils/ursSession';
-import type { CarOption } from './VehicleSelector';
+import type { CarCategory, TransmissionType } from './VehicleSelector';
 
 export type TripTab = 'hourly' | 'multiday' | 'outstation';
 
@@ -13,7 +13,8 @@ export interface BookingSummaryData {
   time?: string;
   duration?: string;
   days?: number;
-  car: CarOption;
+  carCategory: CarCategory;
+  transmission: TransmissionType;
   baseFare?: number;
   nightCharge?: number;
   total?: number;
@@ -31,6 +32,13 @@ const tabLabels: Record<TripTab, string> = {
   hourly: 'Hourly',
   multiday: 'Multi-Day',
   outstation: 'Outstation',
+};
+
+const CAR_EMOJIS: Record<CarCategory, string> = {
+  Hatchback: '🚗',
+  Sedan: '🚘',
+  SUV: '🚙',
+  Luxury: '🏎️',
 };
 
 export function BookingSummaryModal({
@@ -69,8 +77,14 @@ export function BookingSummaryModal({
           {data.days != null && data.tab === 'multiday' && (
             <p><span className="text-gray-500">📆 Days:</span> <span className="font-medium">{data.days}</span></p>
           )}
-          <p><span className="text-gray-500">🚗 Car:</span> <span className="font-medium">{data.car.emoji} {data.car.name}</span></p>
+          <p><span className="text-gray-500">🚗 Your Car:</span> <span className="font-medium">{CAR_EMOJIS[data.carCategory]} {data.carCategory}</span></p>
+          <p><span className="text-gray-500">⚙️ Transmission:</span> <span className="font-medium">{data.transmission}</span></p>
           <p><span className="text-gray-500">🚙 Trip Type:</span> <span className="font-medium">{tabLabels[data.tab]}</span></p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mt-2">
+            <p className="text-xs text-blue-800">
+              <span className="font-semibold">ℹ️</span> We provide only the driver for your vehicle
+            </p>
+          </div>
         </div>
 
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-4">
@@ -152,11 +166,12 @@ export function BookingSummaryModal({
         </button>
         {termsOpen && (
           <ul className="text-xs text-gray-600 space-y-1 mb-4 pl-2">
+            <li>• We provide only the driver (your own vehicle)</li>
             <li>• Min booking: 4 hours</li>
             <li>• Cancellation: ₹500</li>
             <li>• Night charge after 9PM: ₹200</li>
             <li>• Fooding & lodging: customer&apos;s side</li>
-            <li>• Outstation price: depends on destination</li>
+            <li>• Driver experienced with your car type & transmission</li>
           </ul>
         )}
 
@@ -177,7 +192,7 @@ export function BookingSummaryModal({
           </button>
         </div>
         <p className="text-xs text-gray-500 text-center mt-4">
-          🔒 Car + Driver Included · Online/Offline Payment
+          🔒 Professional Driver · Your Own Vehicle · Online/Offline Payment
         </p>
       </div>
     </div>

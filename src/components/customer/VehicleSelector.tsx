@@ -1,103 +1,103 @@
-import { inr } from '@/utils/ursSession';
+export type CarCategory = 'Hatchback' | 'Sedan' | 'SUV' | 'Luxury';
+export type TransmissionType = 'Manual' | 'Automatic';
 
-export type CarCategory = 'Hatchback' | 'Sedan' | 'MPV' | 'SUV' | 'Premium';
-
-export interface CarOption {
-  name: string;
-  seats: number;
-  transmission: string;
+export interface CarSelection {
+  category: CarCategory;
+  transmission: TransmissionType;
   emoji: string;
-  badge?: string;
-  from: number;
+  description: string;
 }
 
-export const CARS_BY_CATEGORY: Record<CarCategory, CarOption[]> = {
-  Hatchback: [
-    { name: 'Maruti Swift', seats: 5, transmission: 'Manual', emoji: '🚗', from: 500 },
-    { name: 'Hyundai i20', seats: 5, transmission: 'Manual', emoji: '🚗', from: 500 },
-  ],
-  Sedan: [
-    { name: 'Honda City', seats: 5, transmission: 'Automatic', emoji: '🚘', badge: 'Popular', from: 600 },
-    { name: 'Maruti Ciaz', seats: 5, transmission: 'Manual', emoji: '🚘', from: 600 },
-  ],
-  MPV: [
-    { name: 'Maruti Ertiga', seats: 7, transmission: 'Manual', emoji: '🚐', badge: 'Popular', from: 500 },
-    { name: 'Kia Carens', seats: 7, transmission: 'Automatic', emoji: '🚐', from: 700 },
-  ],
-  SUV: [
-    { name: 'Toyota Fortuner', seats: 7, transmission: 'Automatic', emoji: '🚙', from: 800 },
-    { name: 'Hyundai Creta', seats: 5, transmission: 'Automatic', emoji: '🚙', from: 650 },
-  ],
-  Premium: [
-    { name: 'Toyota Innova', seats: 7, transmission: 'Manual', emoji: '🚘', from: 700 },
-    { name: 'Mercedes E-Class', seats: 4, transmission: 'Automatic', emoji: '🏎️', from: 2000 },
-  ],
+export const CAR_CATEGORIES: Record<CarCategory, { emoji: string; description: string }> = {
+  Hatchback: { emoji: '🚗', description: 'Compact cars like Swift, i20, Baleno' },
+  Sedan: { emoji: '🚘', description: 'Mid-size cars like City, Verna, Ciaz' },
+  SUV: { emoji: '🚙', description: 'Large vehicles like Creta, Fortuner, XUV' },
+  Luxury: { emoji: '🏎️', description: 'Premium cars like BMW, Mercedes, Audi' },
 };
 
 interface VehicleSelectorProps {
   selectedCategory: CarCategory;
-  selectedCar: CarOption;
+  selectedTransmission: TransmissionType;
   onCategoryChange: (category: CarCategory) => void;
-  onCarChange: (car: CarOption) => void;
+  onTransmissionChange: (transmission: TransmissionType) => void;
 }
 
 export function VehicleSelector({
   selectedCategory,
-  selectedCar,
+  selectedTransmission,
   onCategoryChange,
-  onCarChange,
+  onTransmissionChange,
 }: VehicleSelectorProps) {
   return (
-    <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-2">Select Vehicle</label>
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
-        {(Object.keys(CARS_BY_CATEGORY) as CarCategory[]).map((category) => (
-          <button
-            key={category}
-            type="button"
-            onClick={() => {
-              onCategoryChange(category);
-              onCarChange(CARS_BY_CATEGORY[category][0]);
-            }}
-            className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all shrink-0 ${
-              selectedCategory === category
-                ? 'bg-emerald-700 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {category}
-          </button>
-        ))}
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Your Car Type
+        </label>
+        <p className="text-xs text-gray-500 mb-3">
+          We'll assign a driver experienced with your vehicle type
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {(Object.keys(CAR_CATEGORIES) as CarCategory[]).map((category) => (
+            <button
+              key={category}
+              type="button"
+              onClick={() => onCategoryChange(category)}
+              className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                selectedCategory === category
+                  ? 'border-emerald-600 bg-emerald-50/40'
+                  : 'border-gray-200 hover:border-emerald-300 bg-white'
+              }`}
+            >
+              <div className="text-3xl mb-2">{CAR_CATEGORIES[category].emoji}</div>
+              <div className="font-bold text-gray-900 text-sm">{category}</div>
+              <p className="text-xs text-gray-500 mt-1">
+                {CAR_CATEGORIES[category].description}
+              </p>
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="mt-3 space-y-2">
-        {CARS_BY_CATEGORY[selectedCategory].map((car) => (
+
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Transmission Type
+        </label>
+        <p className="text-xs text-gray-500 mb-3">
+          Driver will be assigned based on your car's transmission
+        </p>
+        <div className="flex gap-3">
           <button
-            key={car.name}
             type="button"
-            onClick={() => onCarChange(car)}
-            className={`w-full bg-white rounded-2xl border-2 p-4 flex items-center gap-4 cursor-pointer transition-all ${
-              selectedCar.name === car.name
-                ? 'border-emerald-600 bg-emerald-50/40'
-                : 'border-gray-100 hover:border-emerald-300'
+            onClick={() => onTransmissionChange('Manual')}
+            className={`flex-1 px-6 py-4 rounded-2xl border-2 font-semibold transition-all ${
+              selectedTransmission === 'Manual'
+                ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-300'
             }`}
           >
-            <span className="text-3xl shrink-0">{car.emoji}</span>
-            <div className="flex-1 text-left min-w-0">
-              <div className="font-bold text-gray-900">{car.name}</div>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {car.seats} seats · {car.transmission}
-              </p>
-              {car.badge && (
-                <span className="inline-block bg-amber-100 text-amber-700 text-xs rounded-full px-2 py-0.5 mt-1 font-medium">
-                  {car.badge}
-                </span>
-              )}
-              <p className="text-emerald-700 font-semibold text-sm mt-1">
-                From {inr.format(car.from)}
-              </p>
-            </div>
+            <div className="text-2xl mb-1">⚙️</div>
+            Manual
           </button>
-        ))}
+          <button
+            type="button"
+            onClick={() => onTransmissionChange('Automatic')}
+            className={`flex-1 px-6 py-4 rounded-2xl border-2 font-semibold transition-all ${
+              selectedTransmission === 'Automatic'
+                ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                : 'border-gray-200 bg-white text-gray-600 hover:border-emerald-300'
+            }`}
+          >
+            <div className="text-2xl mb-1">🔄</div>
+            Automatic
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+        <p className="text-sm text-blue-800">
+          <span className="font-semibold">ℹ️ Note:</span> We provide only the driver. You use your own vehicle.
+        </p>
       </div>
     </div>
   );

@@ -4,9 +4,8 @@ import { toast } from 'sonner';
 import { LocationInput, type SelectedLocation } from './LocationInput';
 import {
   VehicleSelector,
-  CARS_BY_CATEGORY,
   type CarCategory,
-  type CarOption,
+  type TransmissionType,
 } from './VehicleSelector';
 import { AuthModal } from './AuthModal';
 import { BookingSummaryModal, type BookingSummaryData } from './BookingSummaryModal';
@@ -36,13 +35,18 @@ const NIGHT_CHARGE = 200; // After 9 PM
 const MULTIDAY_RATE = 1250; // Per day
 const CANCELLATION_CHARGE = 500;
 
-// Car multipliers based on category
+// Car multipliers based on category (customer's own car)
 const CAR_MULTIPLIERS: Record<string, number> = {
   Hatchback: 1.0,
-  Sedan: 1.2,
-  MPV: 1.0,
-  SUV: 1.3,
-  Premium: 2.0,
+  Sedan: 1.1,
+  SUV: 1.2,
+  Luxury: 1.5,
+};
+
+// Transmission multiplier (automatic requires specialized drivers)
+const TRANSMISSION_MULTIPLIERS: Record<TransmissionType, number> = {
+  Manual: 1.0,
+  Automatic: 1.1,
 };
 
 function hasNightCharge(time: string): boolean {
@@ -70,8 +74,8 @@ function formatDateLabel(iso: string): string {
 
 export function NewBookingForm() {
   const [activeTab, setActiveTab] = useState<TabType>('hourly');
-  const [selectedCategory, setSelectedCategory] = useState<CarCategory>('MPV');
-  const [selectedCar, setSelectedCar] = useState<CarOption>(CARS_BY_CATEGORY.MPV[0]);
+  const [selectedCategory, setSelectedCategory] = useState<CarCategory>('Sedan');
+  const [selectedTransmission, setSelectedTransmission] = useState<TransmissionType>('Manual');
   const [selectedHours, setSelectedHours] = useState(4);
 
   const [pickupQuery, setPickupQuery] = useState('');
@@ -97,25 +101,27 @@ export function NewBookingForm() {
     [startDate, endDate]
   );
 
-  // Get car multiplier
+  // Get car and transmission multipliers
   const carMultiplier = CAR_MULTIPLIERS[selectedCategory] || 1.0;
+  const transmissionMultiplier = TRANSMISSION_MULTIPLIERS[selectedTransmission] || 1.0;
+  const totalMultiplier = carMultiplier * transmissionMultiplier;
 
   // Hourly calculations (local)
   const nightChargeHourly = hasNightCharge(startTime) ? NIGHT_CHARGE : 0;
   const hourlyBaseRate = LOCAL_HOURLY_RATES[selectedHours] ?? 500;
-  const hourlyBase = Math.round(hourlyBaseRate * carMultiplier);
+  const hourlyBase = Math.round(hourlyBaseRate * totalMultiplier);
   const hourlyTotal = hourlyBase + nightChargeHourly;
 
   // Multi-day calculations
   const multidayBaseRate = MULTIDAY_RATE * multidayDays;
-  const multidayTotal = Math.round(multidayBaseRate * carMultiplier);
+  const multidayTotal = Math.round(multidayBaseRate * totalMultiplier);
 
   // Outstation calculations
   const nightChargeOutstation = hasNightCharge(outstationTime) ? NIGHT_CHARGE : 0;
   const outstationBaseRate = outstationDays === 1 
     ? (OUTSTATION_HOURLY_RATES[outstationHours] ?? 600)
     : (MULTIDAY_RATE * outstationDays);
-  const outstationBase = Math.round(outstationBaseRate * carMultiplier);
+  const outstationBase = Math.round(outstationBaseRate * totalMultiplier);
   const outstationTotal = outstationBase + nightChargeOutstation;
 
   useEffect(() => {
@@ -126,7 +132,8 @@ export function NewBookingForm() {
     const base: BookingSummaryData = {
       tab: activeTab,
       pickup: selectedPickup?.address ?? pickupQuery,
-      car: selectedCar,
+      carCategory: selectedCategory,
+      transmission: selectedTransmission,
       date:
         activeTab === 'hourly'
           ? formatDateLabel(bookingDate)
@@ -228,9 +235,9 @@ export function NewBookingForm() {
     <>
       <div className="w-full max-w-2xl mx-auto bg-gray-50 rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
         <div className="bg-gradient-to-r from-slate-800 to-emerald-800 text-white px-6 py-6 text-center">
-          <h2 className="text-2xl font-bold">Book Your Ride</h2>
+          <h2 className="text-2xl font-bold">Book Your Driver</h2>
           <p className="text-sm text-emerald-50 mt-1">
-            We provide the vehicle + driver — you just show up.
+            We provide the driver — you use your own vehicle.
           </p>
         </div>
 
@@ -319,8 +326,12 @@ export function NewBookingForm() {
                     <span className="font-semibold">{selectedHours} Hours</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-700">Base Fare ({selectedCategory})</span>
+                    <span className="text-gray-700">Base Fare</span>
                     <span className="font-semibold">{inr.format(hourlyBase)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>{selectedCategory} · {selectedTransmission}</span>
+                    <span></span>
                   </div>
                   {nightChargeHourly > 0 && (
                     <div className="flex justify-between text-orange-600">
@@ -381,8 +392,12 @@ export function NewBookingForm() {
                       <span className="font-semibold">{multidayDays} {multidayDays === 1 ? 'day' : 'days'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-700">Rate ({selectedCategory})</span>
-                      <span className="font-semibold">{inr.format(Math.round(MULTIDAY_RATE * carMultiplier))}/day</span>
+                      <span className="text-gray-700">Rate per day</span>
+                      <span className="font-semibold">{inr.format(Math.round(MULTIDAY_RATE * totalMultiplier))}/day</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>{selectedCategory} · {selectedTransmission}</span>
+                      <span></span>
                     </div>
                     <div className="border-t border-emerald-300 pt-2 flex justify-between font-bold text-emerald-700">
                       <span>Total</span>
@@ -506,8 +521,12 @@ export function NewBookingForm() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-700">Base Fare ({selectedCategory})</span>
+                    <span className="text-gray-700">Base Fare</span>
                     <span className="font-semibold">{inr.format(outstationBase)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>{selectedCategory} · {selectedTransmission}</span>
+                    <span></span>
                   </div>
                   {nightChargeOutstation > 0 && (
                     <div className="flex justify-between text-orange-600">
@@ -533,9 +552,9 @@ export function NewBookingForm() {
 
           <VehicleSelector
             selectedCategory={selectedCategory}
-            selectedCar={selectedCar}
+            selectedTransmission={selectedTransmission}
             onCategoryChange={setSelectedCategory}
-            onCarChange={setSelectedCar}
+            onTransmissionChange={setSelectedTransmission}
           />
 
           <button
@@ -545,7 +564,7 @@ export function NewBookingForm() {
             Book Now
           </button>
           <p className="text-xs text-gray-400 text-center">
-            🔒 Car + Driver Included · Online/Offline Payment
+            🔒 Professional Driver · Your Own Vehicle · Online/Offline Payment
           </p>
         </form>
       </div>
