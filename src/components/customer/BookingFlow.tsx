@@ -101,7 +101,7 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
 
   // Search locations using Nominatim API with AbortController
   const searchLocation = useCallback(async (query: string, signal: AbortSignal) => {
-    if (query.length < 4) return [];
+    if (query.length < 5) return [];
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&countrycodes=in`,
       { 
@@ -117,7 +117,7 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
     }));
   }, []);
 
-  // Debounced search handlers with AbortController
+  // Debounced search handlers with AbortController and RAF
   const handlePickupChange = useCallback((value: string) => {
     setPickupQuery(value);
     
@@ -132,10 +132,15 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
       pickupAbortRef.current.abort();
     }
     
-    if (value.length < 4) {
-      setPickupSuggestions([]);
-      setShowPickupDropdown(false);
-      setIsSearchingPickup(false);
+    if (value.length < 5) {
+      // Use RAF to batch state updates
+      requestAnimationFrame(() => {
+        if (isMountedRef.current) {
+          setPickupSuggestions([]);
+          setShowPickupDropdown(false);
+          setIsSearchingPickup(false);
+        }
+      });
       return;
     }
     
@@ -149,19 +154,28 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
         const suggestions = await searchLocation(value, pickupAbortRef.current.signal);
         
         if (currentSearchId === pickupSearchIdRef.current && isMountedRef.current) {
-          setPickupSuggestions(suggestions);
-          setShowPickupDropdown(suggestions.length > 0);
+          // Use RAF to batch dropdown updates
+          requestAnimationFrame(() => {
+            if (isMountedRef.current) {
+              setPickupSuggestions(suggestions);
+              setShowPickupDropdown(suggestions.length > 0);
+              setIsSearchingPickup(false);
+            }
+          });
         }
       } catch (error: any) {
         if (error.name !== 'AbortError') {
           console.error('Error searching location:', error);
         }
-      } finally {
         if (currentSearchId === pickupSearchIdRef.current && isMountedRef.current) {
-          setIsSearchingPickup(false);
+          requestAnimationFrame(() => {
+            if (isMountedRef.current) {
+              setIsSearchingPickup(false);
+            }
+          });
         }
       }
-    }, 400);
+    }, 500);
   }, [searchLocation]);
 
   const handleDropChange = useCallback((value: string) => {
@@ -178,10 +192,15 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
       dropAbortRef.current.abort();
     }
     
-    if (value.length < 4) {
-      setDropSuggestions([]);
-      setShowDropDropdown(false);
-      setIsSearchingDrop(false);
+    if (value.length < 5) {
+      // Use RAF to batch state updates
+      requestAnimationFrame(() => {
+        if (isMountedRef.current) {
+          setDropSuggestions([]);
+          setShowDropDropdown(false);
+          setIsSearchingDrop(false);
+        }
+      });
       return;
     }
     
@@ -195,20 +214,50 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
         const suggestions = await searchLocation(value, dropAbortRef.current.signal);
         
         if (currentSearchId === dropSearchIdRef.current && isMountedRef.current) {
-          setDropSuggestions(suggestions);
-          setShowDropDropdown(suggestions.length > 0);
+          // Use RAF to batch dropdown updates
+          requestAnimationFrame(() => {
+            if (isMountedRef.current) {
+              setDropSuggestions(suggestions);
+              setShowDropDropdown(suggestions.length > 0);
+              setIsSearchingDrop(false);
+            }
+          });
         }
       } catch (error: any) {
         if (error.name !== 'AbortError') {
           console.error('Error searching location:', error);
         }
-      } finally {
         if (currentSearchId === dropSearchIdRef.current && isMountedRef.current) {
-          setIsSearchingDrop(false);
+          requestAnimationFrame(() => {
+            if (isMountedRef.current) {
+              setIsSearchingDrop(false);
+            }
+          });
         }
       }
-    }, 400);
+    }, 500);
   }, [searchLocation]);
+
+  // Memoized onFocus handlers to prevent rerender spam
+  const handlePickupFocus = useCallback(() => {
+    if (pickupSuggestions.length > 0) {
+      requestAnimationFrame(() => {
+        if (isMountedRef.current) {
+          setShowPickupDropdown(true);
+        }
+      });
+    }
+  }, [pickupSuggestions.length]);
+
+  const handleDropFocus = useCallback(() => {
+    if (dropSuggestions.length > 0) {
+      requestAnimationFrame(() => {
+        if (isMountedRef.current) {
+          setShowDropDropdown(true);
+        }
+      });
+    }
+  }, [dropSuggestions.length]);
 
   // Select location from suggestions - only update form on selection
   const selectPickup = useCallback((suggestion: LocationSuggestion) => {
@@ -372,14 +421,14 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
                     type="text"
                     value={pickupQuery}
                     onChange={(e) => handlePickupChange(e.target.value)}
-                    onFocus={() => pickupSuggestions.length > 0 && setShowPickupDropdown(true)}
-                    placeholder="Enter 4 letters to search location"
+                    onFocus={handlePickupFocus}
+                    placeholder="Enter 5 letters to search location"
                     className="flex-1 rounded-md border px-3 py-2"
                     autoComplete="off"
                     autoCorrect="off"
                     autoCapitalize="off"
                     spellCheck={false}
-                    inputMode="text"
+                    inputMode="search"
                   />
                   {isSearchingPickup && (
                     <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin pointer-events-none" />
@@ -411,14 +460,14 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
                       type="text"
                       value={dropQuery}
                       onChange={(e) => handleDropChange(e.target.value)}
-                      onFocus={() => dropSuggestions.length > 0 && setShowDropDropdown(true)}
-                      placeholder="Enter 4 letters to search location"
+                      onFocus={handleDropFocus}
+                      placeholder="Enter 5 letters to search location"
                       className="flex-1 rounded-md border px-3 py-2"
                       autoComplete="off"
                       autoCorrect="off"
                       autoCapitalize="off"
                       spellCheck={false}
-                      inputMode="text"
+                      inputMode="search"
                     />
                     {isSearchingDrop && (
                       <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin pointer-events-none" />
