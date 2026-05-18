@@ -88,7 +88,8 @@ export function NewBookingForm() {
   const [startTime, setStartTime] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [outstationDate, setOutstationDate] = useState('');
+  const [outstationStartDate, setOutstationStartDate] = useState('');
+  const [outstationEndDate, setOutstationEndDate] = useState('');
   const [outstationTime, setOutstationTime] = useState('');
   const [outstationDays, setOutstationDays] = useState(1);
   const [outstationHours, setOutstationHours] = useState(4);
@@ -100,6 +101,11 @@ export function NewBookingForm() {
   const multidayDays = useMemo(
     () => daysBetween(startDate, endDate),
     [startDate, endDate]
+  );
+
+  const outstationTripDays = useMemo(
+    () => daysBetween(outstationStartDate, outstationEndDate),
+    [outstationStartDate, outstationEndDate]
   );
 
   // Get car and transmission multipliers
@@ -119,9 +125,9 @@ export function NewBookingForm() {
 
   // Outstation calculations
   const nightChargeOutstation = hasNightCharge(outstationTime) ? NIGHT_CHARGE : 0;
-  const outstationBaseRate = outstationDays === 1 
+  const outstationBaseRate = outstationTripDays === 1
     ? (OUTSTATION_HOURLY_RATES[outstationHours] ?? 600)
-    : (MULTIDAY_RATE * outstationDays);
+    : (MULTIDAY_RATE * outstationTripDays);
   const outstationBase = Math.round(outstationBaseRate * totalMultiplier);
   const outstationTotal = outstationBase + nightChargeOutstation;
 
@@ -141,7 +147,7 @@ export function NewBookingForm() {
           ? driverNeeded === 'now' ? 'Now (within 30 min)' : formatDateLabel(bookingDate)
           : activeTab === 'multiday'
             ? `${formatDateLabel(startDate)} – ${formatDateLabel(endDate)}`
-            : formatDateLabel(outstationDate),
+            : `${formatDateLabel(outstationStartDate)} – ${formatDateLabel(outstationEndDate)}`,
     };
 
     if (activeTab === 'hourly') {
@@ -167,8 +173,8 @@ export function NewBookingForm() {
       ...base,
       destination: selectedDrop?.address ?? dropQuery,
       time: outstationTime,
-      days: outstationDays,
-      duration: outstationDays === 1 ? `${outstationHours} hours` : undefined,
+      days: outstationTripDays,
+      duration: outstationTripDays === 1 ? `${outstationHours} hours` : undefined,
       baseFare: outstationBase,
       nightCharge: nightChargeOutstation,
       total: outstationTotal,
@@ -208,8 +214,12 @@ export function NewBookingForm() {
         toast.error('Please select destination from suggestions');
         return false;
       }
-      if (!outstationDate) {
-        toast.error('Please select date');
+      if (!outstationStartDate || !outstationEndDate) {
+        toast.error('Please select start and end dates');
+        return false;
+      }
+      if (new Date(outstationEndDate) < new Date(outstationStartDate)) {
+        toast.error('End date must be on or after start date');
         return false;
       }
       if (!outstationTime) {
@@ -460,81 +470,78 @@ export function NewBookingForm() {
                 icon="drop"
                 placeholder="Enter destination"
               />
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Trip Duration</label>
-                <div className="relative">
-                  <select
-                    value={outstationDays}
-                    onChange={(e) => setOutstationDays(parseInt(e.target.value, 10))}
-                    className="w-full px-4 py-4 pr-10 text-base text-gray-700 bg-white border border-gray-300 rounded-xl appearance-none focus:ring-2 focus:ring-emerald-600 focus:outline-none cursor-pointer"
-                  >
-                    <option value={1}>Single Day</option>
-                    {[2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30].map((days) => (
-                      <option key={days} value={days}>
-                        {days} Days
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              {outstationDays === 1 && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Duration (Hours)</label>
-                  <div className="flex gap-2 flex-wrap">
-                    {Object.keys(OUTSTATION_HOURLY_RATES).map((hours) => (
-                      <button
-                        key={hours}
-                        type="button"
-                        onClick={() => setOutstationHours(parseInt(hours, 10))}
-                        className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
-                          outstationHours === parseInt(hours, 10)
-                            ? 'bg-emerald-700 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {hours} hrs
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">Minimum booking: 4 hours (Outstation)</p>
-                </div>
-              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">📅 Start Date</label>
                   <input
                     type="date"
-                    value={outstationDate}
-                    onChange={(e) => setOutstationDate(e.target.value)}
+                    value={outstationStartDate}
+                    onChange={(e) => setOutstationStartDate(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Time</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">📅 End Date</label>
                   <input
-                    type="time"
-                    value={outstationTime}
-                    onChange={(e) => setOutstationTime(e.target.value)}
+                    type="date"
+                    value={outstationEndDate}
+                    min={outstationStartDate}
+                    onChange={(e) => setOutstationEndDate(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none"
                   />
-                  {hasNightCharge(outstationTime) && (
-                    <p className="text-orange-600 text-sm mt-2 font-semibold">
-                      + {inr.format(NIGHT_CHARGE)} Night Charge (after 9 PM)
-                    </p>
-                  )}
                 </div>
               </div>
+              {outstationStartDate && outstationEndDate && (
+                <>
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                    <p className="text-sm font-semibold text-blue-800">
+                      ⏱️ Duration: {outstationTripDays} {outstationTripDays === 1 ? 'Day' : 'Days'}
+                    </p>
+                  </div>
+                  {outstationTripDays === 1 && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Duration (Hours)</label>
+                      <div className="flex gap-2 flex-wrap">
+                        {Object.keys(OUTSTATION_HOURLY_RATES).map((hours) => (
+                          <button
+                            key={hours}
+                            type="button"
+                            onClick={() => setOutstationHours(parseInt(hours, 10))}
+                            className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                              outstationHours === parseInt(hours, 10)
+                                ? 'bg-emerald-700 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            {hours} hrs
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">Minimum booking: 4 hours (Outstation)</p>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Time</label>
+                    <input
+                      type="time"
+                      value={outstationTime}
+                      onChange={(e) => setOutstationTime(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none"
+                    />
+                    {hasNightCharge(outstationTime) && (
+                      <p className="text-orange-600 text-sm mt-2 font-semibold">
+                        + {inr.format(NIGHT_CHARGE)} Night Charge (after 9 PM)
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
               <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-700">Duration</span>
                     <span className="font-semibold">
-                      {outstationDays === 1 ? `${outstationHours} Hours` : `${outstationDays} Days`}
+                      {outstationTripDays === 1 ? `${outstationHours} Hours` : `${outstationTripDays} Days`}
                     </span>
                   </div>
                   <div className="flex justify-between">
