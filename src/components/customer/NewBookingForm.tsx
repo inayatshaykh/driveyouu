@@ -392,7 +392,7 @@ export function NewBookingForm() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">📅 Start Date</label>
                   <input
                     type="date"
                     value={startDate}
@@ -401,7 +401,7 @@ export function NewBookingForm() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">End Date</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">📅 End Date</label>
                   <input
                     type="date"
                     value={endDate}
@@ -412,30 +412,37 @@ export function NewBookingForm() {
                 </div>
               </div>
               {startDate && endDate && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-700">Duration</span>
-                      <span className="font-semibold">{multidayDays} {multidayDays === 1 ? 'day' : 'days'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-700">Rate per day</span>
-                      <span className="font-semibold">{inr.format(Math.round(MULTIDAY_RATE * totalMultiplier))}/day</span>
-                    </div>
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>{selectedCategory} · {selectedTransmission}</span>
-                      <span></span>
-                    </div>
-                    <div className="border-t border-emerald-300 pt-2 flex justify-between font-bold text-emerald-700">
-                      <span>Total</span>
-                      <span>{inr.format(multidayTotal)}</span>
-                    </div>
-                    <div className="border-t border-emerald-200 pt-2 flex justify-between text-xs text-gray-600">
-                      <span>Cancellation Charge</span>
-                      <span className="font-semibold">{inr.format(CANCELLATION_CHARGE)}</span>
+                <>
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                    <p className="text-sm font-semibold text-blue-800">
+                      ⏱️ Duration: {multidayDays} {multidayDays === 1 ? 'Day' : 'Days'}
+                    </p>
+                  </div>
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-700">Duration</span>
+                        <span className="font-semibold">{multidayDays} {multidayDays === 1 ? 'day' : 'days'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-700">Rate per day</span>
+                        <span className="font-semibold">{inr.format(Math.round(MULTIDAY_RATE * totalMultiplier))}/day</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>{selectedCategory} · {selectedTransmission}</span>
+                        <span></span>
+                      </div>
+                      <div className="border-t border-emerald-300 pt-2 flex justify-between font-bold text-emerald-700">
+                        <span>Total</span>
+                        <span>{inr.format(multidayTotal)}</span>
+                      </div>
+                      <div className="border-t border-emerald-200 pt-2 flex justify-between text-xs text-gray-600">
+                        <span>Cancellation Charge</span>
+                        <span className="font-semibold">{inr.format(CANCELLATION_CHARGE)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </>
               )}
             </>
           )}
