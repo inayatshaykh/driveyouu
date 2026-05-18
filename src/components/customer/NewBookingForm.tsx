@@ -246,6 +246,25 @@ export function NewBookingForm() {
     toast.success('Booking confirmed! Our team will contact you shortly.');
   }, []);
 
+  // Memoize callbacks to prevent LocationInput from recreating handlers
+  const handlePickupChange = useCallback((v: string) => {
+    setPickupQuery(v);
+    if (!v) setSelectedPickup(null);
+  }, []);
+
+  const handleDropChange = useCallback((v: string) => {
+    setDropQuery(v);
+    if (!v) setSelectedDrop(null);
+  }, []);
+
+  const handlePickupSelect = useCallback((location: SelectedLocation) => {
+    setSelectedPickup(location);
+  }, []);
+
+  const handleDropSelect = useCallback((location: SelectedLocation) => {
+    setSelectedDrop(location);
+  }, []);
+
   return (
     <>
       <div className="w-full max-w-2xl mx-auto bg-gray-50 rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
@@ -277,11 +296,8 @@ export function NewBookingForm() {
           <LocationInput
             label="Pickup Location"
             value={pickupQuery}
-            onValueChange={(v) => {
-              setPickupQuery(v);
-              if (!v) setSelectedPickup(null);
-            }}
-            onSelect={setSelectedPickup}
+            onValueChange={handlePickupChange}
+            onSelect={handlePickupSelect}
           />
 
           {/* When is driver needed - Dropdown */}
@@ -463,11 +479,8 @@ export function NewBookingForm() {
               <LocationInput
                 label="Destination"
                 value={dropQuery}
-                onValueChange={(v) => {
-                  setDropQuery(v);
-                  if (!v) setSelectedDrop(null);
-                }}
-                onSelect={setSelectedDrop}
+                onValueChange={handleDropChange}
+                onSelect={handleDropSelect}
                 icon="drop"
                 placeholder="Enter destination"
               />

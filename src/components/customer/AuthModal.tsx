@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { setUrsUser } from '@/utils/ursSession';
 
 const DEMO_OTP = '1234'; // TODO: replace with MSG91
@@ -31,15 +31,15 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
     return () => clearInterval(t);
   }, [step, countdown]);
 
-  const sendOtp = () => {
+  const sendOtp = useCallback(() => {
     if (!/^\d{10}$/.test(mobile)) return;
     setStep('otp');
     setCountdown(30);
     setOtp(['', '', '', '']);
     setTimeout(() => otpRefs.current[0]?.focus(), 100);
-  };
+  }, [mobile]);
 
-  const verifyOtp = (digits: string[]) => {
+  const verifyOtp = useCallback((digits: string[]) => {
     const enteredOtp = digits.join('');
     if (enteredOtp === DEMO_OTP) {
       setUrsUser({ mobile, verified: true });
@@ -53,22 +53,30 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
       setOtp(['', '', '', '']);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     }
-  };
+  }, [mobile, onVerified, onClose]);
 
-  const handleOtpChange = (index: number, value: string) => {
+  const handleOtpChange = useCallback((index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
     const next = [...otp];
     next[index] = value;
     setOtp(next);
     if (value && index < 3) otpRefs.current[index + 1]?.focus();
     if (next.every((d) => d)) verifyOtp(next);
-  };
+  }, [otp, verifyOtp]);
 
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+  const handleOtpKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       otpRefs.current[index - 1]?.focus();
     }
-  };
+  }, [otp]);
+
+  const handleMobileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setMobile(e.target.value.replace(/\D/g, '').slice(0, 10));
+  }, []);
+
+  const handleBackToMobile = useCallback(() => {
+    setStep('mobile');
+  }, []);
 
   if (!open) return null;
 
@@ -95,7 +103,7 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
                 inputMode="numeric"
                 maxLength={10}
                 value={mobile}
-                onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                onChange={handleMobileChange}
                 placeholder="10 digit number"
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none text-base"
               />
@@ -148,7 +156,7 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
             )}
             <button
               type="button"
-              onClick={() => setStep('mobile')}
+              onClick={handleBackToMobile}
               className="w-full text-gray-500 text-sm hover:text-gray-700"
             >
               Change number

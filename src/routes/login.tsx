@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
@@ -31,7 +31,7 @@ function LoginPage() {
     return () => clearInterval(timer);
   }, [step, countdown]);
 
-  const sendOtp = () => {
+  const sendOtp = useCallback(() => {
     if (!/^\d{10}$/.test(mobile)) {
       toast.error('Please enter a valid 10-digit mobile number');
       return;
@@ -40,9 +40,9 @@ function LoginPage() {
     setCountdown(30);
     setOtp(['', '', '', '']);
     setTimeout(() => otpRefs.current[0]?.focus(), 100);
-  };
+  }, [mobile]);
 
-  const verifyOtp = (digits: string[]) => {
+  const verifyOtp = useCallback((digits: string[]) => {
     const enteredOtp = digits.join('');
     if (enteredOtp === DEMO_OTP) {
       let userInfo = DEMO_USERS[mobile];
@@ -81,28 +81,32 @@ function LoginPage() {
       setOtp(['', '', '', '']);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     }
-  };
+  }, [mobile, navigate]);
 
-  const handleOtpChange = (index: number, value: string) => {
+  const handleOtpChange = useCallback((index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
     const next = [...otp];
     next[index] = value;
     setOtp(next);
     if (value && index < 3) otpRefs.current[index + 1]?.focus();
     if (next.every((d) => d)) verifyOtp(next);
-  };
+  }, [otp, verifyOtp]);
 
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
+  const handleOtpKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       otpRefs.current[index - 1]?.focus();
     }
-  };
+  }, [otp]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setStep('mobile');
     setOtp(['', '', '', '']);
     setCountdown(0);
-  };
+  }, []);
+
+  const handleMobileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setMobile(e.target.value.replace(/\D/g, '').slice(0, 10));
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -139,7 +143,7 @@ function LoginPage() {
                       inputMode="numeric"
                       maxLength={10}
                       value={mobile}
-                      onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      onChange={handleMobileChange}
                       placeholder="10 digit number"
                       className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       autoFocus
