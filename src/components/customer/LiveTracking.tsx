@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { MapPin, Navigation, Phone, Share2, AlertCircle } from 'lucide-react';
-import { useBookingTracking } from '../../hooks/useWebSocket';
 import { SOSAlert } from './SOSAlert';
 import type { Booking } from '../../types';
 
@@ -16,24 +15,9 @@ export function LiveTracking({ booking, onShare }: LiveTrackingProps) {
   const [eta, setEta] = useState<string>('15 mins');
   const [isSOSOpen, setIsSOSOpen] = useState(false);
   
-  // Use WebSocket hook for real-time updates
-  const { driverLocation, bookingStatus, isConnected } = useBookingTracking(booking.id);
-
-  // WebSocket connection status indicator
-  useEffect(() => {
-    if (isConnected) {
-      console.log('✅ Real-time tracking active');
-    }
-  }, [isConnected]);
-
-  // Update ETA when driver location changes (mock calculation)
-  useEffect(() => {
-    if (driverLocation) {
-      // Mock ETA calculation - in production this would use actual distance calculation
-      const mockEtas = ['5 mins', '10 mins', '15 mins', '20 mins'];
-      setEta(mockEtas[Math.floor(Math.random() * mockEtas.length)]);
-    }
-  }, [driverLocation]);
+  // Mock connection status for now
+  const isConnected = false;
+  const driverLocation = null;
 
   const getStatusBadge = () => {
     const statusMap: Record<string, { label: string; variant: any }> = {
