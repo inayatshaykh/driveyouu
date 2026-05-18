@@ -10,10 +10,25 @@ interface NavbarProps {
 export function Navbar({ onLoginClick }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(() => getUrsUser());
+  const [userRole, setUserRole] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setUser(getUrsUser());
+    const currentUser = getUrsUser();
+    setUser(currentUser);
+    
+    // Get role once on mount
+    if (typeof window !== 'undefined') {
+      try {
+        const u = localStorage.getItem('auth_user');
+        if (u) {
+          const parsed = JSON.parse(u);
+          setUserRole(parsed.role || null);
+        }
+      } catch {
+        setUserRole(null);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -28,31 +43,13 @@ export function Navbar({ onLoginClick }: NavbarProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [mobileMenuOpen]);
 
-  const isAdmin =
-    typeof window !== 'undefined' &&
-    (() => {
-      try {
-        const u = localStorage.getItem('auth_user');
-        return u ? JSON.parse(u).role === 'admin' : false;
-      } catch {
-        return false;
-      }
-    })();
-
-  const isDriver =
-    typeof window !== 'undefined' &&
-    (() => {
-      try {
-        const u = localStorage.getItem('auth_user');
-        return u ? JSON.parse(u).role === 'driver' : false;
-      } catch {
-        return false;
-      }
-    })();
+  const isAdmin = userRole === 'admin';
+  const isDriver = userRole === 'driver';
 
   const handleLogout = () => {
     clearUrsUser();
     setUser(null);
+    setUserRole(null);
     setMobileMenuOpen(false);
   };
 
