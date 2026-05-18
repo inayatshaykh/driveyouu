@@ -82,30 +82,44 @@ export const LocationInput = memo(function LocationInput({
   }, []);
 
   useEffect(() => {
+    if (!showDropdown) return;
+    
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
       }
     };
+    
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [showDropdown]);
 
   const handleChange = useCallback((text: string) => {
     onValueChange(text);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    
+    // Clear existing timeout
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = undefined;
+    }
+    
+    // Reset if less than 3 characters
     if (text.length < 3) {
       setSuggestions([]);
       setShowDropdown(false);
+      setIsSearching(false);
       return;
     }
+    
+    // Debounced search
+    setIsSearching(true);
     debounceRef.current = setTimeout(async () => {
-      setIsSearching(true);
       try {
         const results = await searchLocation(text);
         setSuggestions(results.slice(0, 5));
         setShowDropdown(results.length > 0);
-      } catch {
+      } catch (error) {
+        console.error('Search error:', error);
         setSuggestions([]);
         setShowDropdown(false);
       } finally {
