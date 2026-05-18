@@ -335,8 +335,6 @@ export function NewBookingForm() {
                   </p>
                 </div>
               )}
-            </>
-          )}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Duration</label>
                 <div className="flex gap-2 flex-wrap">
@@ -392,24 +390,6 @@ export function NewBookingForm() {
 
           {activeTab === 'multiday' && (
             <>
-              <LocationInput
-                label="Pickup Location"
-                value={pickupQuery}
-                onValueChange={(v) => {
-                  setPickupQuery(v);
-                  if (!v) setSelectedPickup(null);
-                }}
-                onSelect={setSelectedPickup}
-              />
-              <LocationInput
-                label="Pickup Location"
-                value={pickupQuery}
-                onValueChange={(v) => {
-                  setPickupQuery(v);
-                  if (!v) setSelectedPickup(null);
-                }}
-                onSelect={setSelectedPickup}
-              />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
@@ -462,24 +442,6 @@ export function NewBookingForm() {
 
           {activeTab === 'outstation' && (
             <>
-              <LocationInput
-                label="Pickup Location"
-                value={pickupQuery}
-                onValueChange={(v) => {
-                  setPickupQuery(v);
-                  if (!v) setSelectedPickup(null);
-                }}
-                onSelect={setSelectedPickup}
-              />
-              <LocationInput
-                label="Pickup Location"
-                value={pickupQuery}
-                onValueChange={(v) => {
-                  setPickupQuery(v);
-                  if (!v) setSelectedPickup(null);
-                }}
-                onSelect={setSelectedPickup}
-              />
               <LocationInput
                 label="Destination"
                 value={dropQuery}
