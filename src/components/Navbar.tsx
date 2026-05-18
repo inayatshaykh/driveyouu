@@ -64,7 +64,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
       <button
         type="button"
         onClick={handleLogout}
-        className="text-sm text-slate-400 hover:text-amber-400 transition"
+        className="text-sm text-slate-400 hover:text-white transition"
       >
         Logout
       </button>
@@ -76,18 +76,18 @@ export function Navbar({ onLoginClick }: NavbarProps) {
         if (onLoginClick) onLoginClick();
         else window.location.href = '/booking';
       }}
-      className="hidden sm:inline-flex border-2 border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-slate-900 font-semibold px-5 py-2 rounded-full text-sm transition-all duration-200"
+      className="hidden sm:inline-flex border border-slate-600 text-slate-300 hover:bg-white hover:text-slate-900 font-bold px-5 py-2 rounded-full text-sm transition-all duration-200"
     >
       Login / Sign Up
     </button>
   );
 
   return (
-    <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800">
+    <header className="sticky top-0 z-50 bg-slate-950/95 backdrop-blur-md border-b border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-4 flex items-center justify-between relative">
         <Link to="/" className="flex items-center gap-2 text-white" onClick={closeMenu}>
-          <div className="w-9 h-9 rounded-lg bg-amber-500/20 ring-1 ring-amber-500/50 flex items-center justify-center">
-            <ShieldCheck size={20} className="text-amber-400" />
+          <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
+            <ShieldCheck size={20} className="text-white" />
           </div>
           <div className="leading-tight">
             <span className="font-bold tracking-tight text-sm sm:text-base">UR&apos;s Chauffeur</span>
@@ -96,10 +96,10 @@ export function Navbar({ onLoginClick }: NavbarProps) {
         </Link>
 
         <nav className="hidden md:flex items-center gap-7 text-sm text-slate-300">
-          <Link to="/" className="hover:text-amber-400 transition">Home</Link>
-          <Link to="/booking" className="hover:text-amber-400 transition">Book a Cab</Link>
-          <a href="/#how-it-works" className="hover:text-amber-400 transition">How It Works</a>
-          <a href="/#contact" className="hover:text-amber-400 transition">Contact</a>
+          <Link to="/" className="hover:text-white transition">Home</Link>
+          <Link to="/booking" className="hover:text-white transition">Book a Cab</Link>
+          <a href="/#how-it-works" className="hover:text-white transition">How It Works</a>
+          <a href="/#contact" className="hover:text-white transition">Contact</a>
         </nav>
 
         {loginButton}
@@ -135,7 +135,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
               {!user && (
                 <button
                   type="button"
-                  className="px-4 py-3 text-amber-400 hover:bg-slate-700 rounded-xl text-sm font-semibold text-left"
+                  className="px-4 py-3 text-white hover:bg-slate-700 rounded-xl text-sm font-semibold text-left"
                   onClick={() => {
                     closeMenu();
                     if (onLoginClick) onLoginClick();
