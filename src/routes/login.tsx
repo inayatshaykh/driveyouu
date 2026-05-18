@@ -45,7 +45,7 @@ function LoginPage() {
   const verifyOtp = (digits: string[]) => {
     const enteredOtp = digits.join('');
     if (enteredOtp === DEMO_OTP) {
-      const userInfo = DEMO_USERS[mobile];
+      let userInfo = DEMO_USERS[mobile];
       
       if (!userInfo) {
         // Default to customer if not in demo database
