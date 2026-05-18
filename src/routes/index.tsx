@@ -83,7 +83,7 @@ function LandingPage() {
             Book a Cab →
           </Link>
           <p className="mt-5 text-slate-500 text-sm">
-            ⭐ 4.8 Rated  ·  500+ Verified Drivers  ·  Across North India
+            ·  300+ Verified Drivers  ·  
           </p>
         </div>
       </section>
@@ -286,13 +286,13 @@ function LandingPage() {
       </section>
 
       {/* TESTIMONIALS */}
-      <section id="reviews" className="px-6 py-20 lg:py-28 bg-white">
+      <section id="reviews" className="px-6 py-20 lg:py-28 bg-slate-950">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-semibold tracking-widest text-accent uppercase">
+            <span className="text-xs font-semibold tracking-widest text-slate-500 uppercase">
               Reviews
             </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-primary">
+            <h2 className="mt-2 text-3xl sm:text-4xl font-bold text-white">
               Loved by riders across the region
             </h2>
           </div>
@@ -300,19 +300,19 @@ function LandingPage() {
             {testimonials.map((t) => (
               <div
                 key={t.name}
-                className="bg-background border border-border rounded-2xl p-6 flex flex-col"
+                className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col"
               >
-                <div className="flex gap-0.5 text-accent">
+                <div className="flex gap-0.5 text-slate-300">
                   {Array.from({ length: t.rating }).map((_, i) => (
                     <Star key={i} size={16} fill="currentColor" />
                   ))}
                 </div>
-                <p className="mt-4 text-sm leading-relaxed text-foreground/90 flex-1">
+                <p className="mt-4 text-sm leading-relaxed text-slate-300 flex-1">
                   "{t.quote}"
                 </p>
-                <div className="mt-5 pt-4 border-t border-border">
-                  <div className="font-semibold text-sm">{t.name}</div>
-                  <div className="text-xs text-muted-foreground">{t.city}</div>
+                <div className="mt-5 pt-4 border-t border-slate-800">
+                  <div className="font-semibold text-sm text-white">{t.name}</div>
+                  <div className="text-xs text-slate-500">{t.city}</div>
                 </div>
               </div>
             ))}
