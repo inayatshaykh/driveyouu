@@ -91,13 +91,13 @@ export function Navbar({ onLoginClick }: NavbarProps) {
           </div>
           <div className="leading-tight">
             <span className="font-bold tracking-tight text-sm sm:text-base">UR&apos;s Chauffeur</span>
-            <div className="text-[10px] text-slate-400 -mt-0.5">Premium drivers · North India</div>
+            <div className="text-[10px] text-slate-400 -mt-0.5">Professional drivers · Nationwide</div>
           </div>
         </Link>
 
         <nav className="hidden md:flex items-center gap-7 text-sm text-slate-300">
           <Link to="/" className="hover:text-white transition">Home</Link>
-          <Link to="/booking" className="hover:text-white transition">Book a Cab</Link>
+          <Link to="/booking" className="hover:text-white transition">Book a Driver</Link>
           <a href="/#how-it-works" className="hover:text-white transition">How It Works</a>
           <a href="/#contact" className="hover:text-white transition">Contact</a>
         </nav>
@@ -123,7 +123,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                 Home
               </Link>
               <Link to="/booking" className="px-4 py-3 text-white hover:bg-slate-700 rounded-xl text-sm" onClick={closeMenu}>
-                Book a Cab
+                Book a Driver
               </Link>
               <a href="/#how-it-works" className="px-4 py-3 text-white hover:bg-slate-700 rounded-xl text-sm" onClick={closeMenu}>
                 How It Works

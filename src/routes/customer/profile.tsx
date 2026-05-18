@@ -43,7 +43,7 @@ function ProfilePage() {
     {
       icon: Car,
       label: 'My Vehicles',
-      description: 'Manage your vehicle profiles',
+      description: 'Add vehicles for driver bookings',
       to: '/customer',
     },
     {

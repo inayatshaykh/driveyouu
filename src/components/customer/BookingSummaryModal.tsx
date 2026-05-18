@@ -84,12 +84,12 @@ export function BookingSummaryModal({
           {data.days != null && data.tab === 'multiday' && (
             <p><span className="text-gray-500">📆 Days:</span> <span className="font-medium">{data.days}</span></p>
           )}
-          <p><span className="text-gray-500">🚗 Your Car:</span> <span className="font-medium">{CAR_EMOJIS[data.carCategory]} {data.carCategory}</span></p>
+          <p><span className="text-gray-500">🚗 Vehicle Type:</span> <span className="font-medium">{CAR_EMOJIS[data.carCategory]} {data.carCategory}</span></p>
           <p><span className="text-gray-500">⚙️ Transmission:</span> <span className="font-medium">{data.transmission}</span></p>
           <p><span className="text-gray-500">🚙 Trip Type:</span> <span className="font-medium">{tabLabels[data.tab]}</span></p>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mt-2">
             <p className="text-xs text-blue-800">
-              <span className="font-semibold">ℹ️</span> We provide only the driver for your vehicle
+              <span className="font-semibold">ℹ️</span> We provide a professional driver for your vehicle
             </p>
           </div>
         </div>
@@ -173,12 +173,12 @@ export function BookingSummaryModal({
         </button>
         {termsOpen && (
           <ul className="text-xs text-gray-600 space-y-1 mb-4 pl-2">
-            <li>• We provide only the driver (your own vehicle)</li>
+            <li>• We provide a professional driver (you provide the vehicle)</li>
             <li>• Min booking: 4 hours</li>
             <li>• Cancellation: ₹500</li>
             <li>• Night charge after 9PM: ₹200</li>
             <li>• Fooding & lodging: customer&apos;s side</li>
-            <li>• Driver experienced with your car type & transmission</li>
+            <li>• Driver experienced with your vehicle type & transmission</li>
           </ul>
         )}
 

@@ -21,17 +21,17 @@ import { Navbar } from "@/components/Navbar";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "UR's Chauffeur — Premium Cab Service with Driver | North India" },
+      { title: "UR's Chauffeur — Professional Driver Service" },
       {
         name: "description",
         content:
-          "Book a complete cab service with verified driver. We provide the car + driver. On-demand, scheduled, hourly, airport & outstation across North India. 30-min arrival.",
+          "Book professional drivers for your vehicle. On-demand, scheduled, hourly, airport & outstation. Background-verified chauffeurs. 30-min arrival.",
       },
-      { property: "og:title", content: "UR's Chauffeur — We Provide Car + Driver" },
+      { property: "og:title", content: "UR's Chauffeur — Professional Driver Service" },
       {
         property: "og:description",
         content:
-          "Premium cab service with verified drivers across North India. We provide the vehicle + driver — you just sit back.",
+          "Professional driver service with background-verified chauffeurs. We provide the driver for your vehicle — you just sit back.",
       },
     ],
   }),
@@ -71,16 +71,16 @@ function LandingPage() {
       <section className="min-h-screen flex items-center justify-center text-center px-6 py-20 bg-slate-950">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight">
-            We Provide Car + Driver. Anytime.
+            Your Vehicle. Our Driver. Anytime.
           </h1>
           <p className="text-xl text-slate-400 mt-4 max-w-xl mx-auto">
-            Complete cab service with background-verified drivers — across North India
+            Professional drivers for your vehicle — background-verified chauffeurs
           </p>
           <Link 
             to="/booking" 
             className="mt-8 inline-block bg-white hover:bg-slate-100 text-slate-900 font-bold text-lg px-10 py-4 rounded-full transition-all duration-200"
           >
-            Book a Cab →
+            Book a Driver →
           </Link>
           <p className="mt-5 text-slate-500 text-sm">
             ·  300+ Verified Drivers  ·  
@@ -105,8 +105,8 @@ function LandingPage() {
               <div className="text-sm text-slate-500 mt-1">Rating</div>
             </div>
             <div>
-              <div className="text-4xl md:text-5xl font-black text-white">North India</div>
-              <div className="text-sm text-slate-500 mt-1">Coverage</div>
+              <div className="text-4xl md:text-5xl font-black text-white">24/7</div>
+              <div className="text-sm text-slate-500 mt-1">Available</div>
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ function LandingPage() {
               <h3 className="text-white font-bold text-lg mb-2">Speed & Convenience</h3>
               <div className="text-slate-400 text-sm space-y-1">
                 <p>• One Call. We're There.</p>
-                <p>• Skip the Hassle, Book a Cab</p>
+                <p>• Skip the Hassle, Book a Driver</p>
                 <p>• Your Destination, No Detours</p>
               </div>
             </div>
@@ -223,7 +223,7 @@ function LandingPage() {
             to="/booking" 
             className="bg-white hover:bg-slate-100 text-slate-900 font-bold text-lg px-10 py-4 rounded-full block w-fit mx-auto mt-10 transition-all"
           >
-            Book Your Chauffeur →
+            Book a Driver →
           </Link>
         </div>
       </section>
@@ -248,7 +248,7 @@ function LandingPage() {
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center">
               <div className="text-5xl mb-4">🌟</div>
               <h3 className="text-xl font-bold text-white mb-3">Sit Back & Relax</h3>
-              <p className="text-slate-300">We provide the car + driver. You just sit back and enjoy the ride.</p>
+              <p className="text-slate-300">We provide the driver for your vehicle. You just sit back and enjoy the ride.</p>
             </div>
           </div>
         </div>
@@ -325,13 +325,13 @@ function LandingPage() {
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold">Ready for your next ride?</h2>
           <p className="mt-3 text-slate-300">
-            A verified cab with driver is 30 minutes away. We provide the vehicle + driver.
+            A verified professional driver is 30 minutes away. We provide the driver for your vehicle.
           </p>
           <Link 
             to="/booking" 
             className="mt-6 inline-flex items-center gap-2 bg-white hover:bg-slate-100 text-slate-900 font-bold px-8 py-3 rounded-full transition-all"
           >
-            Book a Cab <ArrowRight size={18} />
+            Book a Driver <ArrowRight size={18} />
           </Link>
         </div>
       </section>
@@ -349,7 +349,7 @@ function LandingPage() {
                 <div className="font-bold text-lg text-white">UR's Chauffeur</div>
               </div>
               <p className="text-sm text-slate-500">
-                Professional drivers across North India
+                Professional drivers nationwide
               </p>
             </div>
 
@@ -358,7 +358,7 @@ function LandingPage() {
               <h3 className="font-semibold mb-4 text-white">Quick Links</h3>
               <ul className="space-y-2 text-sm text-slate-400">
                 <li><Link to="/" className="hover:text-white transition">Home</Link></li>
-                <li><Link to="/booking" className="hover:text-white transition">Book a Cab</Link></li>
+                <li><Link to="/booking" className="hover:text-white transition">Book a Driver</Link></li>
                 <li><a href="#how-it-works" className="hover:text-white transition">How it Works</a></li>
                 <li><a href="#contact" className="hover:text-white transition">Contact</a></li>
               </ul>

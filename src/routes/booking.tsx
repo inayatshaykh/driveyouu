@@ -5,8 +5,8 @@ import { NewBookingForm } from "@/components/customer/NewBookingForm";
 export const Route = createFileRoute("/booking")({
   head: () => ({
     meta: [
-      { title: "Book a Cab — UR's Chauffeur" },
-      { name: "description", content: "Book your ride with verified driver and vehicle in under a minute." },
+      { title: "Book a Driver — UR's Chauffeur" },
+      { name: "description", content: "Book a professional driver for your vehicle in under a minute." },
     ],
   }),
   component: BookingPage,

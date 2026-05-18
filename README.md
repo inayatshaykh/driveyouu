@@ -2,7 +2,7 @@
 
 [![Deployment Status](https://img.shields.io/badge/deployment-active-success)](https://github.com/inayatshaykh/driveyouu)
 
-A comprehensive cab booking platform built with modern web technologies. Book complete cab service with verified drivers across North India.
+A comprehensive driver booking platform built with modern web technologies. Book professional drivers for your vehicle with background-verified chauffeurs.
 
 ## 🌟 Features
 

@@ -251,7 +251,7 @@ export function NewBookingForm() {
         <div className="bg-gradient-to-r from-slate-800 to-emerald-800 text-white px-6 py-6 text-center">
           <h2 className="text-2xl font-bold">Book Your Driver</h2>
           <p className="text-sm text-emerald-50 mt-1">
-            We provide the driver — you use your own vehicle.
+            Professional drivers for your vehicle — background-verified chauffeurs.
           </p>
         </div>
 
