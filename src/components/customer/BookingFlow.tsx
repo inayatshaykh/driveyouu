@@ -31,6 +31,29 @@ interface BookingFlowProps {
   onBookingCreated?: (bookingId: string) => void;
 }
 
+const SuggestionDropdown = memo(({ 
+  suggestions, 
+  onSelect 
+}: { 
+  suggestions: LocationSuggestion[]; 
+  onSelect: (suggestion: LocationSuggestion) => void;
+}) => (
+  <div className="absolute z-50 w-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto">
+    {suggestions.map((suggestion, idx) => (
+      <button
+        key={`${suggestion.lat}-${suggestion.lon}-${idx}`}
+        type="button"
+        onClick={() => onSelect(suggestion)}
+        className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+      >
+        <div className="font-semibold text-sm text-gray-900">{suggestion.name}</div>
+      </button>
+    ))}
+  </div>
+));
+
+SuggestionDropdown.displayName = 'SuggestionDropdown';
+
 export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
   const [step, setStep] = useState<'type' | 'details' | 'confirm'>('type');
   const [isLoading, setIsLoading] = useState(false);
@@ -43,11 +66,17 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
   const [dropSuggestions, setDropSuggestions] = useState<LocationSuggestion[]>([]);
   const [showPickupDropdown, setShowPickupDropdown] = useState(false);
   const [showDropDropdown, setShowDropDropdown] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
+  const [isSearchingPickup, setIsSearchingPickup] = useState(false);
+  const [isSearchingDrop, setIsSearchingDrop] = useState(false);
   
-  // Refs for debouncing
+  // Refs for debouncing and abort control
   const pickupDebounceRef = useRef<NodeJS.Timeout>();
   const dropDebounceRef = useRef<NodeJS.Timeout>();
+  const pickupAbortRef = useRef<AbortController>();
+  const dropAbortRef = useRef<AbortController>();
+  const pickupSearchIdRef = useRef(0);
+  const dropSearchIdRef = useRef(0);
+  const isMountedRef = useRef(true);
 
   const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -58,12 +87,27 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
 
   const bookingType = form.watch('bookingType');
 
-  // Search locations using Nominatim API
-  const searchLocation = async (query: string) => {
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (pickupDebounceRef.current) clearTimeout(pickupDebounceRef.current);
+      if (dropDebounceRef.current) clearTimeout(dropDebounceRef.current);
+      if (pickupAbortRef.current) pickupAbortRef.current.abort();
+      if (dropAbortRef.current) dropAbortRef.current.abort();
+    };
+  }, []);
+
+  // Search locations using Nominatim API with AbortController
+  const searchLocation = useCallback(async (query: string, signal: AbortSignal) => {
     if (query.length < 4) return [];
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&countrycodes=in`,
-      { headers: { 'Accept-Language': 'en' } }
+      { 
+        headers: { 'Accept-Language': 'en' },
+        signal 
+      }
     );
     const data = await res.json();
     return data.map((item: any) => ({
@@ -71,83 +115,113 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
       lat: parseFloat(item.lat),
       lon: parseFloat(item.lon),
     }));
-  };
+  }, []);
 
-  // Debounced search handlers
-  const handlePickupChange = async (value: string) => {
+  // Debounced search handlers with AbortController
+  const handlePickupChange = useCallback((value: string) => {
     setPickupQuery(value);
-    form.setValue('pickupAddress', value);
     
-    if (pickupDebounceRef.current) clearTimeout(pickupDebounceRef.current);
+    // Clear existing timeout
+    if (pickupDebounceRef.current) {
+      clearTimeout(pickupDebounceRef.current);
+      pickupDebounceRef.current = undefined;
+    }
+    
+    // Abort previous request
+    if (pickupAbortRef.current) {
+      pickupAbortRef.current.abort();
+    }
     
     if (value.length < 4) {
       setPickupSuggestions([]);
       setShowPickupDropdown(false);
+      setIsSearchingPickup(false);
       return;
     }
     
-    pickupDebounceRef.current = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const suggestions = await searchLocation(value);
-        setPickupSuggestions(suggestions);
-        setShowPickupDropdown(suggestions.length > 0);
-      } catch (error) {
-        console.error('Error searching location:', error);
-        toast.error('Failed to search location');
-      } finally {
-        setIsSearching(false);
-      }
-    }, 500);
-  };
-
-  const handleDropChange = async (value: string) => {
-    setDropQuery(value);
-    form.setValue('dropAddress', value);
+    const currentSearchId = ++pickupSearchIdRef.current;
+    setIsSearchingPickup(true);
     
-    if (dropDebounceRef.current) clearTimeout(dropDebounceRef.current);
+    pickupDebounceRef.current = setTimeout(async () => {
+      pickupAbortRef.current = new AbortController();
+      
+      try {
+        const suggestions = await searchLocation(value, pickupAbortRef.current.signal);
+        
+        if (currentSearchId === pickupSearchIdRef.current && isMountedRef.current) {
+          setPickupSuggestions(suggestions);
+          setShowPickupDropdown(suggestions.length > 0);
+        }
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Error searching location:', error);
+        }
+      } finally {
+        if (currentSearchId === pickupSearchIdRef.current && isMountedRef.current) {
+          setIsSearchingPickup(false);
+        }
+      }
+    }, 400);
+  }, [searchLocation]);
+
+  const handleDropChange = useCallback((value: string) => {
+    setDropQuery(value);
+    
+    // Clear existing timeout
+    if (dropDebounceRef.current) {
+      clearTimeout(dropDebounceRef.current);
+      dropDebounceRef.current = undefined;
+    }
+    
+    // Abort previous request
+    if (dropAbortRef.current) {
+      dropAbortRef.current.abort();
+    }
     
     if (value.length < 4) {
       setDropSuggestions([]);
       setShowDropDropdown(false);
+      setIsSearchingDrop(false);
       return;
     }
     
+    const currentSearchId = ++dropSearchIdRef.current;
+    setIsSearchingDrop(true);
+    
     dropDebounceRef.current = setTimeout(async () => {
-      setIsSearching(true);
+      dropAbortRef.current = new AbortController();
+      
       try {
-        const suggestions = await searchLocation(value);
-        setDropSuggestions(suggestions);
-        setShowDropDropdown(suggestions.length > 0);
-      } catch (error) {
-        console.error('Error searching location:', error);
-        toast.error('Failed to search location');
+        const suggestions = await searchLocation(value, dropAbortRef.current.signal);
+        
+        if (currentSearchId === dropSearchIdRef.current && isMountedRef.current) {
+          setDropSuggestions(suggestions);
+          setShowDropDropdown(suggestions.length > 0);
+        }
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Error searching location:', error);
+        }
       } finally {
-        setIsSearching(false);
+        if (currentSearchId === dropSearchIdRef.current && isMountedRef.current) {
+          setIsSearchingDrop(false);
+        }
       }
-    }, 500);
-  };
+    }, 400);
+  }, [searchLocation]);
 
-  // Select location from suggestions
-  const selectPickup = (suggestion: LocationSuggestion) => {
+  // Select location from suggestions - only update form on selection
+  const selectPickup = useCallback((suggestion: LocationSuggestion) => {
     setPickupQuery(suggestion.name);
-    form.setValue('pickupAddress', suggestion.name);
+    form.setValue('pickupAddress', suggestion.name, { shouldValidate: true });
     setShowPickupDropdown(false);
-  };
+  }, [form]);
 
-  const selectDrop = (suggestion: LocationSuggestion) => {
+  const selectDrop = useCallback((suggestion: LocationSuggestion) => {
     setDropQuery(suggestion.name);
-    form.setValue('dropAddress', suggestion.name);
+    form.setValue('dropAddress', suggestion.name, { shouldValidate: true });
     setShowDropDropdown(false);
-  };
-
-  // Cleanup debounce timers
-  useEffect(() => {
-    return () => {
-      if (pickupDebounceRef.current) clearTimeout(pickupDebounceRef.current);
-      if (dropDebounceRef.current) clearTimeout(dropDebounceRef.current);
-    };
-  }, []);
+  }, [form]);
 
   const handleCreateBooking = async (data: BookingFormData) => {
     setIsLoading(true);
@@ -301,9 +375,14 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
                     onFocus={() => pickupSuggestions.length > 0 && setShowPickupDropdown(true)}
                     placeholder="Enter 4 letters to search location"
                     className="flex-1 rounded-md border px-3 py-2"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                    inputMode="text"
                   />
-                  {isSearching && (
-                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin" />
+                  {isSearchingPickup && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin pointer-events-none" />
                   )}
                 </div>
                 {form.formState.errors.pickupAddress && (
@@ -314,18 +393,10 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
                 
                 {/* Pickup Suggestions Dropdown */}
                 {showPickupDropdown && pickupSuggestions.length > 0 && (
-                  <div className="absolute z-50 w-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto">
-                    {pickupSuggestions.map((suggestion, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => selectPickup(suggestion)}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
-                      >
-                        <div className="font-semibold text-sm text-gray-900">{suggestion.name}</div>
-                      </button>
-                    ))}
-                  </div>
+                  <SuggestionDropdown 
+                    suggestions={pickupSuggestions}
+                    onSelect={selectPickup}
+                  />
                 )}
               </div>
 
@@ -343,26 +414,23 @@ export function BookingFlow({ onBookingCreated }: BookingFlowProps) {
                       onFocus={() => dropSuggestions.length > 0 && setShowDropDropdown(true)}
                       placeholder="Enter 4 letters to search location"
                       className="flex-1 rounded-md border px-3 py-2"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
+                      inputMode="text"
                     />
-                    {isSearching && (
-                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin" />
+                    {isSearchingDrop && (
+                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin pointer-events-none" />
                     )}
                   </div>
                   
                   {/* Drop Suggestions Dropdown */}
                   {showDropDropdown && dropSuggestions.length > 0 && (
-                    <div className="absolute z-50 w-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto">
-                      {dropSuggestions.map((suggestion, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => selectDrop(suggestion)}
-                          className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
-                        >
-                          <div className="font-semibold text-sm text-gray-900">{suggestion.name}</div>
-                        </button>
-                      ))}
-                    </div>
+                    <SuggestionDropdown 
+                      suggestions={dropSuggestions}
+                      onSelect={selectDrop}
+                    />
                   )}
                 </div>
               )}
