@@ -70,16 +70,12 @@ export function Navbar({ onLoginClick }: NavbarProps) {
       </button>
     </div>
   ) : (
-    <button
-      type="button"
-      onClick={() => {
-        if (onLoginClick) onLoginClick();
-        else window.location.href = '/booking';
-      }}
+    <Link
+      to="/login"
       className="hidden sm:inline-flex border border-slate-600 text-slate-300 hover:bg-white hover:text-slate-900 font-bold px-5 py-2 rounded-full text-sm transition-all duration-200"
     >
       Login / Sign Up
-    </button>
+    </Link>
   );
 
   return (
@@ -133,17 +129,13 @@ export function Navbar({ onLoginClick }: NavbarProps) {
               </a>
               <div className="border-t border-slate-700 my-1" />
               {!user && (
-                <button
-                  type="button"
+                <Link
+                  to="/login"
                   className="px-4 py-3 text-white hover:bg-slate-700 rounded-xl text-sm font-semibold text-left"
-                  onClick={() => {
-                    closeMenu();
-                    if (onLoginClick) onLoginClick();
-                    else window.location.href = '/booking';
-                  }}
+                  onClick={closeMenu}
                 >
                   Login / Sign Up
-                </button>
+                </Link>
               )}
               {isAdmin && (
                 <Link to="/admin" className="px-4 py-3 text-white hover:bg-slate-700 rounded-xl text-sm" onClick={closeMenu}>
