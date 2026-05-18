@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Calendar, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { LocationInput, type SelectedLocation } from './LocationInput';
@@ -183,7 +183,7 @@ export function NewBookingForm() {
     };
   };
 
-  const validate = (): boolean => {
+  const validate = useCallback((): boolean => {
     if (!selectedPickup) {
       toast.error('Please select pickup location');
       return false;
@@ -229,9 +229,9 @@ export function NewBookingForm() {
       }
     }
     return true;
-  };
+  }, [selectedPickup, activeTab, driverNeeded, bookingDate, startTime, startDate, endDate, selectedDrop, outstationStartDate, outstationEndDate, outstationTime]);
 
-  const handleBookNow = (e: React.FormEvent) => {
+  const handleBookNow = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
     if (user) {
@@ -239,12 +239,12 @@ export function NewBookingForm() {
     } else {
       setShowAuth(true);
     }
-  };
+  }, [user, validate]);
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     setShowSummary(false);
     toast.success('Booking confirmed! Our team will contact you shortly.');
-  };
+  }, []);
 
   return (
     <>
