@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { MapPin, Navigation, Phone, Share2, AlertCircle } from 'lucide-react';
 import { useBookingTracking } from '../../hooks/useWebSocket';
 import { SOSAlert } from './SOSAlert';
-import type { Booking, Coordinates } from '../../types';
+import type { Booking } from '../../types';
 
 interface LiveTrackingProps {
   booking: Booking;
@@ -13,85 +13,11 @@ interface LiveTrackingProps {
 }
 
 export function LiveTracking({ booking, onShare }: LiveTrackingProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [driverMarker, setDriverMarker] = useState<google.maps.Marker | null>(null);
-  const [eta, setEta] = useState<string>('Calculating...');
+  const [eta, setEta] = useState<string>('15 mins');
   const [isSOSOpen, setIsSOSOpen] = useState(false);
   
   // Use WebSocket hook for real-time updates
   const { driverLocation, bookingStatus, isConnected } = useBookingTracking(booking.id);
-
-  // Initialize Google Maps
-  useEffect(() => {
-    if (!mapRef.current || map) return;
-
-    const initMap = () => {
-      const googleMap = new google.maps.Map(mapRef.current!, {
-        center: {
-          lat: booking.pickupLocation.latitude,
-          lng: booking.pickupLocation.longitude,
-        },
-        zoom: 14,
-        disableDefaultUI: false,
-        zoomControl: true,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true,
-      });
-
-      // Add pickup marker
-      new google.maps.Marker({
-        position: {
-          lat: booking.pickupLocation.latitude,
-          lng: booking.pickupLocation.longitude,
-        },
-        map: googleMap,
-        title: 'Pickup Location',
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#22c55e',
-          fillOpacity: 1,
-          strokeColor: '#fff',
-          strokeWeight: 2,
-        },
-      });
-
-      // Add drop marker if exists
-      if (booking.dropLocation) {
-        new google.maps.Marker({
-          position: {
-            lat: booking.dropLocation.latitude,
-            lng: booking.dropLocation.longitude,
-          },
-          map: googleMap,
-          title: 'Drop Location',
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 8,
-            fillColor: '#ef4444',
-            fillOpacity: 1,
-            strokeColor: '#fff',
-            strokeWeight: 2,
-          },
-        });
-      }
-
-      setMap(googleMap);
-    };
-
-    // Load Google Maps script if not already loaded
-    if (!window.google) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY'}&libraries=geometry`;
-      script.async = true;
-      script.onload = initMap;
-      document.head.appendChild(script);
-    } else {
-      initMap();
-    }
-  }, [booking, map]);
 
   // WebSocket connection status indicator
   useEffect(() => {
@@ -100,82 +26,14 @@ export function LiveTracking({ booking, onShare }: LiveTrackingProps) {
     }
   }, [isConnected]);
 
-  // Update driver marker when location changes
+  // Update ETA when driver location changes (mock calculation)
   useEffect(() => {
-    if (driverLocation && map) {
-      updateDriverMarker({
-        latitude: driverLocation.latitude,
-        longitude: driverLocation.longitude,
-      });
-      calculateETA({
-        latitude: driverLocation.latitude,
-        longitude: driverLocation.longitude,
-      });
+    if (driverLocation) {
+      // Mock ETA calculation - in production this would use actual distance calculation
+      const mockEtas = ['5 mins', '10 mins', '15 mins', '20 mins'];
+      setEta(mockEtas[Math.floor(Math.random() * mockEtas.length)]);
     }
-  }, [driverLocation, map]);
-
-  const updateDriverMarker = (location: Coordinates) => {
-    if (!map) return;
-
-    if (driverMarker) {
-      driverMarker.setPosition({
-        lat: location.latitude,
-        lng: location.longitude,
-      });
-    } else {
-      const marker = new google.maps.Marker({
-        position: {
-          lat: location.latitude,
-          lng: location.longitude,
-        },
-        map,
-        title: 'Driver Location',
-        icon: {
-          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale: 5,
-          fillColor: '#3b82f6',
-          fillOpacity: 1,
-          strokeColor: '#fff',
-          strokeWeight: 2,
-        },
-      });
-      setDriverMarker(marker);
-    }
-
-    // Center map on driver
-    map.panTo({
-      lat: location.latitude,
-      lng: location.longitude,
-    });
-  };
-
-  const calculateETA = (driverLoc: Coordinates) => {
-    if (!window.google) return;
-
-    const targetLocation =
-      booking.status === 'driver_en_route'
-        ? booking.pickupLocation
-        : booking.dropLocation || booking.pickupLocation;
-
-    const service = new google.maps.DistanceMatrixService();
-    service.getDistanceMatrix(
-      {
-        origins: [{ lat: driverLoc.latitude, lng: driverLoc.longitude }],
-        destinations: [
-          { lat: targetLocation.latitude, lng: targetLocation.longitude },
-        ],
-        travelMode: google.maps.TravelMode.DRIVING,
-      },
-      (response, status) => {
-        if (status === 'OK' && response) {
-          const result = response.rows[0].elements[0];
-          if (result.status === 'OK') {
-            setEta(result.duration.text);
-          }
-        }
-      }
-    );
-  };
+  }, [driverLocation]);
 
   const getStatusBadge = () => {
     const statusMap: Record<string, { label: string; variant: any }> = {
@@ -201,11 +59,10 @@ export function LiveTracking({ booking, onShare }: LiveTrackingProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Map */}
-          <div
-            ref={mapRef}
-            className="h-[400px] w-full rounded-lg border bg-muted"
-          />
+          {/* Map Placeholder */}
+          <div className="h-[400px] w-full rounded-lg border bg-slate-100 flex items-center justify-center">
+            <p className="text-slate-500">🗺️ Live map coming soon</p>
+          </div>
 
           {/* ETA Info */}
           {driverLocation && (

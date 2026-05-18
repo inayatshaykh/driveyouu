@@ -125,10 +125,13 @@ export const LocationInput = memo(function LocationInput({
           type="text"
           value={value}
           onChange={(e) => handleChange(e.target.value)}
-          onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
+          onFocus={() => { if (suggestions.length > 0) setShowDropdown(true); }}
           placeholder={placeholder}
           className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none transition-all text-base"
           autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
         />
         {isSearching && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 animate-spin" />
