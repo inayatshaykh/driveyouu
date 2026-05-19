@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
+import { hydrateRoot } from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
 import { getRouter } from "./router";
 import { Toaster } from "sonner";
@@ -7,14 +7,10 @@ import "./styles.css";
 
 const router = getRouter();
 
-const rootElement = document.getElementById("root")!;
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(
-    <>
-      <RouterProvider router={router} />
-      <Toaster position="top-right" />
-    </>
-  );
-}
+hydrateRoot(
+  document,
+  <>
+    <RouterProvider router={router} />
+    <Toaster position="top-right" />
+  </>
+);
