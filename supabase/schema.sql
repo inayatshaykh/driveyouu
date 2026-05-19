@@ -39,25 +39,30 @@ CREATE TABLE IF NOT EXISTS public.drivers (
 
 -- ─── BOOKINGS ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.bookings (
-  id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  customer_id       UUID REFERENCES public.profiles(id),
-  driver_id         UUID REFERENCES public.drivers(id),
-  booking_type      VARCHAR(20) NOT NULL
-                      CHECK (booking_type IN ('on-demand','scheduled','hourly','outstation')),
-  status            VARCHAR(20) DEFAULT 'pending'
-                      CHECK (status IN ('pending','confirmed','in_progress','completed','cancelled')),
-  pickup_address    TEXT NOT NULL,
-  pickup_lat        DECIMAL(10,8) NOT NULL,
-  pickup_lng        DECIMAL(11,8) NOT NULL,
-  drop_address      TEXT,
-  drop_lat          DECIMAL(10,8),
-  drop_lng          DECIMAL(11,8),
-  scheduled_time    TIMESTAMPTZ,
-  duration_minutes  INTEGER,
-  fare              DECIMAL(10,2),
-  distance_km       DECIMAL(8,2),
-  created_at        TIMESTAMPTZ DEFAULT NOW(),
-  updated_at        TIMESTAMPTZ DEFAULT NOW()
+  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id         TEXT NOT NULL,
+  customer_name       TEXT NOT NULL,
+  customer_phone      TEXT NOT NULL,
+  booking_type        TEXT NOT NULL CHECK (booking_type IN ('hourly','multiday','outstation')),
+  status              TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (status IN ('pending','confirmed','in_progress','completed','cancelled')),
+  pickup_address      TEXT NOT NULL,
+  drop_address        TEXT,
+  scheduled_date      TEXT,
+  scheduled_time      TEXT,
+  duration            TEXT,
+  days                INTEGER,
+  car_category        TEXT NOT NULL,
+  transmission        TEXT NOT NULL,
+  driver_needed       TEXT,
+  base_fare           DECIMAL(10,2),
+  night_charge        DECIMAL(10,2),
+  total_fare          DECIMAL(10,2) NOT NULL DEFAULT 0,
+  cancellation_charge DECIMAL(10,2),
+  assigned_driver     TEXT,
+  admin_notes         TEXT,
+  created_at          TIMESTAMPTZ DEFAULT NOW(),
+  updated_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ─── INDEXES ─────────────────────────────────────────────────
@@ -113,13 +118,9 @@ CREATE POLICY "drivers_admin_all" ON public.drivers
 
 -- Bookings: customers see own, drivers see assigned
 CREATE POLICY "bookings_customer_own" ON public.bookings
-  FOR SELECT USING (customer_id = auth.uid());
-CREATE POLICY "bookings_driver_assigned" ON public.bookings
-  FOR SELECT USING (
-    driver_id IN (SELECT id FROM public.drivers WHERE user_id = auth.uid())
-  );
-CREATE POLICY "bookings_customer_insert" ON public.bookings
-  FOR INSERT WITH CHECK (customer_id = auth.uid());
+  FOR SELECT USING (customer_id = auth.uid()::text);
+CREATE POLICY "bookings_insert_any" ON public.bookings
+  FOR INSERT WITH CHECK (true);
 CREATE POLICY "bookings_admin_all" ON public.bookings
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')

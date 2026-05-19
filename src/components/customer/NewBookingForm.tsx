@@ -10,6 +10,7 @@ import {
 import { AuthModal } from './AuthModal';
 import { BookingSummaryModal, type BookingSummaryData } from './BookingSummaryModal';
 import { getUrsUser, inr } from '@/utils/ursSession';
+import { saveBooking } from '@/lib/bookingService';
 
 type TabType = 'hourly' | 'multiday' | 'outstation';
 
@@ -241,10 +242,29 @@ export function NewBookingForm() {
     }
   }, [user, validate]);
 
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback(async () => {
     setShowSummary(false);
-    toast.success('Booking confirmed! Our team will contact you shortly.');
-  }, []);
+    const summaryData = buildSummaryData();
+    const currentUser = getUrsUser();
+
+    if (currentUser) {
+      const { id, error } = await saveBooking(
+        summaryData,
+        currentUser.id || currentUser.mobile,
+        currentUser.name || 'Customer',
+        currentUser.mobile || ''
+      );
+
+      if (error) {
+        toast.error('Failed to save booking. Please try again.');
+        console.error('Booking save error:', error);
+      } else {
+        toast.success(`Booking confirmed! ID: ${id?.slice(0, 8).toUpperCase()}. Our team will contact you shortly.`);
+      }
+    } else {
+      toast.success('Booking confirmed! Our team will contact you shortly.');
+    }
+  }, [buildSummaryData]);
 
   // Memoize callbacks to prevent LocationInput from recreating handlers
   const handlePickupChange = useCallback((v: string) => {
