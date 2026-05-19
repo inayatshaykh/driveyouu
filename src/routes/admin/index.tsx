@@ -14,7 +14,7 @@ import {
 import { useState } from 'react';
 import { Button } from '../../components/ui/button';
 
-export const Route = createFileRoute('/admin')({
+export const Route = createFileRoute('/admin/')({
   component: AdminLayout,
   beforeLoad: ({ context }) => {
     // Check if user is authenticated and is an admin

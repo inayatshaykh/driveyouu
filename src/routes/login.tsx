@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Navbar } from '@/components/Navbar';
 import { ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -10,298 +9,199 @@ export const Route = createFileRoute('/login')({
 
 const DEMO_OTP = '1234';
 
-// Demo user database
-const DEMO_USERS: Record<string, { role: 'customer' | 'admin' | 'driver'; name: string; email: string }> = {
-  '9876543210': { role: 'customer', name: 'Demo Customer', email: 'customer@demo.com' },
-  '9876543212': { role: 'admin', name: 'Demo Admin', email: 'admin@demo.com' },
-  '9876543211': { role: 'driver', name: 'Demo Driver', email: 'driver@demo.com' },
+const DEMO_USERS: Record<string, { role: 'customer' | 'admin' | 'driver'; name: string }> = {
+  '9876543210': { role: 'customer', name: 'Demo Customer' },
+  '9876543212': { role: 'admin',    name: 'Demo Admin'    },
+  '9876543211': { role: 'driver',   name: 'Demo Driver'   },
 };
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<'mobile' | 'otp' | 'success'>('mobile');
-  const [mobile, setMobile] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '']);
-  const [countdown, setCountdown] = useState(0);
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const rafRef = useRef<number>();
+  const [step, setStep]         = useState<'mobile' | 'otp' | 'success'>('mobile');
+  const [mobile, setMobile]     = useState('');
+  const [otp, setOtp]           = useState(['', '', '', '']);
+  const [countdown, setCd]      = useState(0);
+  const otpRefs  = useRef<(HTMLInputElement | null)[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
-
+  // countdown timer
   useEffect(() => {
     if (step !== 'otp' || countdown <= 0) {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = undefined;
-      }
+      clearInterval(timerRef.current);
       return;
     }
-    
-    timerRef.current = setInterval(() => setCountdown((c) => c - 1), 1000);
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = undefined;
-      }
-    };
+    timerRef.current = setInterval(() => setCd(c => c - 1), 1000);
+    return () => clearInterval(timerRef.current);
   }, [step, countdown]);
+
+  // cleanup
+  useEffect(() => () => clearInterval(timerRef.current), []);
+
+  const focusOtp = (idx: number) => {
+    setTimeout(() => otpRefs.current[idx]?.focus(), 50);
+  };
 
   const sendOtp = useCallback(() => {
     if (!/^\d{10}$/.test(mobile)) {
-      toast.error('Please enter a valid 10-digit mobile number');
+      toast.error('Enter a valid 10-digit number');
       return;
     }
     setStep('otp');
-    setCountdown(30);
+    setCd(30);
     setOtp(['', '', '', '']);
-    
-    // Use requestAnimationFrame for smooth focus
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = requestAnimationFrame(() => {
-        otpRefs.current[0]?.focus();
-      });
-    });
+    focusOtp(0);
   }, [mobile]);
 
   const verifyOtp = useCallback((digits: string[]) => {
-    const enteredOtp = digits.join('');
-    if (enteredOtp === DEMO_OTP) {
-      let userInfo = DEMO_USERS[mobile];
-      
-      if (!userInfo) {
-        userInfo = { role: 'customer', name: 'Customer', email: `${mobile}@demo.com` };
-      }
-
-      localStorage.setItem('auth_token', 'demo-token-' + Date.now());
-      localStorage.setItem('auth_user', JSON.stringify({
-        id: mobile,
-        mobile: mobile,
-        role: userInfo.role,
-        name: userInfo.name,
-        email: userInfo.email,
-      }));
-
-      setStep('success');
-      toast.success(`Welcome, ${userInfo.name}!`);
-
-      // Use requestAnimationFrame for smooth redirect
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = requestAnimationFrame(() => {
-          if (userInfo.role === 'admin') {
-            navigate({ to: '/admin' });
-          } else if (userInfo.role === 'driver') {
-            navigate({ to: '/driver' });
-          } else {
-            navigate({ to: '/booking' });
-          }
-        });
-      });
-    } else if (enteredOtp.length === 4) {
-      toast.error('Invalid OTP. Please try again.');
+    if (digits.join('') !== DEMO_OTP) {
+      toast.error('Wrong OTP. Try 1234');
       setOtp(['', '', '', '']);
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = requestAnimationFrame(() => {
-          otpRefs.current[0]?.focus();
-        });
-      });
+      focusOtp(0);
+      return;
     }
+    const info = DEMO_USERS[mobile] ?? { role: 'customer' as const, name: 'Customer' };
+    localStorage.setItem('auth_token', 'demo-' + Date.now());
+    localStorage.setItem('auth_user', JSON.stringify({
+      id: mobile, mobile, role: info.role, name: info.name,
+    }));
+    setStep('success');
+    toast.success(`Welcome, ${info.name}!`);
+    setTimeout(() => {
+      if (info.role === 'admin')  navigate({ to: '/admin' });
+      else if (info.role === 'driver') navigate({ to: '/driver' });
+      else navigate({ to: '/booking' });
+    }, 800);
   }, [mobile, navigate]);
 
-  const handleOtpChange = useCallback((index: number, value: string) => {
-    if (!/^\d?$/.test(value)) return;
-    
+  const handleOtpChange = useCallback((i: number, val: string) => {
+    if (!/^\d?$/.test(val)) return;
     setOtp(prev => {
       const next = [...prev];
-      next[index] = value;
-      
-      // Auto-focus next input
-      if (value && index < 3) {
-        rafRef.current = requestAnimationFrame(() => {
-          otpRefs.current[index + 1]?.focus();
-        });
-      }
-      
-      // Auto-verify when all filled
-      if (next.every((d) => d)) {
-        rafRef.current = requestAnimationFrame(() => {
-          verifyOtp(next);
-        });
-      }
-      
+      next[i] = val;
+      if (val && i < 3) focusOtp(i + 1);
+      if (next.every(d => d)) setTimeout(() => verifyOtp(next), 50);
       return next;
     });
   }, [verifyOtp]);
 
-  const handleOtpKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace') {
-      setOtp(prev => {
-        if (!prev[index] && index > 0) {
-          rafRef.current = requestAnimationFrame(() => {
-            otpRefs.current[index - 1]?.focus();
-          });
-        }
-        return prev;
-      });
-    }
-  }, []);
-
-  const handleBack = useCallback(() => {
-    setStep('mobile');
-    setOtp(['', '', '', '']);
-    setCountdown(0);
-  }, []);
-
-  const handleMobileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setMobile(e.target.value.replace(/\D/g, '').slice(0, 10));
-  }, []);
+  const handleKeyDown = useCallback((i: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[i] && i > 0) focusOtp(i - 1);
+  }, [otp]);
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <Navbar />
-      
-      <div className="max-w-md mx-auto px-4 py-12">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 mb-4">
-            <ShieldCheck size={32} className="text-white" />
+            <ShieldCheck size={32} className="text-emerald-400" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-slate-400">
-            Login to access your account
-          </p>
+          <h1 className="text-3xl font-bold text-white mb-2">Welcome</h1>
+          <p className="text-slate-400">Login to book your ride</p>
         </div>
 
-        {/* Login Card */}
+        {/* Card */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+
+          {/* STEP 1 — Mobile */}
           {step === 'mobile' && (
             <>
               <h2 className="text-xl font-bold text-white mb-6">Enter Mobile Number</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Mobile Number
-                  </label>
-                  <div className="flex gap-2">
-                    <div className="flex items-center px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white font-semibold">
-                      +91
-                    </div>
-                    <input
-                      type="tel"
-                      inputMode="numeric"
-                      maxLength={10}
-                      value={mobile}
-                      onChange={handleMobileChange}
-                      placeholder="10 digit number"
-                      className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                      autoFocus
-                      autoComplete="tel"
-                      autoCorrect="off"
-                      autoCapitalize="off"
-                      spellCheck={false}
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  disabled={mobile.length !== 10}
-                  onClick={sendOtp}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all"
-                >
-                  Send OTP
-                </button>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Mobile Number
+              </label>
+              <div className="flex gap-2 mb-6">
+                <span className="flex items-center px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white font-semibold text-sm">
+                  +91
+                </span>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  value={mobile}
+                  onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="10 digit number"
+                  className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  autoComplete="tel"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                />
               </div>
+              <button
+                type="button"
+                disabled={mobile.length !== 10}
+                onClick={sendOtp}
+                className="w-full bg-emerald-700 hover:bg-emerald-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all"
+              >
+                Send OTP
+              </button>
+              <p className="text-xs text-slate-500 text-center mt-4">
+                By continuing, you agree to our Terms & Privacy Policy
+              </p>
             </>
           )}
 
+          {/* STEP 2 — OTP */}
           {step === 'otp' && (
             <>
               <button
-                onClick={handleBack}
-                className="text-slate-400 hover:text-white text-sm mb-6 flex items-center gap-2"
+                onClick={() => { setStep('mobile'); setOtp(['','','','']); setCd(0); }}
+                className="text-slate-400 hover:text-white text-sm mb-6 flex items-center gap-1"
               >
                 ← Change number
               </button>
+              <h2 className="text-xl font-bold text-white mb-1">Verify OTP</h2>
+              <p className="text-sm text-slate-400 mb-6">Sent to +91 {mobile}</p>
 
-              <h2 className="text-xl font-bold text-white mb-2">Verify OTP</h2>
-              <p className="text-sm text-slate-400 mb-6">
-                Sent to +91 {mobile}
+              <div className="flex justify-center gap-3 mb-4">
+                {otp.map((digit, i) => (
+                  <input
+                    key={i}
+                    ref={el => { otpRefs.current[i] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={e => handleOtpChange(i, e.target.value)}
+                    onKeyDown={e => handleKeyDown(i, e)}
+                    className="w-14 h-14 text-center bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-xl font-bold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none"
+                    autoComplete="one-time-code"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                  />
+                ))}
+              </div>
+
+              <p className="text-xs text-emerald-400 text-center bg-emerald-500/10 py-2 rounded-lg mb-4">
+                Demo OTP: <span className="font-bold">1234</span>
               </p>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-3">
-                    Enter 4-digit OTP
-                  </label>
-                  <div className="flex justify-center gap-3 mb-4">
-                    {otp.map((digit, i) => (
-                      <input
-                        key={i}
-                        ref={(el) => { otpRefs.current[i] = el; }}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(i, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        className="w-14 h-14 text-center bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-xl font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                        autoComplete="one-time-code"
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        spellCheck={false}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-xs text-blue-400 text-center bg-blue-500/10 py-2 rounded-lg">
-                    Demo OTP: <span className="font-bold">1234</span>
-                  </p>
-                </div>
-
-                {countdown > 0 ? (
-                  <p className="text-center text-sm text-slate-400">
-                    Resend OTP in {countdown}s
-                  </p>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={sendOtp}
-                    className="w-full text-blue-400 hover:text-blue-300 font-semibold text-sm"
-                  >
-                    Resend OTP
-                  </button>
-                )}
-              </div>
+              {countdown > 0 ? (
+                <p className="text-center text-sm text-slate-400">Resend in {countdown}s</p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={sendOtp}
+                  className="w-full text-emerald-400 hover:text-emerald-300 font-semibold text-sm"
+                >
+                  Resend OTP
+                </button>
+              )}
             </>
           )}
 
+          {/* STEP 3 — Success */}
           {step === 'success' && (
             <div className="text-center py-8">
               <div className="text-5xl mb-4">✅</div>
-              <p className="text-xl font-bold text-white mb-2">
-                Verified Successfully!
-              </p>
-              <p className="text-slate-400">
-                Redirecting you...
-              </p>
+              <p className="text-xl font-bold text-white mb-2">Verified!</p>
+              <p className="text-slate-400">Redirecting...</p>
             </div>
           )}
         </div>
-
-        {/* Info */}
-        {step === 'mobile' && (
-          <div className="mt-6 text-center">
-            <p className="text-xs text-slate-500">
-              By continuing, you agree to our Terms of Service and Privacy Policy
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

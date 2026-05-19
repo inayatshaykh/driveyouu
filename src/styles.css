@@ -1,6 +1,19 @@
 @import "tailwindcss" source(none);
 @source "../src";
-@import "tw-animate-css";
+
+/* tw-animate-css REMOVED — caused SSR freeze on input focus */
+/* Manually add only the animations we need */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+[data-state=open]  { animation: fadeIn 0.15s ease; }
+[data-state=closed]{ opacity: 0; }
 
 @custom-variant dark (&:is(.dark *));
 
@@ -25,9 +38,9 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  --color-success: var(--success);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -37,22 +50,21 @@
 
 :root {
   --radius: 1rem;
-  /* UR's Chauffeur palette */
-  --background: oklch(0.972 0.005 250);          /* #F4F6FA */
-  --foreground: oklch(0.18 0.03 270);             /* #1A1A2E */
+  --background: oklch(0.972 0.005 250);
+  --foreground: oklch(0.18 0.03 270);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.03 270);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.03 270);
-  --primary: oklch(0.34 0.06 245);                /* #1A3C5E deep blue */
+  --primary: oklch(0.34 0.06 245);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.95 0.01 250);
   --secondary-foreground: oklch(0.18 0.03 270);
   --muted: oklch(0.95 0.01 250);
-  --muted-foreground: oklch(0.5 0.02 250);        /* #5A6A7A */
-  --accent: oklch(0.78 0.15 75);                  /* #F5A623 saffron */
+  --muted-foreground: oklch(0.5 0.02 250);
+  --accent: oklch(0.78 0.15 75);
   --accent-foreground: oklch(0.18 0.03 270);
-  --success: oklch(0.62 0.18 145);                /* #16A34A */
+  --success: oklch(0.62 0.18 145);
   --destructive: oklch(0.6 0.22 27);
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.92 0.01 250);
@@ -61,12 +73,8 @@
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
-  html {
-    scroll-behavior: smooth;
-  }
+  * { border-color: var(--color-border); }
+  html { scroll-behavior: smooth; }
   html, body {
     font-family: var(--font-sans);
     background-color: var(--color-background);
@@ -93,7 +101,7 @@
     gap: 0.5rem;
     transition: transform .15s ease, filter .15s ease;
   }
-  .btn-saffron:hover { filter: brightness(1.05); }
+  .btn-saffron:hover  { filter: brightness(1.05); }
   .btn-saffron:active { transform: scale(0.98); }
 
   .btn-ghost {
@@ -103,7 +111,10 @@
     border-radius: 9999px;
     height: 56px;
     font-weight: 600;
-    display: inline-flex; align-items:center; justify-content:center; gap:.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
   }
 
   .card-base {
@@ -113,14 +124,12 @@
     padding: 1rem;
   }
 
-  .pulse-dot {
-    animation: pulseDot 1.5s ease-in-out infinite;
-  }
+  .pulse-dot { animation: pulseDot 1.5s ease-in-out infinite; }
 }
 
 @keyframes pulseDot {
   0%,100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .5; transform: scale(.9); }
+  50%      { opacity: .5; transform: scale(.9); }
 }
 
 @keyframes drawCheck {

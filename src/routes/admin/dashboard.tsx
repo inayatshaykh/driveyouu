@@ -11,7 +11,7 @@ import {
   MapPin
 } from 'lucide-react';
 
-export const Route = createFileRoute('/admin/')({
+export const Route = createFileRoute('/admin/dashboard')({
   component: DashboardPage,
 });
 

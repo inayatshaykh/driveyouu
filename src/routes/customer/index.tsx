@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { BottomNav } from '../../components/BottomNav';
 
-export const Route = createFileRoute('/customer')({
+export const Route = createFileRoute('/customer/')({
   component: CustomerLayout,
   beforeLoad: ({ context }) => {
     // Check if user is authenticated and is a customer
