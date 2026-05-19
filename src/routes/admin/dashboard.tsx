@@ -147,11 +147,11 @@ function DashboardPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-blue-500 hover:bg-blue-600 text-white border-0">Active</Badge>;
+        return <Badge className="bg-blue-600 hover:bg-blue-700 text-white border-0">Active</Badge>;
       case 'completed':
-        return <Badge className="bg-green-500 hover:bg-green-600 text-white border-0">Completed</Badge>;
+        return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white border-0">Completed</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white border-0">Pending</Badge>;
+        return <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-0">Pending</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -160,11 +160,21 @@ function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard</h1>
-        <p className="text-slate-400 mt-1">
-          Overview of your platform's performance and key metrics
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard</h1>
+          <p className="text-slate-400 mt-1">
+            Welcome back! Here's what's happening today.
+          </p>
+        </div>
+        <div className="text-sm text-slate-400">
+          {new Date().toLocaleDateString('en-IN', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -172,18 +182,21 @@ function DashboardPage() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title} className="bg-slate-900 border-slate-800">
+            <Card key={stat.title} className="bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 hover:border-slate-600 transition-all duration-200 hover:shadow-lg hover:shadow-slate-900/50">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-slate-400">
+                <CardTitle className="text-sm font-medium text-slate-300">
                   {stat.title}
                 </CardTitle>
-                <Icon className="h-4 w-4 text-slate-400" />
+                <div className="p-2 bg-slate-800 rounded-lg">
+                  <Icon className="h-4 w-4 text-emerald-400" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{stat.value}</div>
-                <p className="text-xs text-green-500 flex items-center gap-1 mt-1">
+                <div className="text-3xl font-bold text-white mb-1">{stat.value}</div>
+                <p className="text-xs text-emerald-400 flex items-center gap-1">
                   <TrendingUp className="h-3 w-3" />
-                  {stat.change} from last month
+                  <span className="font-medium">{stat.change}</span>
+                  <span className="text-slate-500">vs last month</span>
                 </p>
               </CardContent>
             </Card>
@@ -192,42 +205,47 @@ function DashboardPage() {
       </div>
 
       {/* Recent Bookings Table */}
-      <Card className="bg-slate-900 border-slate-800">
-        <CardHeader>
-          <CardTitle className="text-white">Recent Bookings</CardTitle>
+      <Card className="bg-slate-900 border-slate-800 shadow-xl">
+        <CardHeader className="border-b border-slate-800">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-white text-xl">Recent Bookings</CardTitle>
+            <Badge variant="outline" className="text-slate-400 border-slate-700">
+              Last 24 hours
+            </Badge>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-800">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Booking ID</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Customer</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Driver</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Route</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Amount</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Time</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Status</th>
+                <tr className="border-b border-slate-800 bg-slate-800/50">
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Booking ID</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Customer</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Driver</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Route</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Amount</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Time</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {recentBookings.map((booking) => (
-                  <tr key={booking.id} className="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
-                    <td className="py-3 px-4 text-sm font-medium text-white">{booking.id}</td>
-                    <td className="py-3 px-4 text-sm text-slate-300">{booking.customer}</td>
-                    <td className="py-3 px-4 text-sm text-slate-300">{booking.driver}</td>
-                    <td className="py-3 px-4 text-sm text-slate-300">
-                      <div className="flex items-start gap-1">
-                        <MapPin className="h-3 w-3 text-slate-500 mt-0.5 flex-shrink-0" />
+                {recentBookings.map((booking, index) => (
+                  <tr key={booking.id} className={`border-b border-slate-800 hover:bg-slate-800/30 transition-colors ${index % 2 === 0 ? 'bg-slate-900/50' : ''}`}>
+                    <td className="py-4 px-6 text-sm font-semibold text-emerald-400">{booking.id}</td>
+                    <td className="py-4 px-6 text-sm text-white font-medium">{booking.customer}</td>
+                    <td className="py-4 px-6 text-sm text-slate-300">{booking.driver}</td>
+                    <td className="py-4 px-6 text-sm text-slate-300">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                         <div className="flex flex-col">
-                          <span className="text-xs">{booking.pickup}</span>
+                          <span className="text-xs font-medium">{booking.pickup}</span>
                           <span className="text-xs text-slate-500">→ {booking.dropoff}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm font-medium text-white">{booking.amount}</td>
-                    <td className="py-3 px-4 text-sm text-slate-400">{booking.time}</td>
-                    <td className="py-3 px-4 text-sm">{getStatusBadge(booking.status)}</td>
+                    <td className="py-4 px-6 text-sm font-bold text-white">{booking.amount}</td>
+                    <td className="py-4 px-6 text-sm text-slate-400">{booking.time}</td>
+                    <td className="py-4 px-6 text-sm">{getStatusBadge(booking.status)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -237,43 +255,53 @@ function DashboardPage() {
       </Card>
 
       {/* Top Customers */}
-      <Card className="bg-slate-900 border-slate-800">
-        <CardHeader>
-          <CardTitle className="text-white">Top Customers</CardTitle>
+      <Card className="bg-slate-900 border-slate-800 shadow-xl">
+        <CardHeader className="border-b border-slate-800">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-white text-xl">Top Customers</CardTitle>
+            <Badge variant="outline" className="text-slate-400 border-slate-700">
+              This Month
+            </Badge>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-800">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Name</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Contact</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Total Bookings</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Total Spent</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Rating</th>
+                <tr className="border-b border-slate-800 bg-slate-800/50">
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Customer</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Contact</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Bookings</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Spent</th>
+                  <th className="text-left py-4 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">Rating</th>
                 </tr>
               </thead>
               <tbody>
-                {topCustomers.map((customer) => (
-                  <tr key={customer.email} className="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
-                    <td className="py-3 px-4">
+                {topCustomers.map((customer, index) => (
+                  <tr key={customer.email} className={`border-b border-slate-800 hover:bg-slate-800/30 transition-colors ${index % 2 === 0 ? 'bg-slate-900/50' : ''}`}>
+                    <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center text-white font-medium">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-bold text-sm shadow-lg">
                           {customer.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-white">{customer.name}</div>
+                          <div className="text-sm font-semibold text-white">{customer.name}</div>
                           <div className="text-xs text-slate-400">{customer.email}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm text-slate-300">{customer.phone}</td>
-                    <td className="py-3 px-4 text-sm text-white font-medium">{customer.totalBookings}</td>
-                    <td className="py-3 px-4 text-sm text-white font-medium">{customer.totalSpent}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm text-yellow-500">★</span>
-                        <span className="text-sm text-white font-medium">{customer.rating}</span>
+                    <td className="py-4 px-6 text-sm text-slate-300 font-medium">{customer.phone}</td>
+                    <td className="py-4 px-6">
+                      <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                        <span className="text-sm text-blue-400 font-bold">{customer.totalBookings}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 text-sm text-white font-bold">{customer.totalSpent}</td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-base text-yellow-400">★</span>
+                        <span className="text-sm text-white font-bold">{customer.rating}</span>
+                        <span className="text-xs text-slate-500">/5.0</span>
                       </div>
                     </td>
                   </tr>
