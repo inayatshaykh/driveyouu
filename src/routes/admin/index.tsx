@@ -1,5 +1,4 @@
-import { createFileRoute, Outlet, redirect, Link, useLocation } from '@tanstack/react-router';
-import { useAuth } from '../../contexts/AuthContext';
+import { createFileRoute, Outlet, redirect, Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { 
   LayoutDashboard, 
   Users, 
@@ -11,7 +10,7 @@ import {
   X,
   AlertCircle
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
 
 export const Route = createFileRoute('/admin/')({
@@ -33,9 +32,17 @@ export const Route = createFileRoute('/admin/')({
 });
 
 function AdminLayout() {
-  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const userData = localStorage.getItem('auth_user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -47,7 +54,9 @@ function AdminLayout() {
   ];
 
   const handleLogout = () => {
-    logout();
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    navigate({ to: '/login' });
   };
 
   return (
