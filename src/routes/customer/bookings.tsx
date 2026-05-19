@@ -172,12 +172,15 @@ function BookingCard({ booking }: { booking: SupabaseBooking }) {
 
 function CustomerBookingsPage() {
   const [bookings, setBookings] = useState<SupabaseBooking[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all');
   const user = getUrsUser();
 
   const load = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data, error } = await fetchCustomerBookings(user.mobile);
     if (error) {
@@ -186,7 +189,7 @@ function CustomerBookingsPage() {
       setBookings(data);
     }
     setLoading(false);
-  }, [user?.id, user?.mobile]);
+  }, [user?.mobile]);
 
   useEffect(() => { load(); }, [load]);
 
