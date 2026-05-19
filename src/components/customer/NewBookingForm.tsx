@@ -235,12 +235,20 @@ export function NewBookingForm() {
   const handleBookNow = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    if (user) {
+
+    // Always re-check localStorage at click time — not stale state
+    const token = localStorage.getItem('auth_token');
+    const userData = localStorage.getItem('auth_user');
+    const isLoggedIn = !!(token && userData);
+
+    if (isLoggedIn) {
+      // Refresh user state and go straight to summary
+      setUser(getUrsUser());
       setShowSummary(true);
     } else {
       setShowAuth(true);
     }
-  }, [user, validate]);
+  }, [validate]);
 
   const handleConfirm = useCallback(async () => {
     setShowSummary(false);
