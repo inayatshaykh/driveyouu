@@ -137,6 +137,17 @@ function LoginPage() {
               >
                 Send OTP
               </button>
+              <div className="text-center mt-4">
+                <p className="text-sm text-slate-400">
+                  Don't have an account?{' '}
+                  <button
+                    onClick={() => navigate({ to: '/signup' })}
+                    className="text-emerald-400 hover:text-emerald-300 font-semibold"
+                  >
+                    Sign up
+                  </button>
+                </p>
+              </div>
               <p className="text-xs text-slate-500 text-center mt-4">
                 By continuing, you agree to our Terms & Privacy Policy
               </p>
