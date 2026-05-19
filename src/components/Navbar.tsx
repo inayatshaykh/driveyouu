@@ -64,9 +64,9 @@ export function Navbar({ onLoginClick }: NavbarProps) {
   const isDriver = userRole === 'driver';
   const isCustomer = userRole === 'customer' || (!isAdmin && !isDriver && !!user);
 
-  const displayName = user?.name || user?.mobile || 'Account';
-  const initials = user?.name
-    ? user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+  const displayName = user?.mobile || 'Account';
+  const initials = user?.mobile
+    ? user.mobile.slice(-4)
     : '?';
 
   const handleLogout = () => {

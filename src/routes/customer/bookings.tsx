@@ -179,7 +179,7 @@ function CustomerBookingsPage() {
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data, error } = await fetchCustomerBookings(user.id || user.mobile);
+    const { data, error } = await fetchCustomerBookings(user.mobile);
     if (error) {
       toast.error('Failed to load bookings');
     } else {
@@ -210,7 +210,7 @@ function CustomerBookingsPage() {
           <div>
             <h1 className="text-2xl font-bold text-white">My Bookings</h1>
             <p className="text-slate-400 text-sm mt-0.5">
-              {user?.name || user?.mobile} · {bookings.length} total
+              {user?.mobile} · {bookings.length} total
             </p>
           </div>
           <button
