@@ -29,6 +29,36 @@ export function Navbar({ onLoginClick }: NavbarProps) {
         setUserRole(null);
       }
     }
+
+    // Listen for storage changes (login/logout from other tabs or same page)
+    const handleStorageChange = () => {
+      const updatedUser = getUrsUser();
+      setUser(updatedUser);
+      
+      if (typeof window !== 'undefined') {
+        try {
+          const u = localStorage.getItem('auth_user');
+          if (u) {
+            const parsed = JSON.parse(u);
+            setUserRole(parsed.role || null);
+          } else {
+            setUserRole(null);
+          }
+        } catch {
+          setUserRole(null);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically for same-tab updates
+    const interval = setInterval(handleStorageChange, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
