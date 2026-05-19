@@ -121,6 +121,9 @@ export function Navbar({ onLoginClick }: NavbarProps) {
         <nav className="hidden md:flex items-center gap-7 text-sm text-slate-300">
           <Link to="/" className="hover:text-white transition">Home</Link>
           <Link to="/booking" className="hover:text-white transition">Book a Driver</Link>
+          {user && !isAdmin && !isDriver && (
+            <Link to="/customer/bookings" className="hover:text-white transition">My Bookings</Link>
+          )}
           <a href="/#how-it-works" className="hover:text-white transition">How It Works</a>
           <a href="/#contact" className="hover:text-white transition">Contact</a>
         </nav>
@@ -162,6 +165,11 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                   onClick={closeMenu}
                 >
                   Login / Sign Up
+                </Link>
+              )}
+              {user && !isAdmin && !isDriver && (
+                <Link to="/customer/bookings" className="px-4 py-3 text-white hover:bg-slate-700 rounded-xl text-sm" onClick={closeMenu}>
+                  My Bookings
                 </Link>
               )}
               {isAdmin && (

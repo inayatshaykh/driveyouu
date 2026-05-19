@@ -105,16 +105,28 @@ export async function updateBookingStatus(
   return { error: null };
 }
 
-// Fetch bookings for a specific customer
-export async function fetchCustomerBookings(customerId: string): Promise<{ data: SupabaseBooking[]; error: string | null }> {
-  const { data, error } = await supabase
+// Fetch bookings for a specific customer (by id OR phone)
+export async function fetchCustomerBookings(customerIdOrPhone: string): Promise<{ data: SupabaseBooking[]; error: string | null }> {
+  // Try by customer_id first, then by phone
+  const { data: byId, error: e1 } = await supabase
     .from('bookings')
     .select('*')
-    .eq('customer_id', customerId)
+    .eq('customer_id', customerIdOrPhone)
     .order('created_at', { ascending: false });
 
-  if (error) return { data: [], error: error.message };
-  return { data: data as SupabaseBooking[], error: null };
+  if (!e1 && byId && byId.length > 0) {
+    return { data: byId as SupabaseBooking[], error: null };
+  }
+
+  // Fallback: search by phone
+  const { data: byPhone, error: e2 } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('customer_phone', customerIdOrPhone)
+    .order('created_at', { ascending: false });
+
+  if (e2) return { data: [], error: e2.message };
+  return { data: (byPhone ?? []) as SupabaseBooking[], error: null };
 }
 
 // Subscribe to real-time booking updates (for admin)
