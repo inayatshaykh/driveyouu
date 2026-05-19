@@ -256,9 +256,9 @@ export function NewBookingForm() {
     if (currentUser) {
       const { id, error } = await saveBooking(
         summaryData,
-        currentUser.id || currentUser.mobile,
-        currentUser.name || 'Customer',
-        currentUser.mobile || ''
+        currentUser.mobile,
+        'Customer',
+        currentUser.mobile
       );
 
       if (error) {
