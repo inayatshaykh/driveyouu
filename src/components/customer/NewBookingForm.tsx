@@ -237,9 +237,7 @@ export function NewBookingForm() {
     if (!validate()) return;
 
     // Always re-check localStorage at click time — not stale state
-    const token = localStorage.getItem('auth_token');
-    const userData = localStorage.getItem('auth_user');
-    const isLoggedIn = !!(token && userData);
+    const isLoggedIn = !!getUrsUser();
 
     if (isLoggedIn) {
       // Refresh user state and go straight to summary
