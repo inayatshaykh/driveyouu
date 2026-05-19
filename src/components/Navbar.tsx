@@ -1,34 +1,48 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ShieldCheck, XIcon, ChevronDown, Calendar, Car, HelpCircle, LogOut, User } from 'lucide-react';
-import { getUrsUser, clearUrsUser } from '@/utils/ursSession';
+import { getUrsUser, clearUrsUser, setUrsUser } from '@/utils/ursSession';
 
 interface NavbarProps {
   onLoginClick?: () => void;
+}
+
+// Resolve the active session from either auth source:
+// 1. urs_user  — set by the booking modal OTP flow
+// 2. auth_user — set by the /login page OTP flow
+function resolveSession() {
+  // Prefer urs_user if verified
+  const urs = getUrsUser();
+  if (urs) return { mobile: urs.mobile, role: 'customer' as const };
+
+  // Fall back to auth_user (set by /login)
+  try {
+    const raw = localStorage.getItem('auth_user');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.mobile) return null;
+    // Sync into urs_user so getUrsUser() works everywhere else too
+    if (parsed.role === 'customer' || !parsed.role) {
+      setUrsUser({ mobile: parsed.mobile, verified: true });
+    }
+    return { mobile: parsed.mobile as string, role: (parsed.role ?? 'customer') as string };
+  } catch {
+    return null;
+  }
 }
 
 export function Navbar({ onLoginClick }: NavbarProps) {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [user, setUser] = useState(() => getUrsUser());
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [session, setSession] = useState(() => resolveSession());
 
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Load and sync user from localStorage
+  // Load and sync user from localStorage — re-runs on storage events and every second
   useEffect(() => {
-    const load = () => {
-      const updatedUser = getUrsUser();
-      setUser(updatedUser);
-      try {
-        const u = localStorage.getItem('auth_user');
-        setUserRole(u ? JSON.parse(u).role ?? null : null);
-      } catch {
-        setUserRole(null);
-      }
-    };
+    const load = () => setSession(resolveSession());
     load();
     window.addEventListener('storage', load);
     const interval = setInterval(load, 1000);
@@ -60,19 +74,18 @@ export function Navbar({ onLoginClick }: NavbarProps) {
     return () => document.removeEventListener('mousedown', handler);
   }, [userDropdownOpen]);
 
-  const isAdmin = userRole === 'admin';
-  const isDriver = userRole === 'driver';
-  const isCustomer = userRole === 'customer' || (!isAdmin && !isDriver && !!user);
+  const isAdmin = session?.role === 'admin';
+  const isDriver = session?.role === 'driver';
+  const isCustomer = !isAdmin && !isDriver && !!session;
 
-  const displayName = user?.mobile || 'Account';
-  const initials = user?.mobile
-    ? user.mobile.slice(-4)
-    : '?';
+  const displayName = session?.mobile || 'Account';
+  const initials = session?.mobile ? session.mobile.slice(-4) : '?';
 
   const handleLogout = () => {
     clearUrsUser();
-    setUser(null);
-    setUserRole(null);
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    setSession(null);
     setMobileMenuOpen(false);
     setUserDropdownOpen(false);
     navigate({ to: '/' });
@@ -108,7 +121,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
 
         {/* Right side */}
         <div className="hidden md:flex items-center">
-          {user ? (
+          {session ? (
             /* ── User dropdown ── */
             <div className="relative" ref={userDropdownRef}>
               <button
@@ -242,7 +255,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
 
               <div className="h-px bg-slate-800 mx-1 my-1" />
 
-              {!user ? (
+              {!session ? (
                 <Link to="/login" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm font-semibold" onClick={closeAll}>
                   Login / Sign Up
                 </Link>
