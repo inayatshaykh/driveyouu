@@ -1,69 +1,113 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { User } from '../types';
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { supabase, profiles } from '@/lib/supabase';
+import type { Profile } from '@/lib/supabase.types';
+import type { Session, User } from '@supabase/supabase-js';
 
-interface AuthContextType {
+interface AuthContextValue {
   user: User | null;
-  token: string | null;
-  login: (token: string, user: User) => void;
-  logout: () => void;
-  isAuthenticated: boolean;
+  session: Session | null;
+  profile: Profile | null;
   isLoading: boolean;
+  isAuthenticated: boolean;
+  role: string | null;
+  refreshProfile: () => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue>({
+  user: null,
+  session: null,
+  profile: null,
+  isLoading: true,
+  isAuthenticated: false,
+  role: null,
+  refreshProfile: async () => {},
+  signOut: async () => {},
+});
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Load token and user from localStorage on mount
-    const storedToken = localStorage.getItem('auth_token');
-    const storedUser = localStorage.getItem('auth_user');
-
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+  const loadProfile = useCallback(async (userId: string) => {
+    const { data } = await profiles.get(userId);
+    if (data) {
+      setProfile(data);
+      // Sync to localStorage for Navbar compatibility
+      localStorage.setItem('auth_user', JSON.stringify({
+        id: data.id,
+        mobile: data.phone,
+        role: data.role,
+        name: data.full_name,
+        email: data.email,
+      }));
     }
-
-    setIsLoading(false);
   }, []);
 
-  const login = (newToken: string, newUser: User) => {
-    setToken(newToken);
-    setUser(newUser);
-    localStorage.setItem('auth_token', newToken);
-    localStorage.setItem('auth_user', JSON.stringify(newUser));
-  };
+  const refreshProfile = useCallback(async () => {
+    if (user) await loadProfile(user.id);
+  }, [user, loadProfile]);
 
-  const logout = () => {
-    setToken(null);
+  const signOut = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
+    setSession(null);
+    setProfile(null);
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
-  };
+  }, []);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadProfile(session.user.id).finally(() => setIsLoading(false));
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          localStorage.setItem('auth_token', session.access_token);
+          await loadProfile(session.user.id);
+        } else {
+          setProfile(null);
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+        }
+        setIsLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [loadProfile]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        login,
-        logout,
-        isAuthenticated: !!token && !!user,
-        isLoading,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      session,
+      profile,
+      isLoading,
+      isAuthenticated: !!user,
+      role: profile?.role ?? null,
+      refreshProfile,
+      signOut,
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 }

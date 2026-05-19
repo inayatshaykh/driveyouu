@@ -51,8 +51,15 @@ function AdminLayout() {
   useEffect(() => {
     const userData = localStorage.getItem('auth_user');
     if (userData) {
-      setUser(JSON.parse(userData));
+      try { setUser(JSON.parse(userData)); } catch {}
     }
+    // Re-check on storage changes (after login)
+    const handler = () => {
+      const u = localStorage.getItem('auth_user');
+      if (u) { try { setUser(JSON.parse(u)); } catch {} }
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
   }, []);
 
   const navigation = [
