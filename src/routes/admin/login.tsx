@@ -8,6 +8,7 @@ import {
   setAdminSession,
   getAdminSession,
 } from '@/utils/adminSession';
+import { setSession } from '@/utils/session';
 
 export const Route = createFileRoute('/admin/login')({
   // If already logged in as admin, skip straight to dashboard
@@ -77,6 +78,7 @@ function AdminLoginPage() {
       return;
     }
     setAdminSession(user);
+    setSession({ mobile: user.mobile, name: user.name, role: 'admin', verified: true });
     setStep('success');
     toast.success(`Welcome, ${user.name}!`);
     setTimeout(() => navigate({ to: '/admin/dashboard' }), 800);

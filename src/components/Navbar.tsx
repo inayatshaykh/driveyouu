@@ -1,54 +1,29 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ShieldCheck, XIcon, ChevronDown, Calendar, Car, HelpCircle, LogOut, User } from 'lucide-react';
-import { getUrsUser, clearUrsUser, setUrsUser } from '@/utils/ursSession';
+import { getSession, clearSession, type Session } from '@/utils/session';
 
 interface NavbarProps {
   onLoginClick?: () => void;
-}
-
-// Resolve the active session from either auth source:
-// 1. urs_user  — set by the booking modal OTP flow
-// 2. auth_user — set by the /login page OTP flow
-function resolveSession() {
-  // Prefer urs_user if verified
-  const urs = getUrsUser();
-  if (urs) return { mobile: urs.mobile, role: 'customer' as const };
-
-  // Fall back to auth_user (set by /login)
-  try {
-    const raw = localStorage.getItem('auth_user');
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed?.mobile) return null;
-    // Sync into urs_user so getUrsUser() works everywhere else too
-    if (parsed.role === 'customer' || !parsed.role) {
-      setUrsUser({ mobile: parsed.mobile, verified: true });
-    }
-    return { mobile: parsed.mobile as string, role: (parsed.role ?? 'customer') as string };
-  } catch {
-    return null;
-  }
 }
 
 export function Navbar({ onLoginClick }: NavbarProps) {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [session, setSession] = useState(() => resolveSession());
+  const [session, setSession] = useState<Session | null>(() => getSession());
 
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const userDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Load and sync user from localStorage — re-runs on storage events and every second
   useEffect(() => {
-    const load = () => setSession(resolveSession());
-    load();
-    window.addEventListener('storage', load);
-    const interval = setInterval(load, 1000);
+    const sync = () => setSession(getSession());
+    sync();
+    window.addEventListener('storage', sync);
+    window.addEventListener('session-change', sync);
     return () => {
-      window.removeEventListener('storage', load);
-      clearInterval(interval);
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('session-change', sync);
     };
   }, []);
 
@@ -78,13 +53,13 @@ export function Navbar({ onLoginClick }: NavbarProps) {
   const isDriver = session?.role === 'driver';
   const isCustomer = !isAdmin && !isDriver && !!session;
 
-  const displayName = session?.mobile || 'Account';
-  const initials = session?.mobile ? session.mobile.slice(-4) : '?';
+  const displayName = session?.name || session?.mobile || 'Account';
+  const initials = session?.name
+    ? session.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : session?.mobile?.slice(-4) ?? '?';
 
   const handleLogout = () => {
-    clearUrsUser();
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
+    clearSession();
     setSession(null);
     setMobileMenuOpen(false);
     setUserDropdownOpen(false);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
-import { setUrsUser } from '@/utils/ursSession';
+import { setSession } from '@/utils/session';
 
 const DEMO_OTP = '1234'; // TODO: replace with MSG91
 
@@ -71,7 +71,7 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
   const verifyOtp = useCallback((digits: string[]) => {
     const enteredOtp = digits.join('');
     if (enteredOtp === DEMO_OTP) {
-      setUrsUser({ mobile, verified: true });
+      setSession({ mobile, name: mobile, role: 'customer', verified: true });
       setStep('success');
       
       // Use setTimeout for reliable transition

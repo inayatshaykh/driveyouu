@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import { setSession } from '@/utils/session';
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
@@ -60,10 +61,7 @@ function LoginPage() {
       return;
     }
     const info = DEMO_USERS[mobile] ?? { role: 'customer' as const, name: 'Customer' };
-    localStorage.setItem('auth_token', 'demo-' + Date.now());
-    localStorage.setItem('auth_user', JSON.stringify({
-      id: mobile, mobile, role: info.role, name: info.name,
-    }));
+    setSession({ mobile, name: info.name, role: info.role, verified: true });
     setStep('success');
     toast.success(`Welcome, ${info.name}!`);
     setTimeout(() => {
