@@ -16,6 +16,7 @@ import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CustomerIndexRouteImport } from './routes/customer/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as CustomerProfileRouteImport } from './routes/customer/profile'
 import { Route as CustomerNotificationsRouteImport } from './routes/customer/notifications'
 import { Route as CustomerEmergencyRouteImport } from './routes/customer/emergency'
@@ -106,6 +107,11 @@ const AdminBookingsRoute = AdminBookingsRouteImport.update({
   path: '/admin/bookings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/drivers': typeof AdminDriversRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/sos': typeof AdminSosRoute
   '/customer/emergency': typeof CustomerEmergencyRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/drivers': typeof AdminDriversRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/sos': typeof AdminSosRoute
   '/customer/emergency': typeof CustomerEmergencyRoute
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/drivers': typeof AdminDriversRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/sos': typeof AdminSosRoute
   '/customer/emergency': typeof CustomerEmergencyRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/dashboard'
     | '/admin/drivers'
+    | '/admin/login'
     | '/admin/pricing'
     | '/admin/sos'
     | '/customer/emergency'
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/dashboard'
     | '/admin/drivers'
+    | '/admin/login'
     | '/admin/pricing'
     | '/admin/sos'
     | '/customer/emergency'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/dashboard'
     | '/admin/drivers'
+    | '/admin/login'
     | '/admin/pricing'
     | '/admin/sos'
     | '/customer/emergency'
@@ -229,6 +241,7 @@ export interface RootRouteChildren {
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminDriversRoute: typeof AdminDriversRoute
+  AdminLoginRoute: typeof AdminLoginRoute
   AdminPricingRoute: typeof AdminPricingRoute
   AdminSosRoute: typeof AdminSosRoute
   CustomerEmergencyRoute: typeof CustomerEmergencyRoute
@@ -352,6 +365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBookingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -365,6 +385,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminCustomersRoute: AdminCustomersRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminDriversRoute: AdminDriversRoute,
+  AdminLoginRoute: AdminLoginRoute,
   AdminPricingRoute: AdminPricingRoute,
   AdminSosRoute: AdminSosRoute,
   CustomerEmergencyRoute: CustomerEmergencyRoute,

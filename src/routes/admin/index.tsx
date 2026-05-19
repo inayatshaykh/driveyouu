@@ -4,19 +4,14 @@ import {
   LogOut, Menu, X, Truck, ChevronDown, User, Bell, Shield
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { getAdminSession, clearAdminSession } from '@/utils/adminSession';
 
 export const Route = createFileRoute('/admin/')({
   component: AdminLayout,
   beforeLoad: ({ location }) => {
-    const token = localStorage.getItem('auth_token');
-    const user = localStorage.getItem('auth_user');
-    if (!token || !user) throw redirect({ to: '/login' });
-    try {
-      const parsed = JSON.parse(user);
-      if (parsed.role !== 'admin') throw redirect({ to: '/' });
-    } catch {
-      throw redirect({ to: '/login' });
-    }
+    // Use real admin session — not the generic auth_user check
+    const admin = getAdminSession();
+    if (!admin) throw redirect({ to: '/admin/login' });
     if (location.pathname === '/admin' || location.pathname === '/admin/') {
       throw redirect({ to: '/admin/dashboard' });
     }
@@ -42,8 +37,8 @@ function AdminLayout() {
 
   useEffect(() => {
     const load = () => {
-      const u = localStorage.getItem('auth_user');
-      if (u) { try { setUser(JSON.parse(u)); } catch {} }
+      const admin = getAdminSession();
+      if (admin) setUser(admin);
     };
     load();
     window.addEventListener('storage', load);
@@ -62,9 +57,8 @@ function AdminLayout() {
   }, [userMenuOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
-    navigate({ to: '/login' });
+    clearAdminSession();
+    navigate({ to: '/admin/login' });
   };
 
   const initials = user?.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || 'AD';
