@@ -8,7 +8,8 @@ import {
   LogOut,
   Menu,
   X,
-  AlertCircle
+  AlertCircle,
+  Truck
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/button';
@@ -55,12 +56,12 @@ function AdminLayout() {
   }, []);
 
   const navigation = [
-    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Drivers', href: '/admin/drivers', icon: Car },
+    { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
+    { name: 'Drivers', href: '/admin/drivers', icon: Car },
     { name: 'Customers', href: '/admin/customers', icon: Users },
-    { name: 'SOS Alerts', href: '/admin/sos', icon: AlertCircle },
-    { name: 'Pricing', href: '/admin/pricing', icon: Settings },
+    { name: 'Vehicles', href: '/admin/vehicles', icon: Truck },
+    { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
   const handleLogout = () => {
