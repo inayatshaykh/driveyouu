@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, memo, useCallback } from 'react';
-import { MapPin, Navigation, Loader2, X } from 'lucide-react';
+import { MapPin, Navigation, Loader2, X, AlertCircle } from 'lucide-react';
 
 export interface LocationResult {
   name: string;
@@ -13,47 +13,40 @@ export interface SelectedLocation {
   lon: number;
 }
 
-// ── MOCK DATA (instant, no API, no freeze) ──────────────────────
-const MOCK_LOCATIONS: LocationResult[] = [
-  { name: 'Connaught Place, New Delhi', lat: 28.6315, lon: 77.2167 },
-  { name: 'India Gate, New Delhi', lat: 28.6129, lon: 77.2295 },
-  { name: 'IGI Airport T3, New Delhi', lat: 28.5562, lon: 77.1000 },
-  { name: 'Cyber City, Gurugram', lat: 28.4950, lon: 77.0890 },
-  { name: 'DLF Phase 3, Gurugram', lat: 28.5021, lon: 77.0910 },
-  { name: 'Sector 18, Noida', lat: 28.5706, lon: 77.3272 },
-  { name: 'Rajiv Chowk Metro, New Delhi', lat: 28.6328, lon: 77.2197 },
-  { name: 'Saket, New Delhi', lat: 28.5244, lon: 77.2066 },
-  { name: 'Dwarka Sector 21, New Delhi', lat: 28.5921, lon: 77.0460 },
-  { name: 'Rohini, New Delhi', lat: 28.7496, lon: 77.0673 },
-  { name: 'Karol Bagh, New Delhi', lat: 28.6519, lon: 77.1909 },
-  { name: 'Vasant Kunj, New Delhi', lat: 28.5244, lon: 77.1580 },
-  { name: 'Nehru Place, New Delhi', lat: 28.5494, lon: 77.2501 },
-  { name: 'Chandigarh Railway Station', lat: 30.7333, lon: 76.7794 },
-  { name: 'Sector 17, Chandigarh', lat: 30.7400, lon: 76.7840 },
-  { name: 'Mohali Airport, Chandigarh', lat: 30.6735, lon: 76.7885 },
-  { name: 'Sector 35, Chandigarh', lat: 30.7218, lon: 76.7780 },
-  { name: 'Panchkula Sector 5', lat: 30.6942, lon: 76.8606 },
-  { name: 'Aerocity, New Delhi', lat: 28.5562, lon: 77.1167 },
-  { name: 'Noida Sector 62', lat: 28.6271, lon: 77.3714 },
-  { name: 'Greater Noida', lat: 28.4744, lon: 77.5040 },
-  { name: 'Ghaziabad Railway Station', lat: 28.6692, lon: 77.4538 },
-  { name: 'Faridabad Old Station', lat: 28.4089, lon: 77.3178 },
-  { name: 'Chandni Chowk, New Delhi', lat: 28.6506, lon: 77.2303 },
-  { name: 'Lajpat Nagar, New Delhi', lat: 28.5677, lon: 77.2431 },
-  { name: 'Hauz Khas, New Delhi', lat: 28.5494, lon: 77.2001 },
-  { name: 'Gurugram Bus Stand', lat: 28.4595, lon: 77.0266 },
-  { name: 'Manesar, Gurugram', lat: 28.3590, lon: 76.9350 },
-  { name: 'Ambala City', lat: 30.3782, lon: 76.7767 },
-  { name: 'Ludhiana Railway Station', lat: 30.9010, lon: 75.8573 },
-];
+// ── Photon API (photon.komoot.io) ─────────────────────────────────────────────
+// Free, no API key, OpenStreetMap-based geocoding.
+// Biased toward India using lat/lon bbox center.
+async function fetchPhoton(query: string): Promise<LocationResult[]> {
+  const params = new URLSearchParams({
+    q: query,
+    limit: '6',
+    lang: 'en',
+    // Bias results toward India (center ~20.5937, 78.9629)
+    lat: '20.5937',
+    lon: '78.9629',
+  });
+  const res = await fetch(
+    `https://photon.komoot.io/api/?${params.toString()}`,
+    { signal: AbortSignal.timeout(5000) }
+  );
+  if (!res.ok) throw new Error('Photon API error');
+  const json = await res.json();
 
-// Pure sync filter — zero async, zero API, zero freeze
-function filterLocations(query: string): LocationResult[] {
-  if (query.length < 3) return [];
-  const q = query.toLowerCase();
-  return MOCK_LOCATIONS
-    .filter(loc => loc.name.toLowerCase().includes(q))
-    .slice(0, 6);
+  return (json.features ?? []).map((f: any) => {
+    const p = f.properties ?? {};
+    // Build a readable address string
+    const parts = [
+      p.name,
+      p.street,
+      p.district,
+      p.city,
+      p.state,
+      p.country,
+    ].filter(Boolean);
+    const name = parts.slice(0, 4).join(', ');
+    const [lon, lat] = f.geometry?.coordinates ?? [0, 0];
+    return { name, lat, lon } as LocationResult;
+  }).filter((r: LocationResult) => r.name && r.lat && r.lon);
 }
 
 interface LocationInputProps {
@@ -70,12 +63,18 @@ export const LocationInput = memo(function LocationInput({
   value,
   onValueChange,
   onSelect,
-  placeholder = 'Type 3+ letters to search',
+  placeholder = 'Type to search location...',
   icon = 'pickup',
 }: LocationInputProps) {
   const [suggestions, setSuggestions] = useState<LocationResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const abortRef = useRef<AbortController>();
+
   const Icon = icon === 'drop' ? Navigation : MapPin;
 
   // Close on outside click
@@ -89,13 +88,49 @@ export const LocationInput = memo(function LocationInput({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Pure sync change — no async, no API, no freeze
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
+    };
+  }, []);
+
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value;
     onValueChange(text);
-    const results = filterLocations(text);
-    setSuggestions(results);
-    setShowDropdown(results.length > 0);
+    setError(false);
+
+    // Clear previous debounce + abort in-flight request
+    clearTimeout(debounceRef.current);
+    abortRef.current?.abort();
+
+    if (text.length < 3) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setShowDropdown(true);
+
+    // Debounce 350ms
+    debounceRef.current = setTimeout(async () => {
+      abortRef.current = new AbortController();
+      try {
+        const results = await fetchPhoton(text);
+        setSuggestions(results);
+        setError(results.length === 0);
+        setShowDropdown(true);
+      } catch {
+        setSuggestions([]);
+        setError(true);
+        setShowDropdown(true);
+      } finally {
+        setLoading(false);
+      }
+    }, 350);
   }, [onValueChange]);
 
   const handleSelect = useCallback((s: LocationResult) => {
@@ -103,13 +138,21 @@ export const LocationInput = memo(function LocationInput({
     onValueChange(s.name);
     setSuggestions([]);
     setShowDropdown(false);
+    setLoading(false);
+    setError(false);
   }, [onSelect, onValueChange]);
 
   const handleClear = useCallback(() => {
+    clearTimeout(debounceRef.current);
+    abortRef.current?.abort();
     onValueChange('');
     setSuggestions([]);
     setShowDropdown(false);
+    setLoading(false);
+    setError(false);
   }, [onValueChange]);
+
+  const showList = showDropdown && value.length >= 3;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -127,32 +170,55 @@ export const LocationInput = memo(function LocationInput({
           autoCapitalize="off"
           spellCheck={false}
         />
-        {value.length > 0 && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-      {showDropdown && suggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white rounded-xl shadow-xl border border-gray-100 max-h-56 overflow-y-auto">
-          {suggestions.map((s, idx) => (
+        {/* Right icon: spinner while loading, clear button otherwise */}
+        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          {loading ? (
+            <Loader2 className="h-4 w-4 text-emerald-500 animate-spin" />
+          ) : value.length > 0 ? (
             <button
-              key={`${s.lat}-${s.lon}-${idx}`}
               type="button"
-              onMouseDown={(e) => {
-                e.preventDefault(); // prevent input blur before select
-                handleSelect(s);
-              }}
-              className="w-full px-4 py-3 text-left hover:bg-emerald-50 border-b border-gray-100 last:border-b-0 transition-colors flex items-center gap-2"
+              onClick={handleClear}
+              className="text-gray-400 hover:text-gray-600"
             >
-              <MapPin className="h-4 w-4 text-emerald-600 shrink-0" />
-              <span className="text-sm text-gray-900">{s.name}</span>
+              <X className="h-4 w-4" />
             </button>
-          ))}
+          ) : null}
+        </div>
+      </div>
+
+      {/* Dropdown */}
+      {showList && (
+        <div className="absolute z-50 w-full mt-1 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+          {loading && suggestions.length === 0 ? (
+            // Skeleton while first results load
+            <div className="px-4 py-3 flex items-center gap-2 text-sm text-gray-400">
+              <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
+              Searching...
+            </div>
+          ) : error ? (
+            // Error / no results fallback
+            <div className="px-4 py-3 flex items-center gap-2 text-sm text-gray-400">
+              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0" />
+              No results found. Try a different search.
+            </div>
+          ) : (
+            <div className="max-h-56 overflow-y-auto">
+              {suggestions.map((s, idx) => (
+                <button
+                  key={`${s.lat}-${s.lon}-${idx}`}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // prevent input blur before select
+                    handleSelect(s);
+                  }}
+                  className="w-full px-4 py-3 text-left hover:bg-emerald-50 border-b border-gray-100 last:border-b-0 transition-colors flex items-center gap-2"
+                >
+                  <MapPin className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span className="text-sm text-gray-900 leading-snug">{s.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
