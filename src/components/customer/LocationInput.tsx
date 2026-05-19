@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, memo, useCallback } from 'react';
-import { MapPin, Navigation, Loader2, X, AlertCircle } from 'lucide-react';
+import { MapPin, Navigation, Loader2, X, AlertCircle, LocateFixed } from 'lucide-react';
 
 export interface LocationResult {
   name: string;
@@ -49,6 +49,21 @@ async function fetchPhoton(query: string): Promise<LocationResult[]> {
   }).filter((r: LocationResult) => r.name && r.lat && r.lon);
 }
 
+// ── Photon reverse geocode ────────────────────────────────────────────────────
+async function reverseGeocode(lat: number, lon: number): Promise<string> {
+  const res = await fetch(
+    `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1`,
+    { signal: AbortSignal.timeout(5000) }
+  );
+  if (!res.ok) throw new Error('Reverse geocode failed');
+  const json = await res.json();
+  const f = json.features?.[0];
+  if (!f) throw new Error('No result');
+  const p = f.properties ?? {};
+  const parts = [p.name, p.street, p.district, p.city, p.state, p.country].filter(Boolean);
+  return parts.slice(0, 4).join(', ');
+}
+
 interface LocationInputProps {
   label: string;
   value: string;
@@ -70,6 +85,8 @@ export const LocationInput = memo(function LocationInput({
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [locateError, setLocateError] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -142,6 +159,40 @@ export const LocationInput = memo(function LocationInput({
     setError(false);
   }, [onSelect, onValueChange]);
 
+  const handleUseCurrentLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocateError('Geolocation is not supported by your browser.');
+      return;
+    }
+    setLocating(true);
+    setLocateError(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const address = await reverseGeocode(latitude, longitude);
+          onValueChange(address);
+          onSelect({ address, lat: latitude, lon: longitude });
+          setSuggestions([]);
+          setShowDropdown(false);
+        } catch {
+          setLocateError('Could not fetch address. Please type manually.');
+        } finally {
+          setLocating(false);
+        }
+      },
+      (err) => {
+        setLocating(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocateError('Location permission denied. Please allow access.');
+        } else {
+          setLocateError('Unable to get your location. Please type manually.');
+        }
+      },
+      { timeout: 8000, maximumAge: 60000 }
+    );
+  }, [onValueChange, onSelect]);
+
   const handleClear = useCallback(() => {
     clearTimeout(debounceRef.current);
     abortRef.current?.abort();
@@ -185,6 +236,29 @@ export const LocationInput = memo(function LocationInput({
           ) : null}
         </div>
       </div>
+
+      {/* Use Current Location button — only show for pickup, not drop */}
+      {icon !== 'drop' && (
+        <button
+          type="button"
+          onClick={handleUseCurrentLocation}
+          disabled={locating}
+          className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {locating ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <LocateFixed className="h-3.5 w-3.5" />
+          )}
+          {locating ? 'Getting location...' : 'Use current location'}
+        </button>
+      )}
+      {locateError && (
+        <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+          {locateError}
+        </p>
+      )}
 
       {/* Dropdown */}
       {showList && (
