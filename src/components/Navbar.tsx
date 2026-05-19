@@ -128,7 +128,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                       </div>
                       <div className="min-w-0">
                         <div className="text-sm font-semibold text-white truncate">{displayName}</div>
-                        <div className="text-xs text-slate-400 truncate capitalize">{userRole || 'customer'}</div>
+                        <div className="text-xs text-slate-400 truncate capitalize">{session?.role || 'customer'}</div>
                       </div>
                     </div>
                   </div>
@@ -243,7 +243,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                     </div>
                     <div className="min-w-0">
                       <div className="text-sm font-semibold text-white truncate">{displayName}</div>
-                      <div className="text-xs text-slate-400 capitalize">{userRole || 'customer'}</div>
+                      <div className="text-xs text-slate-400 capitalize">{session?.role || 'customer'}</div>
                     </div>
                   </div>
 
