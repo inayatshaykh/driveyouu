@@ -52,8 +52,8 @@ async function fetchPhoton(query: string): Promise<LocationResult[]> {
 // ── Photon reverse geocode ────────────────────────────────────────────────────
 async function reverseGeocode(lat: number, lon: number): Promise<string> {
   const res = await fetch(
-    `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1`,
-    { signal: AbortSignal.timeout(5000) }
+    `https://photon.komoot.io/reverse/?lat=${lat}&lon=${lon}&limit=1`,
+    { signal: AbortSignal.timeout(8000) }
   );
   if (!res.ok) throw new Error('Reverse geocode failed');
   const json = await res.json();
@@ -164,6 +164,11 @@ export const LocationInput = memo(function LocationInput({
       setLocateError('Geolocation is not supported by your browser.');
       return;
     }
+    // Geolocation requires HTTPS (except localhost)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      setLocateError('Location requires HTTPS. Please use the secure version of the site.');
+      return;
+    }
     setLocating(true);
     setLocateError(null);
     navigator.geolocation.getCurrentPosition(
@@ -176,20 +181,32 @@ export const LocationInput = memo(function LocationInput({
           setSuggestions([]);
           setShowDropdown(false);
         } catch {
-          setLocateError('Could not fetch address. Please type manually.');
+          // Reverse geocode failed but we still have coords — use them with a fallback label
+          const fallback = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+          onValueChange(fallback);
+          onSelect({ address: fallback, lat: latitude, lon: longitude });
+          setLocateError('Got your location but could not fetch address name.');
         } finally {
           setLocating(false);
         }
       },
       (err) => {
         setLocating(false);
-        if (err.code === err.PERMISSION_DENIED) {
-          setLocateError('Location permission denied. Please allow access.');
-        } else {
-          setLocateError('Unable to get your location. Please type manually.');
+        switch (err.code) {
+          case err.PERMISSION_DENIED:
+            setLocateError('Location permission denied. Please allow access in your browser settings.');
+            break;
+          case err.POSITION_UNAVAILABLE:
+            setLocateError('Location unavailable. Check your device GPS or network.');
+            break;
+          case err.TIMEOUT:
+            setLocateError('Location request timed out. Please try again.');
+            break;
+          default:
+            setLocateError('Unable to get your location. Please type manually.');
         }
       },
-      { timeout: 8000, maximumAge: 60000 }
+      { timeout: 10000, maximumAge: 60000, enableHighAccuracy: false }
     );
   }, [onValueChange, onSelect]);
 
