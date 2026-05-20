@@ -43,43 +43,45 @@ export function setSession(session: Session): void {
 export function getSession(): Session | null {
   if (typeof window === 'undefined') return null;
   try {
-    // 1. Primary: app_session
     const raw = localStorage.getItem(KEY);
-    if (raw) {
-      const s = JSON.parse(raw) as Session;
-      if (s?.mobile && s?.verified) return s;
-    }
+    if (!raw) return null;
+    const s = JSON.parse(raw) as Session;
+    if (s?.mobile && s?.verified) return s;
+    return null;
+  } catch {
+    return null;
+  }
+}
 
-    // 2. Fallback: urs_user (set by old AuthModal before this utility existed)
+// Call once after any legacy login to migrate old keys into app_session
+export function migrateSession(): void {
+  if (localStorage.getItem(KEY)) return; // already migrated
+
+  try {
+    // Try urs_user first
     const urs = localStorage.getItem('urs_user');
     if (urs) {
       const u = JSON.parse(urs);
       if (u?.mobile && u?.verified) {
-        const s: Session = { mobile: u.mobile, name: u.mobile, role: 'customer', verified: true };
-        setSession(s); // migrate to unified key
-        return s;
+        setSession({ mobile: u.mobile, name: u.mobile, role: 'customer', verified: true });
+        return;
       }
     }
-
-    // 3. Fallback: auth_user (set by old /login page before this utility existed)
+    // Try auth_user
     const au = localStorage.getItem('auth_user');
     if (au) {
       const u = JSON.parse(au);
       if (u?.mobile) {
-        const s: Session = {
+        setSession({
           mobile: u.mobile,
           name: u.name || u.mobile,
           role: (u.role as UserRole) || 'customer',
           verified: true,
-        };
-        setSession(s); // migrate to unified key
-        return s;
+        });
       }
     }
-
-    return null;
   } catch {
-    return null;
+    // ignore
   }
 }
 

@@ -8,6 +8,10 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { AuthProvider } from "../contexts/AuthContext";
+import { migrateSession } from "../utils/session";
+
+// Migrate any legacy session keys (urs_user / auth_user) into app_session once on load
+migrateSession();
 
 import appCss from "../styles.css?url";
 
