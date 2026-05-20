@@ -1,7 +1,12 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useState, useCallback } from 'react';
+import { getAdminSession, clearAdminSession } from '@/utils/adminSession';
+import { clearSession } from '@/utils/session';
 
 export const Route = createFileRoute('/admin/panel')({
+  beforeLoad: () => {
+    if (!getAdminSession()) throw redirect({ to: '/admin/login' });
+  },
   component: AdminPanel,
 });
 
@@ -88,6 +93,7 @@ const Ico = {
 
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 function AdminPanel() {
+  const navigate = useNavigate();
   const [page, setPage] = useState<'dashboard'|'rides'|'drivers'|'customers'|'revenue'|'settings'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [rides, setRides] = useState<Ride[]>(INIT_RIDES);
@@ -169,6 +175,11 @@ function AdminPanel() {
           </span>
           <button onClick={() => setRides([...INIT_RIDES])} className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-sm font-semibold transition-colors flex-shrink-0">
             {Ico.refresh}<span className="hidden sm:inline">Refresh</span>
+          </button>
+          <button onClick={() => { clearAdminSession(); clearSession(); navigate({ to: '/admin/login' }); }}
+            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-semibold transition-colors flex-shrink-0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </header>
 

@@ -13,7 +13,7 @@ export const Route = createFileRoute('/admin/')({
     const admin = getAdminSession();
     if (!admin) throw redirect({ to: '/admin/login' });
     if (location.pathname === '/admin' || location.pathname === '/admin/') {
-      throw redirect({ to: '/admin/dashboard' });
+      throw redirect({ to: '/admin/panel' });
     }
   },
 });

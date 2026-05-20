@@ -81,7 +81,7 @@ function AdminLoginPage() {
     setSession({ mobile: user.mobile, name: user.name, role: 'admin', verified: true });
     setStep('success');
     toast.success(`Welcome, ${user.name}!`);
-    setTimeout(() => navigate({ to: '/admin/dashboard' }), 800);
+    setTimeout(() => navigate({ to: '/admin/panel' }), 800);
   }, [mobile, navigate]);
 
   const handleOtpChange = useCallback((i: number, val: string) => {

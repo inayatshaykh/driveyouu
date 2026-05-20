@@ -65,7 +65,7 @@ function LoginPage() {
     setStep('success');
     toast.success(`Welcome, ${info.name}!`);
     setTimeout(() => {
-      if (info.role === 'admin')  navigate({ to: '/admin' });
+      if (info.role === 'admin')  navigate({ to: '/admin/panel' });
       else if (info.role === 'driver') navigate({ to: '/driver' });
       else navigate({ to: '/booking' });
     }, 800);
