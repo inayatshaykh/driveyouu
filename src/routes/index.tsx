@@ -336,9 +336,7 @@ function LandingPage() {
             {/* Col 1: Logo and tagline */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
-                  <ShieldCheck size={20} className="text-white" />
-                </div>
+                <img src="/logo.png" alt="UR's Chauffeur" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
                 <div className="font-bold text-lg text-white">UR's Chauffeur</div>
               </div>
               <p className="text-sm text-slate-500">

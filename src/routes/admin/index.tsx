@@ -79,9 +79,7 @@ function AdminLayout() {
         {/* Logo */}
         <div className="flex h-16 items-center justify-between px-5 border-b border-slate-800 bg-slate-900 flex-shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg">
-              <Shield className="h-4 w-4 text-white" />
-            </div>
+            <img src="/logo.png" alt="UR's Chauffeur" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
             <div>
               <div className="text-sm font-bold text-white leading-tight">UR's Chauffeur</div>
               <div className="text-[10px] text-emerald-400 leading-tight">Admin Panel</div>

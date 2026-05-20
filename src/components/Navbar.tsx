@@ -77,9 +77,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 text-white flex-shrink-0" onClick={closeAll}>
-          <div className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center">
-            <ShieldCheck size={20} className="text-white" />
-          </div>
+          <img src="/logo.png" alt="UR's Chauffeur" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
           <div className="leading-tight">
             <span className="font-bold tracking-tight text-sm sm:text-base">UR&apos;s Chauffeur</span>
             <div className="text-[10px] text-slate-400 -mt-0.5">Professional drivers · Nationwide</div>
