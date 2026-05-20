@@ -1,21 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  MapPin,
-  Circle,
-  ArrowRight,
-  Car,
-  Calendar,
-  Clock,
-  Plane,
-  Route as RouteIcon,
-  ShieldCheck,
-  Star,
-  Check,
-  X,
-  Phone,
-  Mail,
-  MapPinned,
-} from "lucide-react";
+import { ArrowRight, ShieldCheck, Star } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 
 export const Route = createFileRoute("/")({
@@ -112,64 +96,7 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* PREMIUM CHAUFFEUR SERVICES */}
-      <section className="bg-slate-950 py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-black text-white text-center mb-12 uppercase tracking-widest">
-            Premium Chauffeur Services
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {/* Card 1 */}
-            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
-              <div className="text-4xl mb-3">🛡️</div>
-              <h3 className="text-white font-bold text-lg mb-2">Trust & Safety First</h3>
-              <div className="text-slate-400 text-sm space-y-1">
-                <p>• Your Journey, Our Responsibility</p>
-                <p>• Safe Rides. Every Time.</p>
-                <p>• Where Reliability Meets the Road</p>
-              </div>
-            </div>
-
-            {/* Card 2 */}
-            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
-              <div className="text-4xl mb-3">👔</div>
-              <h3 className="text-white font-bold text-lg mb-2">Professional & Premium</h3>
-              <div className="text-slate-400 text-sm space-y-1">
-                <p>• Driven by Excellence</p>
-                <p>• Arrive in Style, Arrive on Time</p>
-                <p>• The Professional Way to Travel</p>
-              </div>
-            </div>
-
-            {/* Card 3 */}
-            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
-              <div className="text-4xl mb-3">🤝</div>
-              <h3 className="text-white font-bold text-lg mb-2">Friendly & Local</h3>
-              <div className="text-slate-400 text-sm space-y-1">
-                <p>• Your City, Our Drivers</p>
-                <p>• Yes Boss, We're On The Way</p>
-                <p>• Neighbours Driving Neighbours</p>
-              </div>
-            </div>
-
-            {/* Card 4 */}
-            <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800">
-              <div className="text-4xl mb-3">⚡</div>
-              <h3 className="text-white font-bold text-lg mb-2">Speed & Convenience</h3>
-              <div className="text-slate-400 text-sm space-y-1">
-                <p>• One Call. We're There.</p>
-                <p>• Skip the Hassle, Book a Driver</p>
-                <p>• Your Destination, No Detours</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-slate-800 text-slate-300 rounded-xl p-4 text-center font-bold mt-8 max-w-3xl mx-auto">
-            Explore at your own pace: Hourly Rates · Daily Packages · Multi-Day Tours
-          </div>
-        </div>
-      </section>
+      {/* PREMIUM CHAUFFEUR SERVICES section removed */}
 
       {/* OUR TAILORED CHAUFFEUR SERVICES */}
       <section className="bg-slate-900 py-20 px-6">
