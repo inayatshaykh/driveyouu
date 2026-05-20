@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ShieldCheck, Star } from "lucide-react";
+import { ArrowRight, ShieldCheck, Star, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { useState, useEffect } from "react";
+import { fetchVisibleReviews, type Review } from "@/lib/reviewService";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,31 +24,47 @@ export const Route = createFileRoute("/")({
   component: LandingPage,
 });
 
-const testimonials = [
+// Fallback shown while loading or if no reviews in DB yet
+const FALLBACK_REVIEWS: Review[] = [
   {
+    id: '1',
     name: "Rohan Sharma",
     city: "New Delhi",
     rating: 5,
-    quote:
-      "Booked a driver for an airport drop at 4 AM. Driver was professional, on time, and handled my BMW like his own.",
+    quote: "Booked a driver for an airport drop at 4 AM. Driver was professional, on time, and handled my BMW like his own.",
+    visible: true,
+    created_at: '',
   },
   {
+    id: '2',
     name: "Anjali Verma",
     city: "Gurugram",
     rating: 5,
-    quote:
-      "I use UR's Chauffeur every weekend for parties. No more worrying about driving back home — totally worth it.",
+    quote: "I use UR's Chauffeur every weekend for parties. No more worrying about driving back home — totally worth it.",
+    visible: true,
+    created_at: '',
   },
   {
+    id: '3',
     name: "Karan Mehta",
     city: "Chandigarh",
     rating: 5,
-    quote:
-      "Took a chauffeur for a Delhi-to-Shimla trip. Calm, experienced driver. Made our family vacation stress-free.",
+    quote: "Took a chauffeur for a Delhi-to-Shimla trip. Calm, experienced driver. Made our family vacation stress-free.",
+    visible: true,
+    created_at: '',
   },
 ];
 
 function LandingPage() {
+  const [reviews, setReviews] = useState<Review[]>(FALLBACK_REVIEWS);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchVisibleReviews().then(data => {
+      if (data.length > 0) setReviews(data);
+      setReviewsLoading(false);
+    });
+  }, []);
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
@@ -223,27 +241,33 @@ function LandingPage() {
               Loved by riders across the region
             </h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t) => (
-              <div
-                key={t.name}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col"
-              >
-                <div className="flex gap-0.5 text-slate-300">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} size={16} fill="currentColor" />
-                  ))}
+          {reviewsLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6">
+              {reviews.map((t) => (
+                <div
+                  key={t.id}
+                  className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col"
+                >
+                  <div className="flex gap-0.5 text-slate-300">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <Star key={i} size={16} fill="currentColor" />
+                    ))}
+                  </div>
+                  <p className="mt-4 text-sm leading-relaxed text-slate-300 flex-1">
+                    "{t.quote}"
+                  </p>
+                  <div className="mt-5 pt-4 border-t border-slate-800">
+                    <div className="font-semibold text-sm text-white">{t.name}</div>
+                    <div className="text-xs text-slate-500">{t.city}</div>
+                  </div>
                 </div>
-                <p className="mt-4 text-sm leading-relaxed text-slate-300 flex-1">
-                  "{t.quote}"
-                </p>
-                <div className="mt-5 pt-4 border-t border-slate-800">
-                  <div className="font-semibold text-sm text-white">{t.name}</div>
-                  <div className="text-xs text-slate-500">{t.city}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
