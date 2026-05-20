@@ -101,23 +101,55 @@ function AdminPanel() {
   const [rideFilter, setRideFilter] = useState<'all'|RideStatus>('all');
   const [fareConfig, setFareConfig] = useState({ base: 50, perKm: 12, perMin: 2, night: 200, cancel: 500 });
   const [notifs, setNotifs] = useState({ email: true, sms: true, push: false });
+  // Modal state: which ride is waiting for driver assignment
+  const [assigningRideId, setAssigningRideId] = useState<string | null>(null);
 
   const pendingCount = rides.filter(r => r.status === 'pending').length;
-  const onlineDrivers = drivers.filter(d => d.status === 'online');
 
-  const assignDriver = useCallback((rideId: string) => {
-    const available = onlineDrivers.filter(d => !rides.find(r => r.status === 'active' && r.driver === d.name));
-    const pick = available.length ? available[Math.floor(Math.random() * available.length)] : onlineDrivers[0];
-    if (!pick) { alert('No online drivers available'); return; }
-    setRides(prev => prev.map(r => r.id === rideId ? { ...r, status: 'active', driver: pick.name } : r));
-  }, [onlineDrivers, rides]);
+  // Open the assign modal
+  const openAssign = useCallback((rideId: string) => {
+    setAssigningRideId(rideId);
+  }, []);
 
+  // Admin picks a driver from the modal
+  const confirmAssign = useCallback((driverName: string) => {
+    if (!assigningRideId) return;
+    setRides(prev => prev.map(r =>
+      r.id === assigningRideId ? { ...r, status: 'active' as RideStatus, driver: driverName } : r
+    ));
+    // Mark driver as busy (offline so they don't appear for other rides)
+    setDrivers(prev => prev.map(d =>
+      d.name === driverName ? { ...d, status: 'offline' as DriverStatus } : d
+    ));
+    setAssigningRideId(null);
+  }, [assigningRideId]);
+
+  // Complete a ride → driver becomes available again
   const updateRide = useCallback((id: string, status: RideStatus) => {
-    setRides(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+    setRides(prev => {
+      const ride = prev.find(r => r.id === id);
+      if (status === 'completed' && ride?.driver) {
+        // Free up the driver
+        setDrivers(drvs => drvs.map(d =>
+          d.name === ride.driver ? { ...d, status: 'online' as DriverStatus } : d
+        ));
+      }
+      return prev.map(r => r.id === id ? { ...r, status } : r);
+    });
   }, []);
 
   const toggleDriver = useCallback((id: string) => {
-    setDrivers(prev => prev.map(d => d.id === id ? { ...d, status: d.status === 'online' ? 'offline' : 'online' } : d));
+    setDrivers(prev => prev.map(d =>
+      d.id === id ? { ...d, status: d.status === 'online' ? 'offline' : 'online' } : d
+    ));
+  }, []);
+
+  const addDriver = useCallback((driver: Driver) => {
+    setDrivers(prev => [...prev, driver]);
+  }, []);
+
+  const removeDriver = useCallback((id: string) => {
+    setDrivers(prev => prev.filter(d => d.id !== id));
   }, []);
 
   const nav = [
@@ -130,19 +162,17 @@ function AdminPanel() {
   ] as const;
 
   const filteredRides = rideFilter === 'all' ? rides : rides.filter(r => r.status === rideFilter);
+  const assigningRide = rides.find(r => r.id === assigningRideId);
+  const onlineDrivers = drivers.filter(d => d.status === 'online');
 
   return (
     <div className="flex h-screen bg-[#0f1117] text-white overflow-hidden font-sans">
       {/* ── SIDEBAR ── */}
       <aside className={`flex-shrink-0 flex flex-col bg-[#111827] border-r border-slate-800 transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-0 overflow-hidden'}`}>
-        {/* Brand */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-800">
-          <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center flex-shrink-0">
-            {Ico.rides}
-          </div>
+          <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center flex-shrink-0">{Ico.rides}</div>
           <span className="text-lg font-bold text-white whitespace-nowrap">RideAdmin</span>
         </div>
-        {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {nav.map(item => {
             const active = page === item.id;
@@ -162,37 +192,78 @@ function AdminPanel() {
 
       {/* ── MAIN ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Topbar */}
-        <header className="flex-shrink-0 flex items-center gap-4 px-4 sm:px-6 h-16 bg-[#111827] border-b border-slate-800">
-          <button onClick={() => setSidebarOpen(v => !v)} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0">
-            {Ico.menu}
-          </button>
+        <header className="flex-shrink-0 flex items-center gap-3 px-4 sm:px-6 h-16 bg-[#111827] border-b border-slate-800">
+          <button onClick={() => setSidebarOpen(v => !v)} className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0">{Ico.menu}</button>
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-bold text-white capitalize">{page}</h1>
           </div>
           <span className="hidden sm:block text-xs text-slate-500 px-3 py-1.5 bg-slate-800 rounded-lg border border-slate-700 whitespace-nowrap">
             {new Date().toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' })}
           </span>
-          <button onClick={() => setRides([...INIT_RIDES])} className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-sm font-semibold transition-colors flex-shrink-0">
+          <button onClick={() => { setRides([...INIT_RIDES]); setDrivers([...INIT_DRIVERS]); }}
+            className="flex items-center gap-2 px-3 py-2 bg-slate-800 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-sm font-semibold transition-colors flex-shrink-0">
             {Ico.refresh}<span className="hidden sm:inline">Refresh</span>
           </button>
           <button onClick={() => { clearAdminSession(); clearSession(); navigate({ to: '/admin/login' }); }}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-semibold transition-colors flex-shrink-0">
+            className="flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-semibold transition-colors flex-shrink-0">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             <span className="hidden sm:inline">Logout</span>
           </button>
         </header>
 
-        {/* Content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {page === 'dashboard'  && <DashboardPage rides={rides} drivers={drivers} />}
-          {page === 'rides'      && <RidesPage rides={filteredRides} allRides={rides} filter={rideFilter} setFilter={setRideFilter} assignDriver={assignDriver} updateRide={updateRide} />}
-          {page === 'drivers'    && <DriversPage drivers={drivers} toggleDriver={toggleDriver} />}
+          {page === 'rides'      && <RidesPage rides={filteredRides} allRides={rides} filter={rideFilter} setFilter={setRideFilter} openAssign={openAssign} updateRide={updateRide} />}
+          {page === 'drivers'    && <DriversPage drivers={drivers} toggleDriver={toggleDriver} addDriver={addDriver} removeDriver={removeDriver} />}
           {page === 'customers'  && <CustomersPage />}
           {page === 'revenue'    && <RevenuePage rides={rides} />}
           {page === 'settings'   && <SettingsPage fareConfig={fareConfig} setFareConfig={setFareConfig} notifs={notifs} setNotifs={setNotifs} />}
         </main>
       </div>
+
+      {/* ── ASSIGN DRIVER MODAL ── */}
+      {assigningRide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button className="absolute inset-0 bg-black/60" onClick={() => setAssigningRideId(null)} />
+          <div className="relative w-full max-w-md bg-[#111827] border border-slate-700 rounded-2xl shadow-2xl p-6">
+            <h2 className="text-lg font-bold text-white mb-1">Assign Driver</h2>
+            <p className="text-xs text-slate-400 mb-4">
+              Ride <span className="text-emerald-400 font-mono">{assigningRide.id}</span> · {assigningRide.pickup} → {assigningRide.drop}
+            </p>
+
+            {onlineDrivers.length === 0 ? (
+              <div className="py-8 text-center text-slate-500">
+                <p className="text-sm">No online drivers available right now.</p>
+                <p className="text-xs mt-1">Go to Drivers page and set a driver online.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-72 overflow-y-auto">
+                {onlineDrivers.map(d => (
+                  <button key={d.id} onClick={() => confirmAssign(d.name)}
+                    className="w-full flex items-center gap-3 p-3 bg-slate-800 hover:bg-emerald-600/20 hover:border-emerald-500/40 border border-slate-700 rounded-xl transition-all text-left group">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                      {d.name.split(' ').map(n=>n[0]).join('')}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-white group-hover:text-emerald-400 transition-colors">{d.name}</div>
+                      <div className="text-xs text-slate-400 truncate">{d.vehicle}</div>
+                      <div className="text-xs text-slate-500">{d.zone} · ⭐ {d.rating}</div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold">Assign</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <button onClick={() => setAssigningRideId(null)}
+              className="mt-4 w-full py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold rounded-xl text-sm transition-colors">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -273,10 +344,10 @@ function DashboardPage({ rides, drivers }: { rides: Ride[]; drivers: Driver[] })
 }
 
 // ── RIDES ─────────────────────────────────────────────────────────────────────
-function RidesPage({ rides, allRides, filter, setFilter, assignDriver, updateRide }: {
+function RidesPage({ rides, allRides, filter, setFilter, openAssign, updateRide }: {
   rides: Ride[]; allRides: Ride[];
   filter: 'all'|RideStatus; setFilter: (f: 'all'|RideStatus) => void;
-  assignDriver: (id: string) => void; updateRide: (id: string, s: RideStatus) => void;
+  openAssign: (id: string) => void; updateRide: (id: string, s: RideStatus) => void;
 }) {
   const tabs: Array<'all'|RideStatus> = ['all','active','pending','completed','cancelled'];
   const counts: Record<string, number> = {
@@ -330,7 +401,7 @@ function RidesPage({ rides, allRides, filter, setFilter, assignDriver, updateRid
                   <td className="py-3 px-4">
                     <div className="flex gap-1.5 flex-wrap">
                       {r.status === 'pending' && <>
-                        <button onClick={() => assignDriver(r.id)} className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap">Assign Driver</button>
+                        <button onClick={() => openAssign(r.id)} className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap">Assign Driver</button>
                         <button onClick={() => updateRide(r.id,'cancelled')} className="px-2.5 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg border border-red-500/30 transition-colors">Cancel</button>
                       </>}
                       {r.status === 'active' && <>
@@ -351,14 +422,51 @@ function RidesPage({ rides, allRides, filter, setFilter, assignDriver, updateRid
 }
 
 // ── DRIVERS ───────────────────────────────────────────────────────────────────
-function DriversPage({ drivers, toggleDriver }: { drivers: Driver[]; toggleDriver: (id: string) => void }) {
+function DriversPage({ drivers, toggleDriver, addDriver, removeDriver }: {
+  drivers: Driver[];
+  toggleDriver: (id: string) => void;
+  addDriver: (d: Driver) => void;
+  removeDriver: (id: string) => void;
+}) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({ name:'', phone:'', vehicle:'', zone:'Central Delhi' });
+  const ZONES_LIST = ['Central Delhi','South Delhi','West Delhi','North Delhi','East Delhi','Gurugram'];
+
+  const handleAdd = () => {
+    if (!form.name.trim() || !form.phone.trim() || !form.vehicle.trim()) return;
+    const newDriver: Driver = {
+      id: 'DR-' + String(Date.now()).slice(-4),
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      vehicle: form.vehicle.trim(),
+      zone: form.zone,
+      rating: 5.0,
+      rides: 0,
+      earnings: 0,
+      status: 'online',
+      kyc: 'pending',
+    };
+    addDriver(newDriver);
+    setForm({ name:'', phone:'', vehicle:'', zone:'Central Delhi' });
+    setShowAdd(false);
+  };
+
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold text-white">Drivers</h2>
-        <p className="text-slate-400 text-sm mt-1">Manage driver status and performance</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="text-2xl font-bold text-white">Drivers</h2>
+          <p className="text-slate-400 text-sm mt-1">Manage driver roster, status and assignments</p>
+        </div>
+        <button onClick={() => setShowAdd(v => !v)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Driver
+        </button>
       </div>
-      <div className="flex gap-4 flex-wrap">
+
+      {/* Summary */}
+      <div className="flex gap-3 flex-wrap">
         <div className="bg-[#1a2332] border border-slate-700/50 rounded-xl px-5 py-3">
           <span className="text-2xl font-bold text-emerald-400">{drivers.filter(d=>d.status==='online').length}</span>
           <span className="text-xs text-slate-400 ml-2">Online</span>
@@ -367,9 +475,57 @@ function DriversPage({ drivers, toggleDriver }: { drivers: Driver[]; toggleDrive
           <span className="text-2xl font-bold text-slate-400">{drivers.filter(d=>d.status==='offline').length}</span>
           <span className="text-xs text-slate-400 ml-2">Offline</span>
         </div>
+        <div className="bg-[#1a2332] border border-slate-700/50 rounded-xl px-5 py-3">
+          <span className="text-2xl font-bold text-white">{drivers.length}</span>
+          <span className="text-xs text-slate-400 ml-2">Total</span>
+        </div>
       </div>
+
+      {/* Add Driver Form */}
+      {showAdd && (
+        <div className="bg-[#1a2332] border border-emerald-500/30 rounded-2xl p-5">
+          <h3 className="font-bold text-white mb-4">Add New Driver</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5">Full Name *</label>
+              <input value={form.name} onChange={e => setForm(f=>({...f, name:e.target.value}))}
+                placeholder="e.g. Rahul Sharma"
+                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5">Phone *</label>
+              <input value={form.phone} onChange={e => setForm(f=>({...f, phone:e.target.value}))}
+                placeholder="+91 98765 00000"
+                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5">Vehicle *</label>
+              <input value={form.vehicle} onChange={e => setForm(f=>({...f, vehicle:e.target.value}))}
+                placeholder="e.g. Honda City · DL 01 AB 1234"
+                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-1.5">Zone</label>
+              <select value={form.zone} onChange={e => setForm(f=>({...f, zone:e.target.value}))}
+                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none">
+                {ZONES_LIST.map(z => <option key={z} value={z}>{z}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={() => setShowAdd(false)}
+              className="flex-1 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold rounded-xl text-sm transition-colors">Cancel</button>
+            <button onClick={handleAdd} disabled={!form.name.trim() || !form.phone.trim() || !form.vehicle.trim()}
+              className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-semibold rounded-xl text-sm transition-colors">Add Driver</button>
+          </div>
+        </div>
+      )}
+
+      {/* Driver Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {drivers.map(d => (
+        {drivers.length === 0 ? (
+          <div className="col-span-3 py-16 text-center text-slate-500">No drivers yet. Add one above.</div>
+        ) : drivers.map(d => (
           <div key={d.id} className="bg-[#1a2332] border border-slate-700/50 rounded-2xl p-5 hover:border-slate-600 transition-all">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -384,7 +540,7 @@ function DriversPage({ drivers, toggleDriver }: { drivers: Driver[]; toggleDrive
                   <div className="text-xs text-slate-500">{d.id}</div>
                 </div>
               </div>
-              {/* Toggle Switch */}
+              {/* Toggle */}
               <button onClick={() => toggleDriver(d.id)}
                 className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${d.status==='online'?'bg-emerald-600':'bg-slate-700'}`}>
                 <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${d.status==='online'?'translate-x-6':'translate-x-1'}`} />
@@ -395,7 +551,7 @@ function DriversPage({ drivers, toggleDriver }: { drivers: Driver[]; toggleDrive
               <div className="flex items-center gap-2">{Ico.map}<span>{d.zone}</span></div>
               <div className="flex items-center gap-2">{Ico.map}<span>{d.phone}</span></div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2 mb-3">
               <div className="bg-slate-800/60 rounded-xl p-2.5 text-center">
                 <div className="text-sm font-bold text-white">{d.rides}</div>
                 <div className="text-[10px] text-slate-500">Rides</div>
@@ -409,6 +565,11 @@ function DriversPage({ drivers, toggleDriver }: { drivers: Driver[]; toggleDrive
                 <div className="text-[10px] text-slate-500">Earned</div>
               </div>
             </div>
+            {/* Remove button */}
+            <button onClick={() => { if (confirm(`Remove ${d.name}?`)) removeDriver(d.id); }}
+              className="w-full py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-semibold rounded-xl transition-colors">
+              Remove Driver
+            </button>
           </div>
         ))}
       </div>
