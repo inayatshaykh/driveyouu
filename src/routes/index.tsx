@@ -125,19 +125,7 @@ function LandingPage() {
           </div>
 
           {/* Trust stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
-            {[
-              { value: '500+', label: 'Verified Drivers' },
-              { value: '10K+', label: 'Rides Completed' },
-              { value: '4.8★', label: 'Average Rating' },
-              { value: '30min', label: 'Avg Arrival' },
-            ].map(s => (
-              <div key={s.label} className="bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-4 backdrop-blur-sm">
-                <div className="text-2xl font-black text-white">{s.value}</div>
-                <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
-              </div>
-            ))}
-          </div>
+          <p className="text-slate-500 text-sm">300+ drivers available 24/7</p>
         </div>
 
         {/* Bottom fade */}
