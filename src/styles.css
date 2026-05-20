@@ -80,7 +80,8 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
+    /* overflow-x: hidden on html/body breaks position:sticky — use overflow-x:clip instead */
+    overflow-x: clip;
   }
   .font-mono, .money {
     font-family: var(--font-mono);
