@@ -105,28 +105,21 @@ export async function updateBookingStatus(
   return { error: null };
 }
 
-// Fetch bookings for a specific customer (by id OR phone)
-export async function fetchCustomerBookings(customerIdOrPhone: string): Promise<{ data: SupabaseBooking[]; error: string | null }> {
-  // Try by customer_id first, then by phone
-  const { data: byId, error: e1 } = await supabase
+// Fetch bookings for a specific customer (by phone — single fast query)
+export async function fetchCustomerBookings(mobile: string): Promise<{ data: SupabaseBooking[]; error: string | null }> {
+  const { data, error } = await supabase
     .from('bookings')
     .select('*')
-    .eq('customer_id', customerIdOrPhone)
-    .order('created_at', { ascending: false });
+    .or(`customer_id.eq.${mobile},customer_phone.eq.${mobile}`)
+    .order('created_at', { ascending: false })
+    .limit(50);
 
-  if (!e1 && byId && byId.length > 0) {
-    return { data: byId as SupabaseBooking[], error: null };
+  if (error) {
+    // RLS / table missing — treat as empty, not a hard error shown to user
+    console.error('fetchCustomerBookings error:', error.message);
+    return { data: [], error: null };
   }
-
-  // Fallback: search by phone
-  const { data: byPhone, error: e2 } = await supabase
-    .from('bookings')
-    .select('*')
-    .eq('customer_phone', customerIdOrPhone)
-    .order('created_at', { ascending: false });
-
-  if (e2) return { data: [], error: e2.message };
-  return { data: (byPhone ?? []) as SupabaseBooking[], error: null };
+  return { data: (data ?? []) as SupabaseBooking[], error: null };
 }
 
 // Subscribe to real-time booking updates (for admin)

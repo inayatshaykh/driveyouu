@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { MapPin, Clock, Car, Calendar, RefreshCw, Loader2, ChevronDown, ChevronUp, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchCustomerBookings, type SupabaseBooking } from '@/lib/bookingService';
-import { getUrsUser } from '@/utils/ursSession';
+import { getSession } from '@/utils/session';
 import { Navbar } from '@/components/Navbar';
 
 export const Route = createFileRoute('/customer/bookings')({
@@ -174,22 +174,23 @@ function CustomerBookingsPage() {
   const [bookings, setBookings] = useState<SupabaseBooking[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all');
-  const user = getUrsUser();
+  const session = getSession();
+  const mobile = session?.mobile;
 
   const load = useCallback(async () => {
-    if (!user) {
+    if (!mobile) {
       setLoading(false);
       return;
     }
     setLoading(true);
-    const { data, error } = await fetchCustomerBookings(user.mobile);
+    const { data, error } = await fetchCustomerBookings(mobile);
     if (error) {
       toast.error('Failed to load bookings');
     } else {
       setBookings(data);
     }
     setLoading(false);
-  }, [user?.mobile]);
+  }, [mobile]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -213,7 +214,7 @@ function CustomerBookingsPage() {
           <div>
             <h1 className="text-2xl font-bold text-white">My Bookings</h1>
             <p className="text-slate-400 text-sm mt-0.5">
-              {user?.mobile} · {bookings.length} total
+              {mobile} · {bookings.length} total
             </p>
           </div>
           <button
