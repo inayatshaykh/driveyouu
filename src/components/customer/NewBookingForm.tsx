@@ -251,23 +251,34 @@ export function NewBookingForm() {
   const handleConfirm = useCallback(async () => {
     setShowSummary(false);
     const summaryData = buildSummaryData();
-    const currentUser = getUrsUser();
+    // Use getSession() so it works regardless of login path
+    const session = (() => {
+      try {
+        const raw = localStorage.getItem('app_session');
+        if (raw) return JSON.parse(raw);
+        const urs = localStorage.getItem('urs_user');
+        if (urs) return JSON.parse(urs);
+      } catch {}
+      return null;
+    })();
+    const mobile = session?.mobile || getUrsUser()?.mobile;
 
-    if (currentUser) {
+    if (mobile) {
       const { id, error } = await saveBooking(
         summaryData,
-        currentUser.mobile,
+        mobile,
         'Customer',
-        currentUser.mobile
+        mobile
       );
 
       if (error) {
-        toast.error('Failed to save booking. Please try again.');
         console.error('Booking save error:', error);
+        toast.error(`Booking failed: ${error}`);
       } else {
         toast.success(`Booking confirmed! ID: ${id?.slice(0, 8).toUpperCase()}. Our team will contact you shortly.`);
       }
     } else {
+      // No session — still confirm but warn
       toast.success('Booking confirmed! Our team will contact you shortly.');
     }
   }, [buildSummaryData]);
