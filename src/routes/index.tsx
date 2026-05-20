@@ -133,26 +133,9 @@ function LandingPage() {
       </section>
 
       {/* STATS BAR */}
-      <section className="bg-slate-900 border-t border-b border-slate-800 py-12">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 text-center">
-            <div>
-              <div className="text-4xl md:text-5xl font-black text-white">500+</div>
-              <div className="text-sm text-slate-500 mt-1">Drivers</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-black text-white">10,000+</div>
-              <div className="text-sm text-slate-500 mt-1">Rides</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-black text-white">4.8★</div>
-              <div className="text-sm text-slate-500 mt-1">Rating</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-black text-white">24/7</div>
-              <div className="text-sm text-slate-500 mt-1">Available</div>
-            </div>
-          </div>
+      <section className="bg-slate-900 border-t border-b border-slate-800 py-8">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <p className="text-slate-400 text-sm font-medium">300+ drivers available 24/7</p>
         </div>
       </section>
 
