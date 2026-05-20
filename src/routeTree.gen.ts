@@ -18,6 +18,7 @@ import { Route as CustomerIndexRouteImport } from './routes/customer/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
+import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as CustomerProfileRouteImport } from './routes/customer/profile'
 import { Route as CustomerNotificationsRouteImport } from './routes/customer/notifications'
 import { Route as CustomerEmergencyRouteImport } from './routes/customer/emergency'
@@ -118,6 +119,11 @@ const AdminReviewsRoute = AdminReviewsRouteImport.update({
   path: '/admin/reviews',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRevenueRoute = AdminRevenueRouteImport.update({
+  id: '/admin/revenue',
+  path: '/admin/revenue',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -151,6 +157,7 @@ export interface FileRoutesByTo {
   '/admin/drivers': typeof AdminDriversRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/pricing': typeof AdminPricingRoute
+  '/admin/revenue': typeof AdminRevenueRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/sos': typeof AdminSosRoute
   '/customer/emergency': typeof CustomerEmergencyRoute
@@ -172,6 +179,7 @@ export interface FileRoutesById {
   '/admin/drivers': typeof AdminDriversRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/pricing': typeof AdminPricingRoute
+  '/admin/revenue': typeof AdminRevenueRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/sos': typeof AdminSosRoute
   '/customer/emergency': typeof CustomerEmergencyRoute
@@ -194,6 +202,7 @@ export interface FileRouteTypes {
     | '/admin/drivers'
     | '/admin/login'
     | '/admin/pricing'
+    | '/admin/revenue'
     | '/admin/reviews'
     | '/admin/sos'
     | '/customer/emergency'
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/admin/drivers'
     | '/admin/login'
     | '/admin/pricing'
+    | '/admin/revenue'
     | '/admin/reviews'
     | '/admin/sos'
     | '/customer/emergency'
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/admin/drivers'
     | '/admin/login'
     | '/admin/pricing'
+    | '/admin/revenue'
     | '/admin/reviews'
     | '/admin/sos'
     | '/customer/emergency'
@@ -255,6 +266,7 @@ export interface RootRouteChildren {
   AdminDriversRoute: typeof AdminDriversRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminPricingRoute: typeof AdminPricingRoute
+  AdminRevenueRoute: typeof AdminRevenueRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
   AdminSosRoute: typeof AdminSosRoute
   CustomerEmergencyRoute: typeof CustomerEmergencyRoute
@@ -392,6 +404,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/revenue': {
+      id: '/admin/revenue'
+      path: '/admin/revenue'
+      fullPath: '/admin/revenue'
+      preLoaderRoute: typeof AdminRevenueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -407,6 +426,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDriversRoute: AdminDriversRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminPricingRoute: AdminPricingRoute,
+  AdminRevenueRoute: AdminRevenueRoute,
   AdminReviewsRoute: AdminReviewsRoute,
   AdminSosRoute: AdminSosRoute,
   CustomerEmergencyRoute: CustomerEmergencyRoute,

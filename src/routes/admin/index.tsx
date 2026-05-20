@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useLocation, useNavigate } from '@tanstack/react-router';
 import {
   LayoutDashboard, Users, Car, Calendar, Settings,
-  LogOut, Menu, X, Truck, ChevronDown, User, Bell, Shield, Star
+  LogOut, Menu, X, Truck, ChevronDown, User, Bell, Shield, Star, IndianRupee
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { getAdminSession, clearAdminSession } from '@/utils/adminSession';
@@ -23,6 +23,7 @@ const NAV = [
   { name: 'Bookings',   href: '/admin/bookings',  icon: Calendar },
   { name: 'Drivers',    href: '/admin/drivers',   icon: Car },
   { name: 'Customers',  href: '/admin/customers', icon: Users },
+  { name: 'Revenue',    href: '/admin/revenue',   icon: IndianRupee },
   { name: 'Vehicles',   href: '/admin/vehicles',  icon: Truck },
   { name: 'Reviews',    href: '/admin/reviews',   icon: Star },
   { name: 'Settings',   href: '/admin/settings',  icon: Settings },
