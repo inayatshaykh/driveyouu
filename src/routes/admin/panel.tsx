@@ -184,12 +184,8 @@ function AdminPanel() {
     setDrivers(prev => prev.map(d => d.id === id ? { ...d, status: next } : d));
   }, [drivers]);
 
-  const addDriver = useCallback(async (driver: Driver) => {
-    const { id, error } = await addDriverToDb({
-      name: driver.name, phone: driver.phone, vehicle: driver.vehicle,
-      zone: driver.zone, rating: driver.rating, rides: driver.rides,
-      earnings: driver.earnings, status: driver.status, kyc: driver.kyc,
-    });
+  const addDriver = useCallback(async (driver: Omit<Driver, 'id' | 'created_at'>) => {
+    const { error } = await addDriverToDb(driver);
     if (error) { alert('Failed to add driver: ' + error); return; }
     await loadDrivers();
   }, [loadDrivers]);
@@ -491,28 +487,29 @@ function RidesPage({ rides, allRides, filter, setFilter, openAssign, updateRide,
 function DriversPage({ drivers, toggleDriver, addDriver, removeDriver }: {
   drivers: Driver[];
   toggleDriver: (id: string) => void;
-  addDriver: (d: Driver) => void;
+  addDriver: (d: Omit<Driver, 'id' | 'created_at'>) => Promise<void>;
   removeDriver: (id: string) => void;
 }) {
   const [showAdd, setShowAdd] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name:'', phone:'', vehicle:'', zone:'Central Delhi' });
   const ZONES_LIST = ['Central Delhi','South Delhi','West Delhi','North Delhi','East Delhi','Gurugram'];
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!form.name.trim() || !form.phone.trim() || !form.vehicle.trim()) return;
-    const newDriver: Driver = {
-      id: 'DR-' + String(Date.now()).slice(-4),
+    setSaving(true);
+    await addDriver({
       name: form.name.trim(),
       phone: form.phone.trim(),
       vehicle: form.vehicle.trim(),
-      zone: form.zone,
+      zone: form.zone.trim() || 'Central Delhi',
       rating: 5.0,
       rides: 0,
       earnings: 0,
       status: 'online',
       kyc: 'pending',
-    };
-    addDriver(newDriver);
+    });
+    setSaving(false);
     setForm({ name:'', phone:'', vehicle:'', zone:'Central Delhi' });
     setShowAdd(false);
   };
@@ -587,8 +584,10 @@ function DriversPage({ drivers, toggleDriver, addDriver, removeDriver }: {
           <div className="flex gap-3">
             <button onClick={() => setShowAdd(false)}
               className="flex-1 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold rounded-xl text-sm transition-colors">Cancel</button>
-            <button onClick={handleAdd} disabled={!form.name.trim() || !form.phone.trim() || !form.vehicle.trim()}
-              className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-semibold rounded-xl text-sm transition-colors">Add Driver</button>
+            <button onClick={handleAdd} disabled={saving || !form.name.trim() || !form.phone.trim() || !form.vehicle.trim()}
+              className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-semibold rounded-xl text-sm transition-colors">
+              {saving ? 'Saving...' : 'Add Driver'}
+            </button>
           </div>
         </div>
       )}
@@ -623,14 +622,10 @@ function DriversPage({ drivers, toggleDriver, addDriver, removeDriver }: {
               <div className="flex items-center gap-2">{Ico.map}<span>{d.zone}</span></div>
               <div className="flex items-center gap-2">{Ico.map}<span>{d.phone}</span></div>
             </div>
-            <div className="grid grid-cols-3 gap-2 mb-3">
+            <div className="grid grid-cols-2 gap-2 mb-3">
               <div className="bg-slate-800/60 rounded-xl p-2.5 text-center">
                 <div className="text-sm font-bold text-white">{d.rides}</div>
                 <div className="text-[10px] text-slate-500">Rides</div>
-              </div>
-              <div className="bg-slate-800/60 rounded-xl p-2.5 text-center">
-                <div className="text-sm font-bold text-yellow-400 flex items-center justify-center gap-0.5">{Ico.star}{d.rating}</div>
-                <div className="text-[10px] text-slate-500">Rating</div>
               </div>
               <div className="bg-slate-800/60 rounded-xl p-2.5 text-center">
                 <div className="text-[11px] font-bold text-emerald-400">₹{(d.earnings/1000).toFixed(0)}K</div>
