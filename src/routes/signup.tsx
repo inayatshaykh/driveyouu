@@ -16,7 +16,6 @@ function SignupPage() {
   const [formData, setFormData] = useState({
     name: '',
     mobile: '',
-    role: 'customer' as 'customer' | 'driver',
   });
   const [otp, setOtp] = useState(['', '', '', '']);
   const [countdown, setCountdown] = useState(0);
@@ -53,12 +52,10 @@ function SignupPage() {
       focusOtp(0);
       return;
     }
-    setSession({ mobile: formData.mobile, name: formData.name, role: formData.role, verified: true });
+    setSession({ mobile: formData.mobile, name: formData.name, role: 'customer', verified: true });
     setStep('success');
     toast.success(`Welcome, ${formData.name}!`);
-    setTimeout(() => {
-      navigate({ to: formData.role === 'driver' ? '/driver' : '/booking' });
-    }, 800);
+    setTimeout(() => navigate({ to: '/booking' }), 800);
   }, [formData, navigate]);
 
   const handleOtpChange = useCallback((i: number, val: string) => {
@@ -135,23 +132,6 @@ function SignupPage() {
                   </div>
                 </div>
 
-                {/* Role */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">I want to sign up as *</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {(['customer', 'driver'] as const).map(r => (
-                      <button key={r} type="button" onClick={() => setFormData(f => ({ ...f, role: r }))}
-                        className={`py-3 rounded-xl font-semibold capitalize transition-all border-2 ${
-                          formData.role === r
-                            ? 'bg-emerald-600 text-white border-emerald-500'
-                            : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500'
-                        }`}>
-                        {r}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 <button
                   type="button"
                   disabled={!formData.name.trim() || formData.mobile.length !== 10}
@@ -160,7 +140,6 @@ function SignupPage() {
                 >
                   Send OTP
                 </button>
-
                 <p className="text-center text-sm text-slate-400">
                   Already have an account?{' '}
                   <button onClick={() => navigate({ to: '/login' })} className="text-emerald-400 hover:text-emerald-300 font-semibold">
