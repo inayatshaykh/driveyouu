@@ -1,275 +1,132 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Navbar } from '@/components/Navbar';
-import { UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
-import { auth } from '@/lib/supabase';
+import { setSession } from '@/utils/session';
 
 export const Route = createFileRoute('/signup')({
   component: SignupPage,
 });
+
+const DEMO_OTP = '1234';
 
 function SignupPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState<'details' | 'otp' | 'success'>('details');
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     mobile: '',
     role: 'customer' as 'customer' | 'driver',
   });
   const [otp, setOtp] = useState(['', '', '', '']);
   const [countdown, setCountdown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const rafRef = useRef<number>();
   const timerRef = useRef<ReturnType<typeof setInterval>>();
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
 
   useEffect(() => {
     if (step !== 'otp' || countdown <= 0) {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = undefined;
-      }
+      clearInterval(timerRef.current);
       return;
     }
-    
-    timerRef.current = setInterval(() => setCountdown((c) => c - 1), 1000);
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = undefined;
-      }
-    };
+    timerRef.current = setInterval(() => setCountdown(c => c - 1), 1000);
+    return () => clearInterval(timerRef.current);
   }, [step, countdown]);
 
-  const sendOtp = useCallback(async () => {
-    if (!formData.name.trim()) {
-      toast.error('Please enter your name');
-      return;
-    }
-    if (!/^\d{10}$/.test(formData.mobile)) {
-      toast.error('Please enter a valid 10-digit mobile number');
-      return;
-    }
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
+  useEffect(() => () => clearInterval(timerRef.current), []);
 
-    try {
-      const phoneNumber = `+91${formData.mobile}`;
-      const { error } = await auth.signInWithPhone(phoneNumber);
-      
-      if (error) {
-        toast.error(error.message || 'Failed to send OTP');
-        return;
-      }
+  const focusOtp = (idx: number) => setTimeout(() => otpRefs.current[idx]?.focus(), 50);
 
-      setStep('otp');
-      setCountdown(30);
-      setOtp(['', '', '', '']);
-      toast.success('OTP sent successfully!');
-      
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = requestAnimationFrame(() => {
-          otpRefs.current[0]?.focus();
-        });
-      });
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send OTP');
-    }
+  const sendOtp = useCallback(() => {
+    if (!formData.name.trim()) { toast.error('Please enter your name'); return; }
+    if (!/^\d{10}$/.test(formData.mobile)) { toast.error('Enter a valid 10-digit number'); return; }
+    setStep('otp');
+    setCountdown(30);
+    setOtp(['', '', '', '']);
+    focusOtp(0);
+    toast.success('OTP sent! Use 1234 for now.');
   }, [formData]);
 
-  const verifyOtp = useCallback(async (digits: string[]) => {
-    const enteredOtp = digits.join('');
-    
-    if (enteredOtp.length !== 4) return;
-
-    try {
-      const phoneNumber = `+91${formData.mobile}`;
-      const { data, error } = await auth.verifyOtp(phoneNumber, enteredOtp);
-      
-      if (error) {
-        toast.error('Invalid OTP. Please try again.');
-        setOtp(['', '', '', '']);
-        rafRef.current = requestAnimationFrame(() => {
-          rafRef.current = requestAnimationFrame(() => {
-            otpRefs.current[0]?.focus();
-          });
-        });
-        return;
-      }
-
-      if (data.user) {
-        // Update user metadata with signup info
-        const { error: updateError } = await auth.signUpWithEmail(
-          formData.email || `${formData.mobile}@temp.com`,
-          'temp-password-' + Date.now(),
-          {
-            name: formData.name,
-            role: formData.role,
-            phone: phoneNumber,
-          }
-        );
-
-        // Store auth info
-        localStorage.setItem('auth_token', data.session?.access_token || '');
-        localStorage.setItem('auth_user', JSON.stringify({
-          id: data.user.id,
-          mobile: data.user.phone,
-          role: formData.role,
-          name: formData.name,
-          email: formData.email || '',
-        }));
-
-        setStep('success');
-        toast.success(`Welcome, ${formData.name}!`);
-
-        rafRef.current = requestAnimationFrame(() => {
-          rafRef.current = requestAnimationFrame(() => {
-            if (formData.role === 'driver') {
-              navigate({ to: '/driver' });
-            } else {
-              navigate({ to: '/booking' });
-            }
-          });
-        });
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Verification failed');
+  const verifyOtp = useCallback((digits: string[]) => {
+    if (digits.join('') !== DEMO_OTP) {
+      toast.error('Wrong OTP. Use 1234');
       setOtp(['', '', '', '']);
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = requestAnimationFrame(() => {
-          otpRefs.current[0]?.focus();
-        });
-      });
+      focusOtp(0);
+      return;
     }
+    setSession({ mobile: formData.mobile, name: formData.name, role: formData.role, verified: true });
+    setStep('success');
+    toast.success(`Welcome, ${formData.name}!`);
+    setTimeout(() => {
+      navigate({ to: formData.role === 'driver' ? '/driver' : '/booking' });
+    }, 800);
   }, [formData, navigate]);
 
-  const handleOtpChange = useCallback((index: number, value: string) => {
-    if (!/^\d?$/.test(value)) return;
-    
+  const handleOtpChange = useCallback((i: number, val: string) => {
+    if (!/^\d?$/.test(val)) return;
     setOtp(prev => {
       const next = [...prev];
-      next[index] = value;
-      
-      if (value && index < 3) {
-        rafRef.current = requestAnimationFrame(() => {
-          otpRefs.current[index + 1]?.focus();
-        });
-      }
-      
-      if (next.every((d) => d)) {
-        rafRef.current = requestAnimationFrame(() => {
-          verifyOtp(next);
-        });
-      }
-      
+      next[i] = val;
+      if (val && i < 3) focusOtp(i + 1);
+      if (next.every(d => d)) setTimeout(() => verifyOtp(next), 50);
       return next;
     });
   }, [verifyOtp]);
 
-  const handleOtpKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace') {
-      setOtp(prev => {
-        if (!prev[index] && index > 0) {
-          rafRef.current = requestAnimationFrame(() => {
-            otpRefs.current[index - 1]?.focus();
-          });
-        }
-        return prev;
-      });
-    }
-  }, []);
-
-  const handleBack = useCallback(() => {
-    setStep('details');
-    setOtp(['', '', '', '']);
-    setCountdown(0);
-  }, []);
+  const handleKeyDown = useCallback((i: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[i] && i > 0) focusOtp(i - 1);
+  }, [otp]);
 
   return (
     <div className="min-h-screen bg-slate-950">
       <Navbar />
-      
       <div className="max-w-md mx-auto px-4 py-12">
+
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 mb-4">
-            <UserPlus size={32} className="text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4 overflow-hidden">
+            <img src="/logo.png" alt="UR's Chauffeur" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-slate-400">
-            Join us to book your rides
-          </p>
+          <p className="text-slate-400 text-sm">Join UR's Chauffeur to book your rides</p>
         </div>
 
-        {/* Signup Card */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8">
+
+          {/* Step 1 — Details */}
           {step === 'details' && (
             <>
-              <h2 className="text-xl font-bold text-white mb-6">Enter Your Details</h2>
+              <h2 className="text-xl font-bold text-white mb-6">Your Details</h2>
               <div className="space-y-4">
+
+                {/* Name */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Full Name *
-                  </label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Full Name *</label>
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={e => setFormData(f => ({ ...f, name: e.target.value }))}
                     placeholder="Enter your full name"
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    autoFocus
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     autoComplete="name"
-                    autoCorrect="off"
                     autoCapitalize="words"
-                    spellCheck={false}
                   />
                 </div>
 
+                {/* Mobile */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Email (Optional)
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="your@email.com"
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    autoComplete="email"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    inputMode="email"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Mobile Number *
-                  </label>
-                  <div className="flex gap-2">
-                    <div className="flex items-center px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white font-semibold">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Mobile Number *</label>
+                  <div className="flex items-stretch rounded-xl overflow-hidden border border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500">
+                    <span className="flex items-center justify-center px-4 bg-slate-800 text-white font-semibold text-sm border-r border-slate-700 flex-shrink-0">
                       +91
-                    </div>
+                    </span>
                     <input
                       type="tel"
                       inputMode="numeric"
                       maxLength={10}
                       value={formData.mobile}
-                      onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                      onChange={e => setFormData(f => ({ ...f, mobile: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
                       placeholder="10 digit number"
-                      className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      className="flex-1 min-w-0 px-4 py-3 bg-slate-800 text-white focus:outline-none text-base"
                       autoComplete="tel"
                       autoCorrect="off"
                       autoCapitalize="off"
@@ -278,33 +135,20 @@ function SignupPage() {
                   </div>
                 </div>
 
+                {/* Role */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    I want to signup as *
-                  </label>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">I want to sign up as *</label>
                   <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, role: 'customer' })}
-                      className={`px-4 py-3 rounded-xl font-semibold transition-all ${
-                        formData.role === 'customer'
-                          ? 'bg-blue-600 text-white border-2 border-blue-500'
-                          : 'bg-slate-800 text-slate-300 border-2 border-slate-700 hover:border-slate-600'
-                      }`}
-                    >
-                      Customer
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, role: 'driver' })}
-                      className={`px-4 py-3 rounded-xl font-semibold transition-all ${
-                        formData.role === 'driver'
-                          ? 'bg-blue-600 text-white border-2 border-blue-500'
-                          : 'bg-slate-800 text-slate-300 border-2 border-slate-700 hover:border-slate-600'
-                      }`}
-                    >
-                      Driver
-                    </button>
+                    {(['customer', 'driver'] as const).map(r => (
+                      <button key={r} type="button" onClick={() => setFormData(f => ({ ...f, role: r }))}
+                        className={`py-3 rounded-xl font-semibold capitalize transition-all border-2 ${
+                          formData.role === r
+                            ? 'bg-emerald-600 text-white border-emerald-500'
+                            : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-500'
+                        }`}>
+                        {r}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -312,104 +156,70 @@ function SignupPage() {
                   type="button"
                   disabled={!formData.name.trim() || formData.mobile.length !== 10}
                   onClick={sendOtp}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all"
+                  className="w-full bg-emerald-700 hover:bg-emerald-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all"
                 >
                   Send OTP
                 </button>
 
-                <div className="text-center">
-                  <p className="text-sm text-slate-400">
-                    Already have an account?{' '}
-                    <button
-                      onClick={() => navigate({ to: '/login' })}
-                      className="text-blue-400 hover:text-blue-300 font-semibold"
-                    >
-                      Login
-                    </button>
-                  </p>
-                </div>
+                <p className="text-center text-sm text-slate-400">
+                  Already have an account?{' '}
+                  <button onClick={() => navigate({ to: '/login' })} className="text-emerald-400 hover:text-emerald-300 font-semibold">
+                    Login
+                  </button>
+                </p>
               </div>
             </>
           )}
 
+          {/* Step 2 — OTP */}
           {step === 'otp' && (
             <>
-              <button
-                onClick={handleBack}
-                className="text-slate-400 hover:text-white text-sm mb-6 flex items-center gap-2"
-              >
+              <button onClick={() => { setStep('details'); setOtp(['','','','']); setCd(0); }}
+                className="text-slate-400 hover:text-white text-sm mb-6 flex items-center gap-1">
                 ← Change details
               </button>
+              <h2 className="text-xl font-bold text-white mb-1">Verify OTP</h2>
+              <p className="text-sm text-slate-400 mb-6">Sent to +91 {formData.mobile}</p>
 
-              <h2 className="text-xl font-bold text-white mb-2">Verify OTP</h2>
-              <p className="text-sm text-slate-400 mb-6">
-                Sent to +91 {formData.mobile}
+              <div className="flex justify-center gap-3 mb-4">
+                {otp.map((digit, i) => (
+                  <input key={i} ref={el => { otpRefs.current[i] = el; }}
+                    type="text" inputMode="numeric" maxLength={1} value={digit}
+                    onChange={e => handleOtpChange(i, e.target.value)}
+                    onKeyDown={e => handleKeyDown(i, e)}
+                    className="w-14 h-14 text-center bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-xl font-bold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none"
+                    autoComplete="one-time-code" autoCorrect="off" autoCapitalize="off" spellCheck={false}
+                  />
+                ))}
+              </div>
+
+              <p className="text-xs text-emerald-400 text-center bg-emerald-500/10 py-2 rounded-lg mb-4">
+                Demo OTP: <span className="font-bold">1234</span>
               </p>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-3">
-                    Enter 4-digit OTP
-                  </label>
-                  <div className="flex justify-center gap-3 mb-4">
-                    {otp.map((digit, i) => (
-                      <input
-                        key={i}
-                        ref={(el) => { otpRefs.current[i] = el; }}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(i, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                        className="w-14 h-14 text-center bg-slate-800 border-2 border-slate-700 rounded-xl text-white text-xl font-bold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                        autoComplete="one-time-code"
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        spellCheck={false}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {countdown > 0 ? (
-                  <p className="text-center text-sm text-slate-400">
-                    Resend OTP in {countdown}s
-                  </p>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={sendOtp}
-                    className="w-full text-blue-400 hover:text-blue-300 font-semibold text-sm"
-                  >
-                    Resend OTP
-                  </button>
-                )}
-              </div>
+              {countdown > 0 ? (
+                <p className="text-center text-sm text-slate-400">Resend in {countdown}s</p>
+              ) : (
+                <button type="button" onClick={sendOtp} className="w-full text-emerald-400 hover:text-emerald-300 font-semibold text-sm">
+                  Resend OTP
+                </button>
+              )}
             </>
           )}
 
+          {/* Step 3 — Success */}
           {step === 'success' && (
             <div className="text-center py-8">
               <div className="text-5xl mb-4">✅</div>
-              <p className="text-xl font-bold text-white mb-2">
-                Account Created Successfully!
-              </p>
-              <p className="text-slate-400">
-                Redirecting you...
-              </p>
+              <p className="text-xl font-bold text-white mb-2">Account Created!</p>
+              <p className="text-slate-400">Redirecting...</p>
             </div>
           )}
         </div>
 
-        {/* Info */}
-        {step === 'details' && (
-          <div className="mt-6 text-center">
-            <p className="text-xs text-slate-500">
-              By continuing, you agree to our Terms of Service and Privacy Policy
-            </p>
-          </div>
-        )}
+        <p className="text-center text-xs text-slate-600 mt-6">
+          By continuing, you agree to our Terms & Privacy Policy
+        </p>
       </div>
     </div>
   );
