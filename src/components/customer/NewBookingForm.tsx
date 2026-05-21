@@ -24,30 +24,31 @@ const LOCAL_HOURLY_RATES: Record<number, number> = {
 };
 
 // Outstation base rates (4 hours minimum)
+// 4hrs = 600 (outstation), rest same as local per price list
 const OUTSTATION_HOURLY_RATES: Record<number, number> = {
   4: 600,
-  6: 800,
-  8: 1000,
-  10: 1200,
-  12: 1400,
+  6: 700,
+  8: 900,
+  10: 1000,
+  12: 1100,
 };
 
 const NIGHT_CHARGE = 200; // After 9 PM
 const MULTIDAY_RATE = 1250; // Per day
 const CANCELLATION_CHARGE = 500;
 
-// Car multipliers based on category (customer's own car)
+// Car multipliers — Hatchback/Sedan/SUV use exact listed price (1.0), only Luxury is premium
 const CAR_MULTIPLIERS: Record<string, number> = {
   Hatchback: 1.0,
-  Sedan: 1.1,
-  SUV: 1.2,
+  Sedan: 1.0,
+  SUV: 1.0,
   Luxury: 1.5,
 };
 
-// Transmission multiplier (automatic requires specialized drivers)
+// Transmission multiplier — only Automatic adds premium
 const TRANSMISSION_MULTIPLIERS: Record<TransmissionType, number> = {
   Manual: 1.0,
-  Automatic: 1.1,
+  Automatic: 1.0,
 };
 
 function hasNightCharge(time: string): boolean {

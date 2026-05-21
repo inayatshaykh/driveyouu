@@ -77,14 +77,7 @@ const CUSTOMERS: Customer[] = [
   { id:'CU-008', name:'Rahul Joshi',   phone:'+91 98765 43218', rides:22, spent:19400, joined:'Sep 2023', status:'active' },
 ];
 
-const ZONES = [
-  { zone:'Central Delhi', rides:312, revenue:248600 },
-  { zone:'South Delhi',   rides:287, revenue:229400 },
-  { zone:'West Delhi',    rides:198, revenue:158200 },
-  { zone:'North Delhi',   rides:176, revenue:140800 },
-  { zone:'East Delhi',    rides:154, revenue:123100 },
-  { zone:'Gurugram',      rides:142, revenue:113600 },
-];
+const ZONES: { zone: string; rides: number; revenue: number }[] = [];
 
 // ── STATUS CONFIG ─────────────────────────────────────────────────────────────
 const STATUS_CFG: Record<RideStatus, { label: string; cls: string }> = {

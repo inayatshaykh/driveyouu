@@ -9,20 +9,7 @@ export const Route = createFileRoute('/admin/revenue')({
 
 const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
 
-const MONTHLY_DUMMY = [
-  { month: 'Jun', revenue: 18400, bookings: 22 },
-  { month: 'Jul', revenue: 24600, bookings: 31 },
-  { month: 'Aug', revenue: 21200, bookings: 27 },
-  { month: 'Sep', revenue: 31800, bookings: 40 },
-  { month: 'Oct', revenue: 28500, bookings: 36 },
-  { month: 'Nov', revenue: 38200, bookings: 48 },
-  { month: 'Dec', revenue: 42100, bookings: 53 },
-  { month: 'Jan', revenue: 35600, bookings: 45 },
-  { month: 'Feb', revenue: 44800, bookings: 56 },
-  { month: 'Mar', revenue: 51200, bookings: 64 },
-  { month: 'Apr', revenue: 47900, bookings: 60 },
-  { month: 'May', revenue: 58400, bookings: 73 },
-];
+const MONTHLY_DUMMY: { month: string; revenue: number; bookings: number }[] = [];
 
 function BarChart({ data }: { data: typeof MONTHLY_DUMMY }) {
   const max = Math.max(...data.map(d => d.revenue));
