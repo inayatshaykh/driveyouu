@@ -650,7 +650,8 @@ export function NewBookingForm() {
         onVerified={() => {
           setUser(getUrsUser());
           setShowAuth(false);
-          setShowSummary(true);
+          // Small delay so auth modal fully unmounts before summary opens
+          setTimeout(() => setShowSummary(true), 50);
         }}
       />
 

@@ -74,11 +74,11 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
       setSession({ mobile, name: mobile, role: 'customer', verified: true });
       setStep('success');
       
-      // Use setTimeout for reliable transition
+      // Call onVerified after a short delay so user sees the success state
       timerRef.current = setTimeout(() => {
         onVerified();
-        onClose();
-      }, 100);
+        // onClose is intentionally NOT called here — onVerified handles closing
+      }, 800);
     } else if (enteredOtp.length === 4) {
       // Invalid OTP - reset
       setOtp(['', '', '', '']);
