@@ -1,7 +1,13 @@
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { getAdminSession, clearAdminSession } from '@/utils/adminSession';
 import { clearSession } from '@/utils/session';
+import {
+  fetchAllBookings,
+  updateBookingStatus,
+  subscribeToBookings,
+  type SupabaseBooking,
+} from '@/lib/bookingService';
 
 export const Route = createFileRoute('/admin/panel')({
   beforeLoad: () => {
@@ -14,22 +20,34 @@ export const Route = createFileRoute('/admin/panel')({
 const inr = (n: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
-// ── DUMMY DATA ────────────────────────────────────────────────────────────────
+// ── Map Supabase booking → panel Ride shape ───────────────────────────────────
 type RideStatus = 'active' | 'pending' | 'completed' | 'cancelled';
 interface Ride {
-  id: string; customer: string; driver: string; pickup: string; drop: string;
+  id: string; customer: string; phone: string; driver: string; pickup: string; drop: string;
   fare: number; status: RideStatus; time: string; type: string;
+  // keep raw supabase fields for update calls
+  _raw: SupabaseBooking;
 }
-const INIT_RIDES: Ride[] = [
-  { id:'BK-1001', customer:'Rohan Sharma',  driver:'Amit Kumar',    pickup:'Connaught Place', drop:'IGI Airport',       fare:850,  status:'active',    time:'10:30 AM', type:'hourly' },
-  { id:'BK-1002', customer:'Priya Verma',   driver:'Rajesh Singh',  pickup:'Saket',           drop:'Gurgaon Cyber City',fare:1200, status:'completed', time:'09:15 AM', type:'outstation' },
-  { id:'BK-1003', customer:'Karan Mehta',   driver:'',              pickup:'Dwarka',           drop:'Noida Sector 62',   fare:1450, status:'pending',   time:'11:00 AM', type:'hourly' },
-  { id:'BK-1004', customer:'Anjali Gupta',  driver:'',              pickup:'Rohini',           drop:'Karol Bagh',        fare:450,  status:'pending',   time:'11:30 AM', type:'hourly' },
-  { id:'BK-1005', customer:'Vikram Singh',  driver:'Manoj Tiwari',  pickup:'Vasant Kunj',      drop:'Nehru Place',       fare:680,  status:'completed', time:'08:45 AM', type:'multiday' },
-  { id:'BK-1006', customer:'Neha Patel',    driver:'Ravi Kumar',    pickup:'Lajpat Nagar',     drop:'Hauz Khas',         fare:320,  status:'active',    time:'12:00 PM', type:'hourly' },
-  { id:'BK-1007', customer:'Arjun Nair',    driver:'',              pickup:'Janakpuri',        drop:'Chandni Chowk',     fare:560,  status:'pending',   time:'12:30 PM', type:'hourly' },
-  { id:'BK-1008', customer:'Rahul Joshi',   driver:'Vinod Pal',     pickup:'Mayur Vihar',      drop:'Aerocity',          fare:920,  status:'cancelled', time:'07:30 AM', type:'outstation' },
-];
+
+function toRide(b: SupabaseBooking): Ride {
+  const statusMap: Record<string, RideStatus> = {
+    pending: 'pending', confirmed: 'active', in_progress: 'active',
+    completed: 'completed', cancelled: 'cancelled',
+  };
+  return {
+    id: b.id,
+    customer: b.customer_name || b.customer_phone,
+    phone: b.customer_phone,
+    driver: b.assigned_driver || '',
+    pickup: b.pickup_address,
+    drop: b.drop_address || '',
+    fare: b.total_fare ?? 0,
+    status: statusMap[b.status] ?? 'pending',
+    time: new Date(b.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+    type: b.booking_type,
+    _raw: b,
+  };
+}
 
 type DriverStatus = 'online' | 'offline';
 interface Driver {
@@ -96,46 +114,85 @@ function AdminPanel() {
   const navigate = useNavigate();
   const [page, setPage] = useState<'dashboard'|'rides'|'drivers'|'customers'|'revenue'|'settings'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [rides, setRides] = useState<Ride[]>(INIT_RIDES);
+  const [rides, setRides] = useState<Ride[]>([]);
+  const [loading, setLoading] = useState(true);
   const [drivers, setDrivers] = useState<Driver[]>(INIT_DRIVERS);
   const [rideFilter, setRideFilter] = useState<'all'|RideStatus>('all');
   const [fareConfig, setFareConfig] = useState({ base: 50, perKm: 12, perMin: 2, night: 200, cancel: 500 });
   const [notifs, setNotifs] = useState({ email: true, sms: true, push: false });
-  // Modal state: which ride is waiting for driver assignment
   const [assigningRideId, setAssigningRideId] = useState<string | null>(null);
+  const channelRef = useRef<any>(null);
+
+  // ── Load bookings from Supabase ──
+  const loadRides = useCallback(async () => {
+    setLoading(true);
+    const { data } = await fetchAllBookings();
+    setRides(data.map(toRide));
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadRides();
+    // Real-time subscription — new bookings appear instantly
+    channelRef.current = subscribeToBookings((updated) => {
+      setRides(prev => {
+        const idx = prev.findIndex(r => r.id === updated.id);
+        const newRide = toRide(updated);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = newRide;
+          return next;
+        }
+        return [newRide, ...prev];
+      });
+    });
+    return () => { channelRef.current?.unsubscribe(); };
+  }, [loadRides]);
 
   const pendingCount = rides.filter(r => r.status === 'pending').length;
 
-  // Open the assign modal
   const openAssign = useCallback((rideId: string) => {
     setAssigningRideId(rideId);
   }, []);
 
-  // Admin picks a driver from the modal
-  const confirmAssign = useCallback((driverName: string) => {
+  // Assign driver → update Supabase status to 'confirmed' + assigned_driver
+  const confirmAssign = useCallback(async (driverName: string) => {
     if (!assigningRideId) return;
+    await updateBookingStatus(assigningRideId, 'confirmed', driverName);
     setRides(prev => prev.map(r =>
       r.id === assigningRideId ? { ...r, status: 'active' as RideStatus, driver: driverName } : r
     ));
-    // Mark driver as busy (offline so they don't appear for other rides)
     setDrivers(prev => prev.map(d =>
       d.name === driverName ? { ...d, status: 'offline' as DriverStatus } : d
     ));
     setAssigningRideId(null);
   }, [assigningRideId]);
 
-  // Complete a ride → driver becomes available again
-  const updateRide = useCallback((id: string, status: RideStatus) => {
-    setRides(prev => {
-      const ride = prev.find(r => r.id === id);
-      if (status === 'completed' && ride?.driver) {
-        // Free up the driver
-        setDrivers(drvs => drvs.map(d =>
-          d.name === ride.driver ? { ...d, status: 'online' as DriverStatus } : d
-        ));
-      }
-      return prev.map(r => r.id === id ? { ...r, status } : r);
-    });
+  // Update ride status → write to Supabase so customer sees it
+  const updateRide = useCallback(async (id: string, status: RideStatus) => {
+    const supabaseStatus = status === 'active' ? 'in_progress' : status;
+    const ride = rides.find(r => r.id === id);
+    await updateBookingStatus(id, supabaseStatus);
+    if (status === 'completed' && ride?.driver) {
+      setDrivers(drvs => drvs.map(d =>
+        d.name === ride.driver ? { ...d, status: 'online' as DriverStatus } : d
+      ));
+    }
+    setRides(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+  }, [rides]);
+
+  const toggleDriver = useCallback((id: string) => {
+    setDrivers(prev => prev.map(d =>
+      d.id === id ? { ...d, status: d.status === 'online' ? 'offline' : 'online' } : d
+    ));
+  }, []);
+
+  const addDriver = useCallback((driver: Driver) => {
+    setDrivers(prev => [...prev, driver]);
+  }, []);
+
+  const removeDriver = useCallback((id: string) => {
+    setDrivers(prev => prev.filter(d => d.id !== id));
   }, []);
 
   const toggleDriver = useCallback((id: string) => {
@@ -200,7 +257,7 @@ function AdminPanel() {
           <span className="hidden sm:block text-xs text-slate-500 px-3 py-1.5 bg-slate-800 rounded-lg border border-slate-700 whitespace-nowrap">
             {new Date().toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' })}
           </span>
-          <button onClick={() => { setRides([...INIT_RIDES]); setDrivers([...INIT_DRIVERS]); }}
+          <button onClick={loadRides} disabled={loading}
             className="flex items-center gap-2 px-3 py-2 bg-slate-800 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-sm font-semibold transition-colors flex-shrink-0">
             {Ico.refresh}<span className="hidden sm:inline">Refresh</span>
           </button>
@@ -212,8 +269,8 @@ function AdminPanel() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-          {page === 'dashboard'  && <DashboardPage rides={rides} drivers={drivers} />}
-          {page === 'rides'      && <RidesPage rides={filteredRides} allRides={rides} filter={rideFilter} setFilter={setRideFilter} openAssign={openAssign} updateRide={updateRide} />}
+          {page === 'dashboard'  && <DashboardPage rides={rides} drivers={drivers} loading={loading} />}
+          {page === 'rides'      && <RidesPage rides={filteredRides} allRides={rides} filter={rideFilter} setFilter={setRideFilter} openAssign={openAssign} updateRide={updateRide} loading={loading} />}
           {page === 'drivers'    && <DriversPage drivers={drivers} toggleDriver={toggleDriver} addDriver={addDriver} removeDriver={removeDriver} />}
           {page === 'customers'  && <CustomersPage />}
           {page === 'revenue'    && <RevenuePage rides={rides} />}
@@ -269,16 +326,16 @@ function AdminPanel() {
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
-function DashboardPage({ rides, drivers }: { rides: Ride[]; drivers: Driver[] }) {
+function DashboardPage({ rides, drivers, loading }: { rides: Ride[]; drivers: Driver[]; loading: boolean }) {
   const totalRev = rides.reduce((s, r) => s + r.fare, 0);
   const activeRides = rides.filter(r => r.status === 'active').length;
   const onlineDrivers = drivers.filter(d => d.status === 'online').length;
 
   const stats = [
-    { label:'Total Bookings', value:'1,284',           sub:'+12.5% vs last month', icon:'📅', color:'text-blue-400' },
-    { label:'Total Revenue',  value:inr(totalRev),     sub:'+18.2% vs last month', icon:'₹',  color:'text-emerald-400' },
-    { label:'Active Rides',   value:String(activeRides),sub:'+5.1% vs last month', icon:'🕐', color:'text-amber-400' },
-    { label:'Active Drivers', value:String(onlineDrivers),sub:'+8.3% vs last month',icon:'🚗',color:'text-purple-400' },
+    { label:'Total Bookings', value: loading ? '…' : rides.length.toLocaleString(), icon:'📅', color:'text-blue-400' },
+    { label:'Total Revenue',  value: loading ? '…' : inr(totalRev),                 icon:'₹',  color:'text-emerald-400' },
+    { label:'Active Rides',   value: loading ? '…' : String(activeRides),            icon:'🕐', color:'text-amber-400' },
+    { label:'Active Drivers', value: loading ? '…' : String(onlineDrivers),          icon:'🚗', color:'text-purple-400' },
   ];
 
   return (
@@ -297,9 +354,6 @@ function DashboardPage({ rides, drivers }: { rides: Ride[]; drivers: Driver[] })
               <span className="text-lg">{s.icon}</span>
             </div>
             <div className={`text-xl sm:text-2xl font-bold ${s.color} mb-1`}>{s.value}</div>
-            <div className="flex items-center gap-1 text-xs text-emerald-400">
-              {Ico.up}<span>{s.sub}</span>
-            </div>
           </div>
         ))}
       </div>
@@ -310,44 +364,59 @@ function DashboardPage({ rides, drivers }: { rides: Ride[]; drivers: Driver[] })
           <h3 className="font-bold text-white">Recent Bookings</h3>
           <span className="text-xs text-slate-500">Last 24 hours</span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px]">
-            <thead>
-              <tr className="border-b border-slate-700/50 bg-slate-800/30">
-                {['BOOKING ID','CUSTOMER','DRIVER','ROUTE','AMOUNT','STATUS'].map(h => (
-                  <th key={h} className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rides.map((r, i) => (
-                <tr key={r.id} className={`border-b border-slate-700/30 hover:bg-slate-800/20 transition-colors ${i%2===0?'':'bg-slate-800/10'}`}>
-                  <td className="py-3 px-4 text-sm font-bold text-emerald-400">{r.id}</td>
-                  <td className="py-3 px-4 text-sm font-medium text-white">{r.customer}</td>
-                  <td className="py-3 px-4 text-sm text-slate-300">{r.driver || <span className="text-amber-400 italic">Unassigned</span>}</td>
-                  <td className="py-3 px-4 text-sm text-slate-300">
-                    <div className="flex items-start gap-1">
-                      <span className="text-emerald-500 mt-0.5 flex-shrink-0">{Ico.map}</span>
-                      <div><div className="text-xs font-medium text-white">{r.pickup}</div><div className="text-xs text-slate-500">→ {r.drop}</div></div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-sm font-bold text-white">₹{r.fare.toLocaleString()}</td>
-                  <td className="py-3 px-4"><span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${STATUS_CFG[r.status].cls}`}>{STATUS_CFG[r.status].label}</span></td>
+        {loading ? (
+          <div className="py-16 flex flex-col items-center gap-3 text-slate-500">
+            <svg className="w-8 h-8 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+            <p className="text-sm">Loading bookings...</p>
+          </div>
+        ) : rides.length === 0 ? (
+          <div className="py-16 text-center text-slate-500">
+            <p className="text-sm">No bookings yet. Customer bookings will appear here.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[600px]">
+              <thead>
+                <tr className="border-b border-slate-700/50 bg-slate-800/30">
+                  {['BOOKING ID','CUSTOMER','DRIVER','ROUTE','AMOUNT','STATUS'].map(h => (
+                    <th key={h} className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rides.slice(0, 10).map((r, i) => (
+                  <tr key={r.id} className={`border-b border-slate-700/30 hover:bg-slate-800/20 transition-colors ${i%2===0?'':'bg-slate-800/10'}`}>
+                    <td className="py-3 px-4 text-xs font-mono font-bold text-emerald-400">{r.id.slice(0,8).toUpperCase()}</td>
+                    <td className="py-3 px-4">
+                      <div className="text-sm font-medium text-white">{r.customer}</div>
+                      <div className="text-xs text-slate-500">{r.phone}</div>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-slate-300">{r.driver || <span className="text-amber-400 italic text-xs">Unassigned</span>}</td>
+                    <td className="py-3 px-4 text-sm text-slate-300">
+                      <div className="flex items-start gap-1">
+                        <span className="text-emerald-500 mt-0.5 flex-shrink-0">{Ico.map}</span>
+                        <div><div className="text-xs font-medium text-white">{r.pickup}</div><div className="text-xs text-slate-500">→ {r.drop || '—'}</div></div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-sm font-bold text-white">₹{r.fare.toLocaleString()}</td>
+                    <td className="py-3 px-4"><span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${STATUS_CFG[r.status].cls}`}>{STATUS_CFG[r.status].label}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 // ── RIDES ─────────────────────────────────────────────────────────────────────
-function RidesPage({ rides, allRides, filter, setFilter, openAssign, updateRide }: {
+function RidesPage({ rides, allRides, filter, setFilter, openAssign, updateRide, loading }: {
   rides: Ride[]; allRides: Ride[];
   filter: 'all'|RideStatus; setFilter: (f: 'all'|RideStatus) => void;
   openAssign: (id: string) => void; updateRide: (id: string, s: RideStatus) => void;
+  loading: boolean;
 }) {
   const tabs: Array<'all'|RideStatus> = ['all','active','pending','completed','cancelled'];
   const counts: Record<string, number> = {
@@ -375,6 +444,12 @@ function RidesPage({ rides, allRides, filter, setFilter, openAssign, updateRide 
       {/* Rides Table */}
       <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
+          {loading ? (
+            <div className="py-16 flex flex-col items-center gap-3 text-slate-500">
+              <svg className="w-8 h-8 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+              <p className="text-sm">Loading rides from database...</p>
+            </div>
+          ) : (
           <table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-slate-700/50 bg-slate-800/30">
@@ -415,6 +490,7 @@ function RidesPage({ rides, allRides, filter, setFilter, openAssign, updateRide 
               ))}
             </tbody>
           </table>
+          )}
         </div>
       </div>
     </div>
