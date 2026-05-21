@@ -15,7 +15,7 @@ const STORAGE_KEY = 'admin_session';
 // Add or remove admin numbers here. When real OTP is ready, this list moves
 // to the database and this file just calls the API.
 const ADMIN_MOBILES: Record<string, { name: string }> = {
-  '9876543212': { name: 'Super Admin' },
+  '9988440119': { name: 'Super Admin' },
   // Add more admin numbers here:
   // '9999999999': { name: 'Manager' },
 };

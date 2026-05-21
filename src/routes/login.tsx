@@ -11,9 +11,7 @@ export const Route = createFileRoute('/login')({
 const DEMO_OTP = '1234';
 
 const DEMO_USERS: Record<string, { role: 'customer' | 'admin' | 'driver'; name: string }> = {
-  '9876543210': { role: 'customer', name: 'Demo Customer' },
-  '9876543212': { role: 'admin',    name: 'Demo Admin'    },
-  '9876543211': { role: 'driver',   name: 'Demo Driver'   },
+  '9988440119': { role: 'admin', name: 'Admin' },
 };
 
 function LoginPage() {
