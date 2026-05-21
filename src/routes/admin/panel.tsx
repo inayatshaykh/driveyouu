@@ -8,6 +8,13 @@ import {
   subscribeToBookings,
   type SupabaseBooking,
 } from '@/lib/bookingService';
+import {
+  fetchDrivers,
+  addDriver as addDriverToDb,
+  updateDriverStatus,
+  removeDriver as removeDriverFromDb,
+  type SupabaseDriver,
+} from '@/lib/driverService';
 
 export const Route = createFileRoute('/admin/panel')({
   beforeLoad: () => {
@@ -50,10 +57,9 @@ function toRide(b: SupabaseBooking): Ride {
 }
 
 type DriverStatus = 'online' | 'offline';
-interface Driver {
-  id: string; name: string; phone: string; vehicle: string; zone: string;
-  rating: number; rides: number; earnings: number; status: DriverStatus; kyc: string;
-}
+// Use SupabaseDriver as the Driver type directly
+type Driver = SupabaseDriver;
+
 const INIT_DRIVERS: Driver[] = [];
 
 interface Customer {
@@ -108,8 +114,15 @@ function AdminPanel() {
     setLoading(false);
   }, []);
 
+  // ── Load drivers from Supabase ──
+  const loadDrivers = useCallback(async () => {
+    const { data } = await fetchDrivers();
+    setDrivers(data);
+  }, []);
+
   useEffect(() => {
     loadRides();
+    loadDrivers();
     // Real-time subscription — new bookings appear instantly
     channelRef.current = subscribeToBookings((updated) => {
       setRides(prev => {
@@ -124,7 +137,7 @@ function AdminPanel() {
       });
     });
     return () => { channelRef.current?.unsubscribe(); };
-  }, [loadRides]);
+  }, [loadRides, loadDrivers]);
 
   const pendingCount = rides.filter(r => r.status === 'pending').length;
 
@@ -136,6 +149,9 @@ function AdminPanel() {
   const confirmAssign = useCallback(async (driverName: string) => {
     if (!assigningRideId) return;
     await updateBookingStatus(assigningRideId, 'confirmed', driverName);
+    // Mark driver offline (busy)
+    const driver = drivers.find(d => d.name === driverName);
+    if (driver) await updateDriverStatus(driver.id, 'offline');
     setRides(prev => prev.map(r =>
       r.id === assigningRideId ? { ...r, status: 'active' as RideStatus, driver: driverName } : r
     ));
@@ -143,7 +159,7 @@ function AdminPanel() {
       d.name === driverName ? { ...d, status: 'offline' as DriverStatus } : d
     ));
     setAssigningRideId(null);
-  }, [assigningRideId]);
+  }, [assigningRideId, drivers]);
 
   // Update ride status → write to Supabase so customer sees it
   const updateRide = useCallback(async (id: string, status: RideStatus) => {
@@ -151,24 +167,35 @@ function AdminPanel() {
     const ride = rides.find(r => r.id === id);
     await updateBookingStatus(id, supabaseStatus);
     if (status === 'completed' && ride?.driver) {
+      const driver = drivers.find(d => d.name === ride.driver);
+      if (driver) await updateDriverStatus(driver.id, 'online');
       setDrivers(drvs => drvs.map(d =>
         d.name === ride.driver ? { ...d, status: 'online' as DriverStatus } : d
       ));
     }
     setRides(prev => prev.map(r => r.id === id ? { ...r, status } : r));
-  }, [rides]);
+  }, [rides, drivers]);
 
-  const toggleDriver = useCallback((id: string) => {
-    setDrivers(prev => prev.map(d =>
-      d.id === id ? { ...d, status: d.status === 'online' ? 'offline' : 'online' } : d
-    ));
-  }, []);
+  const toggleDriver = useCallback(async (id: string) => {
+    const driver = drivers.find(d => d.id === id);
+    if (!driver) return;
+    const next = driver.status === 'online' ? 'offline' : 'online';
+    await updateDriverStatus(id, next);
+    setDrivers(prev => prev.map(d => d.id === id ? { ...d, status: next } : d));
+  }, [drivers]);
 
-  const addDriver = useCallback((driver: Driver) => {
-    setDrivers(prev => [...prev, driver]);
-  }, []);
+  const addDriver = useCallback(async (driver: Driver) => {
+    const { id, error } = await addDriverToDb({
+      name: driver.name, phone: driver.phone, vehicle: driver.vehicle,
+      zone: driver.zone, rating: driver.rating, rides: driver.rides,
+      earnings: driver.earnings, status: driver.status, kyc: driver.kyc,
+    });
+    if (error) { alert('Failed to add driver: ' + error); return; }
+    await loadDrivers();
+  }, [loadDrivers]);
 
-  const removeDriver = useCallback((id: string) => {
+  const removeDriver = useCallback(async (id: string) => {
+    await removeDriverFromDb(id);
     setDrivers(prev => prev.filter(d => d.id !== id));
   }, []);
 
