@@ -132,9 +132,16 @@ function BookingCard({ booking }: { booking: SupabaseBooking }) {
               <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 {booking.assigned_driver.split(' ').map(n => n[0]).join('')}
               </div>
-              <div>
+              <div className="flex-1 min-w-0">
                 <div className="text-xs text-slate-500">Assigned Driver</div>
                 <div className="text-sm font-semibold text-white">{booking.assigned_driver}</div>
+                {booking.assigned_driver_phone && (
+                  <a href={`tel:${booking.assigned_driver_phone}`}
+                    className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 mt-0.5">
+                    <Phone className="h-3 w-3" />
+                    {booking.assigned_driver_phone}
+                  </a>
+                )}
               </div>
             </div>
           )}

@@ -148,9 +148,8 @@ function AdminPanel() {
   // Assign driver → update Supabase status to 'confirmed' + assigned_driver
   const confirmAssign = useCallback(async (driverName: string) => {
     if (!assigningRideId) return;
-    await updateBookingStatus(assigningRideId, 'confirmed', driverName);
-    // Mark driver offline (busy)
     const driver = drivers.find(d => d.name === driverName);
+    await updateBookingStatus(assigningRideId, 'confirmed', driverName, undefined, driver?.phone);
     if (driver) await updateDriverStatus(driver.id, 'offline');
     setRides(prev => prev.map(r =>
       r.id === assigningRideId ? { ...r, status: 'active' as RideStatus, driver: driverName } : r

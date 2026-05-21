@@ -22,6 +22,7 @@ export interface SupabaseBooking {
   total_fare: number;
   cancellation_charge: number | null;
   assigned_driver: string | null;
+  assigned_driver_phone: string | null;
   admin_notes: string | null;
   created_at: string;
   updated_at: string;
@@ -87,7 +88,8 @@ export async function updateBookingStatus(
   bookingId: string,
   status: string,
   assignedDriver?: string,
-  adminNotes?: string
+  adminNotes?: string,
+  assignedDriverPhone?: string
 ): Promise<{ error: string | null }> {
   const updates: any = {
     status,
@@ -95,6 +97,7 @@ export async function updateBookingStatus(
   };
   if (assignedDriver !== undefined) updates.assigned_driver = assignedDriver;
   if (adminNotes !== undefined) updates.admin_notes = adminNotes;
+  if (assignedDriverPhone !== undefined) updates.assigned_driver_phone = assignedDriverPhone;
 
   const { error } = await supabase
     .from('bookings')
