@@ -54,28 +54,12 @@ interface Driver {
   id: string; name: string; phone: string; vehicle: string; zone: string;
   rating: number; rides: number; earnings: number; status: DriverStatus; kyc: string;
 }
-const INIT_DRIVERS: Driver[] = [
-  { id:'DR-001', name:'Amit Kumar',    phone:'+91 98765 43210', vehicle:'Honda City · DL 01 AB 1234',    zone:'Central Delhi',  rating:4.8, rides:342, earnings:124500, status:'online',  kyc:'verified' },
-  { id:'DR-002', name:'Rajesh Singh',  phone:'+91 98765 43211', vehicle:'Maruti Swift · DL 02 CD 5678',  zone:'South Delhi',    rating:4.7, rides:289, earnings:98200,  status:'online',  kyc:'verified' },
-  { id:'DR-003', name:'Suresh Yadav',  phone:'+91 98765 43212', vehicle:'Hyundai i20 · DL 03 EF 9012',   zone:'West Delhi',     rating:4.5, rides:156, earnings:56800,  status:'offline', kyc:'verified' },
-  { id:'DR-004', name:'Manoj Tiwari',  phone:'+91 98765 43213', vehicle:'Toyota Innova · DL 04 GH 3456', zone:'South West',     rating:4.9, rides:421, earnings:152300, status:'online',  kyc:'verified' },
-  { id:'DR-005', name:'Ravi Kumar',    phone:'+91 98765 43215', vehicle:'Honda Amaze · DL 06 KL 1234',   zone:'North Delhi',    rating:4.6, rides:267, earnings:89400,  status:'online',  kyc:'verified' },
-  { id:'DR-006', name:'Vinod Pal',     phone:'+91 98765 43216', vehicle:'Tata Nexon · DL 07 MN 5678',    zone:'East Delhi',     rating:4.7, rides:198, earnings:72100,  status:'offline', kyc:'verified' },
-];
+const INIT_DRIVERS: Driver[] = [];
 
 interface Customer {
   id: string; name: string; phone: string; rides: number; spent: number; joined: string; status: string;
 }
-const CUSTOMERS: Customer[] = [
-  { id:'CU-001', name:'Rohan Sharma',  phone:'+91 98765 43210', rides:45, spent:38500, joined:'Jan 2023', status:'active' },
-  { id:'CU-002', name:'Priya Verma',   phone:'+91 98765 43211', rides:38, spent:32100, joined:'Feb 2023', status:'active' },
-  { id:'CU-003', name:'Karan Mehta',   phone:'+91 98765 43212', rides:32, spent:28900, joined:'Mar 2023', status:'active' },
-  { id:'CU-004', name:'Anjali Gupta',  phone:'+91 98765 43213', rides:28, spent:24300, joined:'Apr 2023', status:'active' },
-  { id:'CU-005', name:'Vikram Singh',  phone:'+91 98765 43214', rides:25, spent:21800, joined:'May 2023', status:'inactive' },
-  { id:'CU-006', name:'Neha Patel',    phone:'+91 98765 43215', rides:19, spent:16500, joined:'Jun 2023', status:'active' },
-  { id:'CU-007', name:'Arjun Nair',    phone:'+91 98765 43216', rides:15, spent:13200, joined:'Jul 2023', status:'active' },
-  { id:'CU-008', name:'Rahul Joshi',   phone:'+91 98765 43218', rides:22, spent:19400, joined:'Sep 2023', status:'active' },
-];
+const CUSTOMERS: Customer[] = [];
 
 const ZONES: { zone: string; rides: number; revenue: number }[] = [];
 
