@@ -150,8 +150,8 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
             <h3 className="text-xl font-bold text-gray-900 mb-1">Login / Sign Up</h3>
             <p className="text-sm text-gray-500 mb-6">Enter your mobile number to continue</p>
             <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number</label>
-            <div className="flex gap-2 mb-6">
-              <span className="flex items-center px-4 py-3 bg-gray-100 rounded-xl text-gray-700 font-semibold text-sm border border-gray-200">
+            <div className="flex items-stretch mb-6 rounded-xl overflow-hidden border border-gray-300 focus-within:ring-2 focus-within:ring-emerald-600">
+              <span className="flex items-center justify-center px-4 bg-gray-100 text-gray-700 font-semibold text-sm border-r border-gray-200 flex-shrink-0">
                 +91
               </span>
               <input
@@ -161,7 +161,7 @@ export const AuthModal = memo(function AuthModal({ open, onClose, onVerified }: 
                 value={mobile}
                 onChange={handleMobileChange}
                 placeholder="10 digit number"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none text-base"
+                className="flex-1 min-w-0 px-4 py-3 bg-white text-gray-900 focus:outline-none text-base"
                 autoComplete="tel"
                 autoCorrect="off"
                 autoCapitalize="off"

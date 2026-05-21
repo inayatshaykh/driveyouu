@@ -120,8 +120,8 @@ function AdminLoginPage() {
             <>
               <h2 className="text-lg font-bold text-white mb-5">Enter Admin Mobile Number</h2>
               <label className="block text-sm font-medium text-slate-300 mb-2">Mobile Number</label>
-              <div className="flex gap-2 mb-6">
-                <span className="flex items-center px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white font-semibold text-sm">
+              <div className="flex items-stretch mb-6 rounded-xl overflow-hidden border border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500">
+                <span className="flex items-center justify-center px-4 bg-slate-800 text-white font-semibold text-sm border-r border-slate-700 flex-shrink-0">
                   +91
                 </span>
                 <input
@@ -132,7 +132,7 @@ function AdminLoginPage() {
                   onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   onKeyDown={e => e.key === 'Enter' && handleSendOtp()}
                   placeholder="10 digit number"
-                  className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="flex-1 min-w-0 px-4 py-3 bg-slate-800 text-white focus:outline-none text-base"
                   autoComplete="tel"
                   autoCorrect="off"
                   autoCapitalize="off"

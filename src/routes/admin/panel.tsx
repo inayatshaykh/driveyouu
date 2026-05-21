@@ -195,20 +195,6 @@ function AdminPanel() {
     setDrivers(prev => prev.filter(d => d.id !== id));
   }, []);
 
-  const toggleDriver = useCallback((id: string) => {
-    setDrivers(prev => prev.map(d =>
-      d.id === id ? { ...d, status: d.status === 'online' ? 'offline' : 'online' } : d
-    ));
-  }, []);
-
-  const addDriver = useCallback((driver: Driver) => {
-    setDrivers(prev => [...prev, driver]);
-  }, []);
-
-  const removeDriver = useCallback((id: string) => {
-    setDrivers(prev => prev.filter(d => d.id !== id));
-  }, []);
-
   const nav = [
     { id:'dashboard', label:'Dashboard', icon:Ico.dash },
     { id:'rides',     label:'Rides',     icon:Ico.rides,     badge: pendingCount },
