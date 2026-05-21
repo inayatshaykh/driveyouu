@@ -172,7 +172,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                       Book a Driver
                     </Link>
                     <a
-                      href="/#contact"
+                      href="/help"
                       onClick={closeAll}
                       className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-colors"
                     >
@@ -262,7 +262,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                       <Car className="h-4 w-4" /> Driver Portal
                     </Link>
                   )}
-                  <a href="/#contact" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl text-sm" onClick={closeAll}>
+                  <a href="/help" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl text-sm" onClick={closeAll}>
                     <HelpCircle className="h-4 w-4" /> Help Center
                   </a>
 

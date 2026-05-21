@@ -20,6 +20,7 @@ import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
 import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminPanelRouteImport } from './routes/admin/panel'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as CustomerProfileRouteImport } from './routes/customer/profile'
 import { Route as CustomerNotificationsRouteImport } from './routes/customer/notifications'
 import { Route as CustomerEmergencyRouteImport } from './routes/customer/emergency'
@@ -130,10 +131,16 @@ const AdminPanelRoute = AdminPanelRouteImport.update({
   path: '/admin/panel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/help': typeof HelpRoute
   '/login': typeof LoginRoute
   '/login-simple': typeof LoginSimpleRoute
   '/test': typeof TestRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/help': typeof HelpRoute
   '/login': typeof LoginRoute
   '/login-simple': typeof LoginSimpleRoute
   '/test': typeof TestRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/help': typeof HelpRoute
   '/login': typeof LoginRoute
   '/login-simple': typeof LoginSimpleRoute
   '/test': typeof TestRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/booking'
+    | '/help'
     | '/login'
     | '/login-simple'
     | '/test'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/booking'
+    | '/help'
     | '/login'
     | '/login-simple'
     | '/test'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/booking'
+    | '/help'
     | '/login'
     | '/login-simple'
     | '/test'
@@ -270,6 +282,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookingRoute: typeof BookingRoute
+  HelpRoute: typeof HelpRoute
   LoginRoute: typeof LoginRoute
   LoginSimpleRoute: typeof LoginSimpleRoute
   TestRoute: typeof TestRoute
@@ -318,6 +331,13 @@ declare module '@tanstack/react-router' {
       path: '/booking'
       fullPath: '/booking'
       preLoaderRoute: typeof BookingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -438,6 +458,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookingRoute: BookingRoute,
+  HelpRoute: HelpRoute,
   LoginRoute: LoginRoute,
   LoginSimpleRoute: LoginSimpleRoute,
   TestRoute: TestRoute,

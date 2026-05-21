@@ -139,8 +139,6 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* PREMIUM CHAUFFEUR SERVICES section removed */}
-
       {/* OUR TAILORED CHAUFFEUR SERVICES */}
       <section className="bg-slate-900 py-20 px-6">
         <div className="max-w-7xl mx-auto">
@@ -188,13 +186,6 @@ function LandingPage() {
               </div>
             </div>
           </div>
-
-          <Link 
-            to="/booking" 
-            className="bg-white hover:bg-slate-100 text-slate-900 font-bold text-lg px-10 py-4 rounded-full block w-fit mx-auto mt-10 transition-all"
-          >
-            Book a Driver →
-          </Link>
         </div>
       </section>
 
