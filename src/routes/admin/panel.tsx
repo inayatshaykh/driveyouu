@@ -568,10 +568,16 @@ function DriversPage({ drivers, toggleDriver, addDriver, removeDriver }: {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-400 mb-1.5">Zone</label>
-              <select value={form.zone} onChange={e => setForm(f=>({...f, zone:e.target.value}))}
-                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none">
-                {ZONES_LIST.map(z => <option key={z} value={z}>{z}</option>)}
-              </select>
+              <input
+                value={form.zone}
+                onChange={e => setForm(f=>({...f, zone:e.target.value}))}
+                placeholder="e.g. Central Delhi, Noida, Gurgaon..."
+                list="zone-suggestions"
+                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              <datalist id="zone-suggestions">
+                {ZONES_LIST.map(z => <option key={z} value={z} />)}
+              </datalist>
             </div>
           </div>
           <div className="flex gap-3">
