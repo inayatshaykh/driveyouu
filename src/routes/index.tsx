@@ -125,7 +125,6 @@ function LandingPage() {
           </div>
 
           {/* Trust stats */}
-          <p className="text-slate-500 text-sm">300+ drivers available 24/7</p>
         </div>
 
         {/* Bottom fade */}
