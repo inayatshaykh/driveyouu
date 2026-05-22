@@ -10,22 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestRouteImport } from './routes/test'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginSimpleRouteImport } from './routes/login-simple'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as HelpRouteImport } from './routes/help'
+import { Route as DriverPanelRouteImport } from './routes/driver/panel'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CustomerIndexRouteImport } from './routes/customer/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as AdminLoginRouteImport } from './routes/admin/login'
-import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
-import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
-import { Route as AdminPanelRouteImport } from './routes/admin/panel'
-import { Route as HelpRouteImport } from './routes/help'
 import { Route as CustomerProfileRouteImport } from './routes/customer/profile'
 import { Route as CustomerNotificationsRouteImport } from './routes/customer/notifications'
 import { Route as CustomerEmergencyRouteImport } from './routes/customer/emergency'
+import { Route as CustomerBookingsRouteImport } from './routes/customer/bookings'
+import { Route as AdminVehiclesRouteImport } from './routes/admin/vehicles'
 import { Route as AdminSosRouteImport } from './routes/admin/sos'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
+import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminPricingRouteImport } from './routes/admin/pricing'
+import { Route as AdminPanelRouteImport } from './routes/admin/panel'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminDriversRouteImport } from './routes/admin/drivers'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
@@ -36,6 +41,11 @@ const TestRoute = TestRouteImport.update({
   path: '/test',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginSimpleRoute = LoginSimpleRouteImport.update({
   id: '/login-simple',
   path: '/login-simple',
@@ -44,6 +54,16 @@ const LoginSimpleRoute = LoginSimpleRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DriverPanelRoute = DriverPanelRouteImport.update({
+  id: '/driver/panel',
+  path: '/driver/panel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookingRoute = BookingRouteImport.update({
@@ -81,14 +101,49 @@ const CustomerEmergencyRoute = CustomerEmergencyRouteImport.update({
   path: '/customer/emergency',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CustomerBookingsRoute = CustomerBookingsRouteImport.update({
+  id: '/customer/bookings',
+  path: '/customer/bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminVehiclesRoute = AdminVehiclesRouteImport.update({
+  id: '/admin/vehicles',
+  path: '/admin/vehicles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSosRoute = AdminSosRouteImport.update({
   id: '/admin/sos',
   path: '/admin/sos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminReviewsRoute = AdminReviewsRouteImport.update({
+  id: '/admin/reviews',
+  path: '/admin/reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRevenueRoute = AdminRevenueRouteImport.update({
+  id: '/admin/revenue',
+  path: '/admin/revenue',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminPricingRoute = AdminPricingRouteImport.update({
   id: '/admin/pricing',
   path: '/admin/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPanelRoute = AdminPanelRouteImport.update({
+  id: '/admin/panel',
+  path: '/admin/panel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminDriversRoute = AdminDriversRouteImport.update({
@@ -111,38 +166,15 @@ const AdminBookingsRoute = AdminBookingsRouteImport.update({
   path: '/admin/bookings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/admin/login',
-  path: '/admin/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminReviewsRoute = AdminReviewsRouteImport.update({
-  id: '/admin/reviews',
-  path: '/admin/reviews',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRevenueRoute = AdminRevenueRouteImport.update({
-  id: '/admin/revenue',
-  path: '/admin/revenue',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminPanelRoute = AdminPanelRouteImport.update({
-  id: '/admin/panel',
-  path: '/admin/panel',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HelpRoute = HelpRouteImport.update({
-  id: '/help',
-  path: '/help',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/driver/panel': typeof DriverPanelRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
   '/login-simple': typeof LoginSimpleRoute
+  '/signup': typeof SignupRoute
   '/test': typeof TestRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -153,7 +185,10 @@ export interface FileRoutesByFullPath {
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/sos': typeof AdminSosRoute
+  '/admin/vehicles': typeof AdminVehiclesRoute
+  '/customer/bookings': typeof CustomerBookingsRoute
   '/customer/emergency': typeof CustomerEmergencyRoute
   '/customer/notifications': typeof CustomerNotificationsRoute
   '/customer/profile': typeof CustomerProfileRoute
@@ -163,9 +198,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/driver/panel': typeof DriverPanelRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
   '/login-simple': typeof LoginSimpleRoute
+  '/signup': typeof SignupRoute
   '/test': typeof TestRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -176,7 +213,10 @@ export interface FileRoutesByTo {
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/sos': typeof AdminSosRoute
+  '/admin/vehicles': typeof AdminVehiclesRoute
+  '/customer/bookings': typeof CustomerBookingsRoute
   '/customer/emergency': typeof CustomerEmergencyRoute
   '/customer/notifications': typeof CustomerNotificationsRoute
   '/customer/profile': typeof CustomerProfileRoute
@@ -187,9 +227,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/driver/panel': typeof DriverPanelRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
   '/login-simple': typeof LoginSimpleRoute
+  '/signup': typeof SignupRoute
   '/test': typeof TestRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/customers': typeof AdminCustomersRoute
@@ -200,7 +242,10 @@ export interface FileRoutesById {
   '/admin/pricing': typeof AdminPricingRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/reviews': typeof AdminReviewsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/sos': typeof AdminSosRoute
+  '/admin/vehicles': typeof AdminVehiclesRoute
+  '/customer/bookings': typeof CustomerBookingsRoute
   '/customer/emergency': typeof CustomerEmergencyRoute
   '/customer/notifications': typeof CustomerNotificationsRoute
   '/customer/profile': typeof CustomerProfileRoute
@@ -212,9 +257,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/booking'
+    | '/driver/panel'
     | '/help'
     | '/login'
     | '/login-simple'
+    | '/signup'
     | '/test'
     | '/admin/bookings'
     | '/admin/customers'
@@ -225,7 +272,10 @@ export interface FileRouteTypes {
     | '/admin/pricing'
     | '/admin/revenue'
     | '/admin/reviews'
+    | '/admin/settings'
     | '/admin/sos'
+    | '/admin/vehicles'
+    | '/customer/bookings'
     | '/customer/emergency'
     | '/customer/notifications'
     | '/customer/profile'
@@ -235,9 +285,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/booking'
+    | '/driver/panel'
     | '/help'
     | '/login'
     | '/login-simple'
+    | '/signup'
     | '/test'
     | '/admin/bookings'
     | '/admin/customers'
@@ -248,7 +300,10 @@ export interface FileRouteTypes {
     | '/admin/pricing'
     | '/admin/revenue'
     | '/admin/reviews'
+    | '/admin/settings'
     | '/admin/sos'
+    | '/admin/vehicles'
+    | '/customer/bookings'
     | '/customer/emergency'
     | '/customer/notifications'
     | '/customer/profile'
@@ -258,9 +313,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/booking'
+    | '/driver/panel'
     | '/help'
     | '/login'
     | '/login-simple'
+    | '/signup'
     | '/test'
     | '/admin/bookings'
     | '/admin/customers'
@@ -271,7 +328,10 @@ export interface FileRouteTypes {
     | '/admin/pricing'
     | '/admin/revenue'
     | '/admin/reviews'
+    | '/admin/settings'
     | '/admin/sos'
+    | '/admin/vehicles'
+    | '/customer/bookings'
     | '/customer/emergency'
     | '/customer/notifications'
     | '/customer/profile'
@@ -282,9 +342,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookingRoute: typeof BookingRoute
+  DriverPanelRoute: typeof DriverPanelRoute
   HelpRoute: typeof HelpRoute
   LoginRoute: typeof LoginRoute
   LoginSimpleRoute: typeof LoginSimpleRoute
+  SignupRoute: typeof SignupRoute
   TestRoute: typeof TestRoute
   AdminBookingsRoute: typeof AdminBookingsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
@@ -295,7 +357,10 @@ export interface RootRouteChildren {
   AdminPricingRoute: typeof AdminPricingRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSosRoute: typeof AdminSosRoute
+  AdminVehiclesRoute: typeof AdminVehiclesRoute
+  CustomerBookingsRoute: typeof CustomerBookingsRoute
   CustomerEmergencyRoute: typeof CustomerEmergencyRoute
   CustomerNotificationsRoute: typeof CustomerNotificationsRoute
   CustomerProfileRoute: typeof CustomerProfileRoute
@@ -312,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login-simple': {
       id: '/login-simple'
       path: '/login-simple'
@@ -326,18 +398,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/booking': {
-      id: '/booking'
-      path: '/booking'
-      fullPath: '/booking'
-      preLoaderRoute: typeof BookingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/help': {
       id: '/help'
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/driver/panel': {
+      id: '/driver/panel'
+      path: '/driver/panel'
+      fullPath: '/driver/panel'
+      preLoaderRoute: typeof DriverPanelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/booking': {
+      id: '/booking'
+      path: '/booking'
+      fullPath: '/booking'
+      preLoaderRoute: typeof BookingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -382,6 +461,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomerEmergencyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/customer/bookings': {
+      id: '/customer/bookings'
+      path: '/customer/bookings'
+      fullPath: '/customer/bookings'
+      preLoaderRoute: typeof CustomerBookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/vehicles': {
+      id: '/admin/vehicles'
+      path: '/admin/vehicles'
+      fullPath: '/admin/vehicles'
+      preLoaderRoute: typeof AdminVehiclesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/sos': {
       id: '/admin/sos'
       path: '/admin/sos'
@@ -389,11 +482,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reviews': {
+      id: '/admin/reviews'
+      path: '/admin/reviews'
+      fullPath: '/admin/reviews'
+      preLoaderRoute: typeof AdminReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/revenue': {
+      id: '/admin/revenue'
+      path: '/admin/revenue'
+      fullPath: '/admin/revenue'
+      preLoaderRoute: typeof AdminRevenueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/pricing': {
       id: '/admin/pricing'
       path: '/admin/pricing'
       fullPath: '/admin/pricing'
       preLoaderRoute: typeof AdminPricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/panel': {
+      id: '/admin/panel'
+      path: '/admin/panel'
+      fullPath: '/admin/panel'
+      preLoaderRoute: typeof AdminPanelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/drivers': {
@@ -424,43 +552,17 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBookingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/login': {
-      id: '/admin/login'
-      path: '/admin/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/reviews': {
-      id: '/admin/reviews'
-      path: '/admin/reviews'
-      fullPath: '/admin/reviews'
-      preLoaderRoute: typeof AdminReviewsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/revenue': {
-      id: '/admin/revenue'
-      path: '/admin/revenue'
-      fullPath: '/admin/revenue'
-      preLoaderRoute: typeof AdminRevenueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/panel': {
-      id: '/admin/panel'
-      path: '/admin/panel'
-      fullPath: '/admin/panel'
-      preLoaderRoute: typeof AdminPanelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookingRoute: BookingRoute,
+  DriverPanelRoute: DriverPanelRoute,
   HelpRoute: HelpRoute,
   LoginRoute: LoginRoute,
   LoginSimpleRoute: LoginSimpleRoute,
+  SignupRoute: SignupRoute,
   TestRoute: TestRoute,
   AdminBookingsRoute: AdminBookingsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
@@ -471,7 +573,10 @@ const rootRouteChildren: RootRouteChildren = {
   AdminPricingRoute: AdminPricingRoute,
   AdminRevenueRoute: AdminRevenueRoute,
   AdminReviewsRoute: AdminReviewsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   AdminSosRoute: AdminSosRoute,
+  AdminVehiclesRoute: AdminVehiclesRoute,
+  CustomerBookingsRoute: CustomerBookingsRoute,
   CustomerEmergencyRoute: CustomerEmergencyRoute,
   CustomerNotificationsRoute: CustomerNotificationsRoute,
   CustomerProfileRoute: CustomerProfileRoute,

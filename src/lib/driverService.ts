@@ -49,3 +49,36 @@ export async function removeDriver(id: string): Promise<{ error: string | null }
   if (error) return { error: error.message };
   return { error: null };
 }
+
+// Fetch driver by phone (for driver login)
+export async function fetchDriverByPhone(phone: string): Promise<{ data: SupabaseDriver | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from('drivers')
+    .select('*')
+    .eq('phone', phone)
+    .single();
+  if (error) return { data: null, error: error.message };
+  return { data: data as SupabaseDriver, error: null };
+}
+
+// Update driver earnings (add to existing)
+export async function addDriverEarnings(id: string, amount: number): Promise<{ error: string | null }> {
+  const { data: driver } = await supabase.from('drivers').select('earnings, rides').eq('id', id).single();
+  if (!driver) return { error: 'Driver not found' };
+  const { error } = await supabase.from('drivers').update({
+    earnings: (driver.earnings ?? 0) + amount,
+    rides: (driver.rides ?? 0) + 1,
+  }).eq('id', id);
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+// Deduct commission from driver wallet (for cash payments)
+export async function deductDriverCommission(id: string, amount: number): Promise<{ error: string | null }> {
+  const { data: driver } = await supabase.from('drivers').select('earnings').eq('id', id).single();
+  if (!driver) return { error: 'Driver not found' };
+  const newBalance = Math.max(0, (driver.earnings ?? 0) - amount);
+  const { error } = await supabase.from('drivers').update({ earnings: newBalance }).eq('id', id);
+  if (error) return { error: error.message };
+  return { error: null };
+}

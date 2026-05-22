@@ -125,6 +125,18 @@ export async function fetchCustomerBookings(mobile: string): Promise<{ data: Sup
   return { data: (data ?? []) as SupabaseBooking[], error: null };
 }
 
+// Fetch bookings assigned to a specific driver
+export async function fetchDriverBookings(driverName: string): Promise<{ data: SupabaseBooking[]; error: string | null }> {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('assigned_driver', driverName)
+    .order('created_at', { ascending: false })
+    .limit(100);
+  if (error) return { data: [], error: null };
+  return { data: (data ?? []) as SupabaseBooking[], error: null };
+}
+
 // Subscribe to real-time booking updates (for admin)
 export function subscribeToBookings(callback: (booking: SupabaseBooking) => void) {
   return supabase
