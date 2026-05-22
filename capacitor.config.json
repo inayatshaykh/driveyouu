@@ -1,0 +1,12 @@
+{
+  "appId": "com.urschauffeur.app",
+  "appName": "UR's Chauffeur",
+  "webDir": "dist",
+  "server": {
+    "url": "https://driveyouu.vercel.app",
+    "cleartext": false
+  },
+  "android": {
+    "backgroundColor": "#0f1117"
+  }
+}
