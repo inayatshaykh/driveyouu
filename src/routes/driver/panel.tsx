@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState, useEffect, useCallback } from 'react';
 import { getSession, clearSession } from '@/utils/session';
-import { fetchDriverByPhone, updateDriverStatus, type SupabaseDriver } from '@/lib/driverService';
-import { fetchDriverBookings, type SupabaseBooking } from '@/lib/bookingService';
+import { fetchDriverByPhone, updateDriverStatus, addDriverEarnings, type SupabaseDriver } from '@/lib/driverService';
+import { fetchDriverBookings, updateBookingStatus, type SupabaseBooking } from '@/lib/bookingService';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/driver/panel')({
@@ -65,6 +65,32 @@ function DriverPanel() {
     setIsOnline(!isOnline);
     toast.success(`You are now ${next}`);
   };
+
+  const handleRideAction = useCallback(async (bookingId: string, action: 'start' | 'complete') => {
+    const newStatus = action === 'start' ? 'in_progress' : 'completed';
+    const { error } = await updateBookingStatus(bookingId, newStatus);
+    if (error) { toast.error('Failed to update ride'); return; }
+
+    if (action === 'complete' && driver) {
+      // Credit 75% to driver wallet
+      const booking = bookings.find(b => b.id === bookingId);
+      if (booking) {
+        const driverShare = Math.round((booking.total_fare ?? 0) * DRIVER_COMMISSION);
+        await addDriverEarnings(driver.id, driverShare);
+        toast.success(`Ride completed! ₹${driverShare.toLocaleString()} credited to wallet`);
+      }
+      // Reload driver to get updated wallet
+      const { data } = await fetchDriverByPhone(session?.mobile ?? '');
+      if (data) setDriver(data);
+    } else {
+      toast.success(action === 'start' ? 'Ride started!' : 'Ride completed!');
+    }
+
+    // Update local state
+    setBookings(prev => prev.map(b =>
+      b.id === bookingId ? { ...b, status: newStatus } : b
+    ));
+  }, [driver, bookings, session?.mobile]);
 
   const handleLogout = () => {
     clearSession();
@@ -269,6 +295,19 @@ function DriverPanel() {
                         <span className="text-amber-400">{inr((b.total_fare ?? 0) * COMPANY_COMMISSION)}</span>
                       </div>
                     </div>
+                    {/* Action buttons */}
+                    {b.status === 'confirmed' && (
+                      <button onClick={() => handleRideAction(b.id, 'start')}
+                        className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors">
+                        🚗 Start Ride
+                      </button>
+                    )}
+                    {b.status === 'in_progress' && (
+                      <button onClick={() => handleRideAction(b.id, 'complete')}
+                        className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors">
+                        ✅ Mark as Completed
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

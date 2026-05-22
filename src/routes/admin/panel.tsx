@@ -468,10 +468,9 @@ function RidesPage({ rides, allRides, filter, setFilter, openAssign, updateRide,
                         <button onClick={() => openAssign(r.id)} className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap">Assign Driver</button>
                         <button onClick={() => updateRide(r.id,'cancelled')} className="px-2.5 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg border border-red-500/30 transition-colors">Cancel</button>
                       </>}
-                      {r.status === 'active' && <>
-                        <button onClick={() => updateRide(r.id,'completed')} className="px-2.5 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-semibold rounded-lg border border-blue-500/30 transition-colors">Complete</button>
-                        <button onClick={() => updateRide(r.id,'cancelled')} className="px-2.5 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-semibold rounded-lg border border-red-500/30 transition-colors">Cancel</button>
-                      </>}
+                      {r.status === 'active' && (
+                        <span className="text-xs text-slate-500 italic">Driver managing ride</span>
+                      )}
                       {(r.status === 'completed' || r.status === 'cancelled') && <span className="text-xs text-slate-600 italic">—</span>}
                     </div>
                   </td>
