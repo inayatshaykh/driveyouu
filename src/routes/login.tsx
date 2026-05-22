@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { setSession } from '@/utils/session';
+import { fetchDriverByPhone } from '@/lib/driverService';
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
@@ -51,22 +51,39 @@ function LoginPage() {
     focusOtp(0);
   }, [mobile]);
 
-  const verifyOtp = useCallback((digits: string[]) => {
+  const verifyOtp = useCallback(async (digits: string[]) => {
     if (digits.join('') !== DEMO_OTP) {
       toast.error('Wrong OTP. Try 1234');
       setOtp(['', '', '', '']);
       focusOtp(0);
       return;
     }
-    const info = DEMO_USERS[mobile] ?? { role: 'customer' as const, name: 'Customer' };
-    setSession({ mobile, name: info.name, role: info.role, verified: true });
+
+    // Check if this number is an admin
+    const adminInfo = DEMO_USERS[mobile];
+    if (adminInfo?.role === 'admin') {
+      setSession({ mobile, name: adminInfo.name, role: 'admin', verified: true });
+      setStep('success');
+      toast.success(`Welcome, ${adminInfo.name}!`);
+      setTimeout(() => navigate({ to: '/admin/panel' }), 800);
+      return;
+    }
+
+    // Check if this number is a registered driver
+    const { data: driver } = await fetchDriverByPhone(mobile);
+    if (driver) {
+      setSession({ mobile, name: driver.name, role: 'driver', verified: true });
+      setStep('success');
+      toast.success(`Welcome, ${driver.name}!`);
+      setTimeout(() => navigate({ to: '/driver/panel' }), 800);
+      return;
+    }
+
+    // Otherwise treat as customer
+    setSession({ mobile, name: 'Customer', role: 'customer', verified: true });
     setStep('success');
-    toast.success(`Welcome, ${info.name}!`);
-    setTimeout(() => {
-      if (info.role === 'admin')  navigate({ to: '/admin/panel' });
-      else if (info.role === 'driver') navigate({ to: '/driver' });
-      else navigate({ to: '/booking' });
-    }, 800);
+    toast.success('Welcome!');
+    setTimeout(() => navigate({ to: '/booking' }), 800);
   }, [mobile, navigate]);
 
   const handleOtpChange = useCallback((i: number, val: string) => {
