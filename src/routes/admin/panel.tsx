@@ -15,6 +15,14 @@ import {
   removeDriver as removeDriverFromDb,
   type SupabaseDriver,
 } from '@/lib/driverService';
+import {
+  fetchAllWithdrawalRequests,
+  approveWithdrawal,
+  rejectWithdrawal,
+  adminDeductCommission,
+  getDriverWallet,
+  type WithdrawalRequest,
+} from '@/lib/walletService';
 
 export const Route = createFileRoute('/admin/panel')({
   beforeLoad: () => {
@@ -95,7 +103,7 @@ const Ico = {
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 function AdminPanel() {
   const navigate = useNavigate();
-  const [page, setPage] = useState<'dashboard'|'rides'|'drivers'|'customers'|'revenue'|'settings'>('dashboard');
+  const [page, setPage] = useState<'dashboard'|'rides'|'drivers'|'customers'|'revenue'|'settings'|'withdrawals'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,6 +112,8 @@ function AdminPanel() {
   const [fareConfig, setFareConfig] = useState({ base: 50, perKm: 12, perMin: 2, night: 200, cancel: 500 });
   const [notifs, setNotifs] = useState({ email: true, sms: true, push: false });
   const [assigningRideId, setAssigningRideId] = useState<string | null>(null);
+  const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
+  const [withdrawalLoading, setWithdrawalLoading] = useState(false);
   const channelRef = useRef<any>(null);
 
   // ── Load bookings from Supabase ──
@@ -120,9 +130,17 @@ function AdminPanel() {
     setDrivers(data);
   }, []);
 
+  const loadWithdrawals = useCallback(async () => {
+    setWithdrawalLoading(true);
+    const data = await fetchAllWithdrawalRequests();
+    setWithdrawals(data);
+    setWithdrawalLoading(false);
+  }, []);
+
   useEffect(() => {
     loadRides();
     loadDrivers();
+    loadWithdrawals();
     // Real-time subscription — new bookings appear instantly
     channelRef.current = subscribeToBookings((updated) => {
       setRides(prev => {
@@ -137,9 +155,10 @@ function AdminPanel() {
       });
     });
     return () => { channelRef.current?.unsubscribe(); };
-  }, [loadRides, loadDrivers]);
+  }, [loadRides, loadDrivers, loadWithdrawals]);
 
   const pendingCount = rides.filter(r => r.status === 'pending').length;
+  const pendingWithdrawals = withdrawals.filter(w => w.status === 'pending').length;
 
   const openAssign = useCallback((rideId: string) => {
     setAssigningRideId(rideId);
@@ -199,8 +218,9 @@ function AdminPanel() {
     { id:'rides',     label:'Rides',     icon:Ico.rides,     badge: pendingCount },
     { id:'drivers',   label:'Drivers',   icon:Ico.drivers },
     { id:'customers', label:'Customers', icon:Ico.customers },
-    { id:'revenue',   label:'Revenue',   icon:Ico.revenue },
-    { id:'settings',  label:'Settings',  icon:Ico.settings },
+    { id:'revenue',   label:'Revenue',     icon:Ico.revenue },
+    { id:'withdrawals',label:'Withdrawals', icon:Ico.revenue, badge: pendingWithdrawals },
+    { id:'settings',  label:'Settings',    icon:Ico.settings },
   ] as const;
 
   const filteredRides = rideFilter === 'all' ? rides : rides.filter(r => r.status === rideFilter);
@@ -263,6 +283,7 @@ function AdminPanel() {
           {page === 'drivers'    && <DriversPage drivers={drivers} toggleDriver={toggleDriver} addDriver={addDriver} removeDriver={removeDriver} />}
           {page === 'customers'  && <CustomersPage />}
           {page === 'revenue'    && <RevenuePage rides={rides} />}
+          {page === 'withdrawals' && <WithdrawalsPage withdrawals={withdrawals} loading={withdrawalLoading} drivers={drivers} onRefresh={loadWithdrawals} />}
           {page === 'settings'   && <SettingsPage fareConfig={fareConfig} setFareConfig={setFareConfig} notifs={notifs} setNotifs={setNotifs} />}
         </main>
       </div>
@@ -825,6 +846,187 @@ function SettingsPage({ fareConfig, setFareConfig, notifs, setNotifs }: {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── WITHDRAWALS ───────────────────────────────────────────────────────────────
+function WithdrawalsPage({ withdrawals, loading, drivers, onRefresh }: {
+  withdrawals: WithdrawalRequest[];
+  loading: boolean;
+  drivers: SupabaseDriver[];
+  onRefresh: () => void;
+}) {
+  const [deductDriverId, setDeductDriverId] = useState('');
+  const [deductAmount, setDeductAmount] = useState('');
+  const [deductReason, setDeductReason] = useState('');
+  const [deducting, setDeducting] = useState(false);
+  const [driverWallets, setDriverWallets] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    // Load wallet balances for all drivers
+    Promise.all(drivers.map(async d => {
+      const w = await getDriverWallet(d.id);
+      return { id: d.id, balance: w.balance };
+    })).then(results => {
+      const map: Record<string, number> = {};
+      results.forEach(r => { map[r.id] = r.balance; });
+      setDriverWallets(map);
+    });
+  }, [drivers]);
+
+  const handleApprove = async (w: WithdrawalRequest) => {
+    if (!confirm(`Approve ₹${w.amount.toLocaleString()} withdrawal for ${w.driver_name}?`)) return;
+    const { error } = await approveWithdrawal(w.id, w.driver_id, w.amount, 'Approved by admin');
+    if (error) { alert('Error: ' + error); return; }
+    onRefresh();
+  };
+
+  const handleReject = async (w: WithdrawalRequest) => {
+    const note = prompt('Reason for rejection (optional):') ?? '';
+    const { error } = await rejectWithdrawal(w.id, note);
+    if (error) { alert('Error: ' + error); return; }
+    onRefresh();
+  };
+
+  const handleDeduct = async () => {
+    if (!deductDriverId || !deductAmount || !deductReason.trim()) return;
+    setDeducting(true);
+    const { error } = await adminDeductCommission(deductDriverId, Number(deductAmount), deductReason);
+    setDeducting(false);
+    if (error) { alert('Error: ' + error); return; }
+    alert('Commission deducted successfully');
+    setDeductAmount(''); setDeductReason(''); setDeductDriverId('');
+    onRefresh();
+  };
+
+  const pending = withdrawals.filter(w => w.status === 'pending');
+  const processed = withdrawals.filter(w => w.status !== 'pending');
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Withdrawals</h1>
+          <p className="text-slate-400 mt-1 text-sm">Driver wallet requests and manual commission control</p>
+        </div>
+        <button onClick={onRefresh} className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-sm font-semibold transition-colors">
+          {Ico.refresh} Refresh
+        </button>
+      </div>
+
+      {/* Driver wallet balances */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+        <h2 className="text-lg font-bold text-white mb-4">Driver Wallet Balances</h2>
+        {drivers.length === 0 ? (
+          <p className="text-slate-500 text-sm">No drivers added yet</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {drivers.map(d => {
+              const bal = driverWallets[d.id] ?? 0;
+              return (
+                <div key={d.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-xl border border-slate-700">
+                  <div>
+                    <div className="text-sm font-semibold text-white">{d.name}</div>
+                    <div className="text-xs text-slate-500">{d.phone}</div>
+                  </div>
+                  <div className={`text-lg font-black ${bal < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {bal < 0 ? '-' : ''}{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Math.abs(bal))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Manual commission deduction */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+        <h2 className="text-lg font-bold text-white mb-4">Manual Commission Deduction</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+          <div className="relative">
+            <select value={deductDriverId} onChange={e => setDeductDriverId(e.target.value)}
+              className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 appearance-none">
+              <option value="">Select Driver</option>
+              {drivers.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+          </div>
+          <input type="number" value={deductAmount} onChange={e => setDeductAmount(e.target.value)}
+            placeholder="Amount (₹)"
+            className="px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          <input type="text" value={deductReason} onChange={e => setDeductReason(e.target.value)}
+            placeholder="Reason"
+            className="px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+        <button onClick={handleDeduct} disabled={deducting || !deductDriverId || !deductAmount || !deductReason.trim()}
+          className="px-5 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-40 text-white font-semibold rounded-xl text-sm transition-colors">
+          {deducting ? 'Deducting...' : 'Deduct Commission'}
+        </button>
+      </div>
+
+      {/* Pending withdrawal requests */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">Pending Requests</h2>
+          {pending.length > 0 && (
+            <span className="px-2.5 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg text-xs font-bold">{pending.length} pending</span>
+          )}
+        </div>
+        {loading ? (
+          <div className="py-12 flex justify-center"><svg className="w-8 h-8 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg></div>
+        ) : pending.length === 0 ? (
+          <div className="py-12 text-center text-slate-500 text-sm">No pending withdrawal requests</div>
+        ) : (
+          <div className="divide-y divide-slate-800">
+            {pending.map(w => (
+              <div key={w.id} className="p-5 flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <div className="text-sm font-bold text-white">{w.driver_name}</div>
+                  <div className="text-xs text-slate-400">{w.driver_phone}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">{new Date(w.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                </div>
+                <div className="text-xl font-black text-white">₹{w.amount.toLocaleString()}</div>
+                <div className="flex gap-2">
+                  <button onClick={() => handleApprove(w)}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl transition-colors">
+                    ✓ Approve
+                  </button>
+                  <button onClick={() => handleReject(w)}
+                    className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-sm font-semibold rounded-xl border border-red-500/30 transition-colors">
+                    ✗ Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Processed requests */}
+      {processed.length > 0 && (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-800">
+            <h2 className="text-lg font-bold text-white">Processed Requests</h2>
+          </div>
+          <div className="divide-y divide-slate-800">
+            {processed.map(w => (
+              <div key={w.id} className="p-4 flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="text-sm font-semibold text-white">{w.driver_name}</div>
+                  <div className="text-xs text-slate-500">{new Date(w.created_at).toLocaleDateString('en-IN')}</div>
+                  {w.admin_note && <div className="text-xs text-slate-400 mt-0.5">Note: {w.admin_note}</div>}
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-white">₹{w.amount.toLocaleString()}</span>
+                  <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${w.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                    {w.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
