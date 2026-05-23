@@ -1191,7 +1191,12 @@ function AdminCarsPageEmbed() {
                     <td className="py-3 px-4 text-xs text-slate-400">{e.pickup_date || '—'}{e.return_date ? ` → ${e.return_date}` : ''}</td>
                     <td className="py-3 px-4"><span className={`px-2 py-0.5 rounded-lg text-xs font-semibold ${STATUS_CFG_CAR[e.status] ?? 'bg-slate-700 text-slate-300'}`}>{e.status}</span></td>
                     <td className="py-3 px-4">
-                      <select value={e.status} onChange={async ev => { await updateEnquiryStatus(e.id, ev.target.value as CarEnquiry['status']); setEnquiries(prev => prev.map(x => x.id === e.id ? { ...x, status: ev.target.value as CarEnquiry['status'] } : x)); }}
+                      <select value={e.status} onChange={async ev => {
+                        const newStatus = ev.target.value as CarEnquiry['status'];
+                        const { error } = await updateEnquiryStatus(e.id, newStatus);
+                        if (error) { alert('Failed to update: ' + error); return; }
+                        setEnquiries(prev => prev.map(x => x.id === e.id ? { ...x, status: newStatus } : x));
+                      }}
                         className="px-2 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs focus:outline-none appearance-none cursor-pointer">
                         {['pending','contacted','booked','cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
