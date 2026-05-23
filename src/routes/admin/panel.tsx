@@ -1050,6 +1050,7 @@ function AdminCarsPageEmbed() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', type: 'sedan', quantity: 1, description: '', features: '', image_url: '', is_active: true });
   const [saving, setSaving] = useState(false);
+  const [enqFilter, setEnqFilter] = useState<'all' | 'pending' | 'contacted' | 'booked' | 'cancelled'>('all');
 
   const TYPE_OPTIONS = ['sedan', 'suv', 'hatchback', 'luxury', 'van', 'other'];
   const STATUS_CFG_CAR: Record<string, string> = {
@@ -1178,33 +1179,50 @@ function AdminCarsPageEmbed() {
         </div>
       )}
       {tab === 'enquiries' && (
-        <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[500px]">
-              <thead><tr className="border-b border-slate-700/50 bg-slate-800/30">{['Car','Customer','Dates','Status','Action'].map(h => <th key={h} className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase">{h}</th>)}</tr></thead>
-              <tbody>
-                {enquiries.length === 0 ? <tr><td colSpan={5} className="py-12 text-center text-slate-500">No enquiries yet</td></tr>
-                : enquiries.map((e, i) => (
-                  <tr key={e.id} className={`border-b border-slate-700/30 hover:bg-slate-800/20 ${i%2===0?'':'bg-slate-800/10'}`}>
-                    <td className="py-3 px-4 text-sm font-medium text-white">{e.car_name}</td>
-                    <td className="py-3 px-4"><div className="text-sm text-white">{e.customer_name}</div><a href={`tel:${e.customer_phone}`} className="text-xs text-emerald-400">{e.customer_phone}</a></td>
-                    <td className="py-3 px-4 text-xs text-slate-400">{e.pickup_date || '—'}{e.return_date ? ` → ${e.return_date}` : ''}</td>
-                    <td className="py-3 px-4"><span className={`px-2 py-0.5 rounded-lg text-xs font-semibold ${STATUS_CFG_CAR[e.status] ?? 'bg-slate-700 text-slate-300'}`}>{e.status}</span></td>
-                    <td className="py-3 px-4">
-                      <select value={e.status} onChange={async ev => {
-                        const newStatus = ev.target.value as CarEnquiry['status'];
-                        const { error } = await updateEnquiryStatus(e.id, newStatus);
-                        if (error) { alert('Failed to update: ' + error); return; }
-                        setEnquiries(prev => prev.map(x => x.id === e.id ? { ...x, status: newStatus } : x));
-                      }}
-                        className="px-2 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs focus:outline-none appearance-none cursor-pointer">
-                        {['pending','contacted','booked','cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="space-y-3">
+          {/* Filter tabs */}
+          <div className="flex gap-2 flex-wrap">
+            {(['all', 'pending', 'contacted', 'booked', 'cancelled'] as const).map(f => {
+              const count = f === 'all' ? enquiries.length : enquiries.filter(e => e.status === f).length;
+              return (
+                <button key={f} onClick={() => setEnqFilter(f)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all ${
+                    enqFilter === f ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'
+                  }`}>
+                  {f} ({count})
+                </button>
+              );
+            })}
+          </div>
+          <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px]">
+                <thead><tr className="border-b border-slate-700/50 bg-slate-800/30">{['Car','Customer','Dates','Status','Action'].map(h => <th key={h} className="text-left py-3 px-4 text-xs font-semibold text-slate-400 uppercase">{h}</th>)}</tr></thead>
+                <tbody>
+                  {(enqFilter === 'all' ? enquiries : enquiries.filter(e => e.status === enqFilter)).length === 0
+                    ? <tr><td colSpan={5} className="py-12 text-center text-slate-500">No {enqFilter === 'all' ? '' : enqFilter} enquiries</td></tr>
+                    : (enqFilter === 'all' ? enquiries : enquiries.filter(e => e.status === enqFilter)).map((e, i) => (
+                    <tr key={e.id} className={`border-b border-slate-700/30 hover:bg-slate-800/20 ${i%2===0?'':'bg-slate-800/10'}`}>
+                      <td className="py-3 px-4 text-sm font-medium text-white">{e.car_name}</td>
+                      <td className="py-3 px-4"><div className="text-sm text-white">{e.customer_name}</div><a href={`tel:${e.customer_phone}`} className="text-xs text-emerald-400">{e.customer_phone}</a></td>
+                      <td className="py-3 px-4 text-xs text-slate-400">{e.pickup_date || '—'}{e.return_date ? ` → ${e.return_date}` : ''}</td>
+                      <td className="py-3 px-4"><span className={`px-2 py-0.5 rounded-lg text-xs font-semibold ${STATUS_CFG_CAR[e.status] ?? 'bg-slate-700 text-slate-300'}`}>{e.status}</span></td>
+                      <td className="py-3 px-4">
+                        <select value={e.status} onChange={async ev => {
+                          const newStatus = ev.target.value as CarEnquiry['status'];
+                          const { error } = await updateEnquiryStatus(e.id, newStatus);
+                          if (error) { alert('Failed to update: ' + error); return; }
+                          setEnquiries(prev => prev.map(x => x.id === e.id ? { ...x, status: newStatus } : x));
+                        }}
+                          className="px-2 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs focus:outline-none appearance-none cursor-pointer">
+                          {['pending','contacted','booked','cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
