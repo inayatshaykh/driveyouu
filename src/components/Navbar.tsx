@@ -88,6 +88,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
         <nav className="hidden md:flex items-center gap-6 text-sm text-slate-300">
           <Link to="/" className="hover:text-white transition">Home</Link>
           <Link to="/booking" className="hover:text-white transition">Book a Driver</Link>
+          <Link to="/cars" className="hover:text-white transition">Car Rentals</Link>
           <a href="/#how-it-works" className="hover:text-white transition">How It Works</a>
           <a href="/help" className="hover:text-white transition">Contact</a>
         </nav>

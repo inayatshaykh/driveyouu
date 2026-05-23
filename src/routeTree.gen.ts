@@ -15,6 +15,8 @@ import { Route as LoginSimpleRouteImport } from './routes/login-simple'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DriverPanelRouteImport } from './routes/driver/panel'
+import { Route as CarsRouteImport } from './routes/cars'
+import { Route as AdminCarsRouteImport } from './routes/admin/cars'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CustomerIndexRouteImport } from './routes/customer/index'
@@ -64,6 +66,16 @@ const HelpRoute = HelpRouteImport.update({
 const DriverPanelRoute = DriverPanelRouteImport.update({
   id: '/driver/panel',
   path: '/driver/panel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarsRoute = CarsRouteImport.update({
+  id: '/cars',
+  path: '/cars',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCarsRoute = AdminCarsRouteImport.update({
+  id: '/admin/cars',
+  path: '/admin/cars',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookingRoute = BookingRouteImport.update({
@@ -170,6 +182,7 @@ const AdminBookingsRoute = AdminBookingsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/cars': typeof CarsRoute
   '/driver/panel': typeof DriverPanelRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -177,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/test': typeof TestRoute
   '/admin/bookings': typeof AdminBookingsRoute
+  '/admin/cars': typeof AdminCarsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/drivers': typeof AdminDriversRoute
@@ -198,6 +212,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/cars': typeof CarsRoute
   '/driver/panel': typeof DriverPanelRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -205,6 +220,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/test': typeof TestRoute
   '/admin/bookings': typeof AdminBookingsRoute
+  '/admin/cars': typeof AdminCarsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/drivers': typeof AdminDriversRoute
@@ -227,6 +243,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
+  '/cars': typeof CarsRoute
   '/driver/panel': typeof DriverPanelRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -234,6 +251,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/test': typeof TestRoute
   '/admin/bookings': typeof AdminBookingsRoute
+  '/admin/cars': typeof AdminCarsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/drivers': typeof AdminDriversRoute
@@ -285,6 +303,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/booking'
+    | '/cars'
     | '/driver/panel'
     | '/help'
     | '/login'
@@ -292,6 +311,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/test'
     | '/admin/bookings'
+    | '/admin/cars'
     | '/admin/customers'
     | '/admin/dashboard'
     | '/admin/drivers'
@@ -313,6 +333,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/booking'
+    | '/cars'
     | '/driver/panel'
     | '/help'
     | '/login'
@@ -320,6 +341,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/test'
     | '/admin/bookings'
+    | '/admin/cars'
     | '/admin/customers'
     | '/admin/dashboard'
     | '/admin/drivers'
@@ -342,6 +364,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookingRoute: typeof BookingRoute
+  CarsRoute: typeof CarsRoute
   DriverPanelRoute: typeof DriverPanelRoute
   HelpRoute: typeof HelpRoute
   LoginRoute: typeof LoginRoute
@@ -349,6 +372,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   TestRoute: typeof TestRoute
   AdminBookingsRoute: typeof AdminBookingsRoute
+  AdminCarsRoute: typeof AdminCarsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminDriversRoute: typeof AdminDriversRoute
@@ -410,6 +434,20 @@ declare module '@tanstack/react-router' {
       path: '/driver/panel'
       fullPath: '/driver/panel'
       preLoaderRoute: typeof DriverPanelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cars': {
+      id: '/cars'
+      path: '/cars'
+      fullPath: '/cars'
+      preLoaderRoute: typeof CarsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/cars': {
+      id: '/admin/cars'
+      path: '/admin/cars'
+      fullPath: '/admin/cars'
+      preLoaderRoute: typeof AdminCarsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/booking': {
@@ -558,6 +596,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookingRoute: BookingRoute,
+  CarsRoute: CarsRoute,
   DriverPanelRoute: DriverPanelRoute,
   HelpRoute: HelpRoute,
   LoginRoute: LoginRoute,
@@ -565,6 +604,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   TestRoute: TestRoute,
   AdminBookingsRoute: AdminBookingsRoute,
+  AdminCarsRoute: AdminCarsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminDriversRoute: AdminDriversRoute,
