@@ -323,6 +323,7 @@ function LandingPage() {
               <ul className="space-y-2 text-sm text-slate-400">
                 <li><Link to="/" className="hover:text-white transition">Home</Link></li>
                 <li><Link to="/booking" className="hover:text-white transition">Book a Driver</Link></li>
+                <li><Link to="/cars" className="hover:text-white transition">Car Rentals</Link></li>
                 <li><a href="#how-it-works" className="hover:text-white transition">How it Works</a></li>
                 <li><a href="#contact" className="hover:text-white transition">Contact</a></li>
               </ul>

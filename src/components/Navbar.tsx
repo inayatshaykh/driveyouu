@@ -172,6 +172,14 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                       <Car className="h-4 w-4 text-slate-400" />
                       Book a Driver
                     </Link>
+                    <Link
+                      to="/cars"
+                      onClick={closeAll}
+                      className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-colors"
+                    >
+                      <Car className="h-4 w-4 text-slate-400" />
+                      Car Rentals
+                    </Link>
                     <a
                       href="/help"
                       onClick={closeAll}
@@ -224,6 +232,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
             <nav className="flex flex-col space-y-0.5">
               <Link to="/" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Home</Link>
               <Link to="/booking" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Book a Driver</Link>
+              <Link to="/cars" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Car Rentals</Link>
               <a href="/#how-it-works" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>How It Works</a>
               <a href="/help" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Contact</a>
 
