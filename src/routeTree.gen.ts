@@ -9,8 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TaxiRouteImport } from './routes/taxi'
 import { Route as TestRouteImport } from './routes/test'
+import { Route as TaxiRouteImport } from './routes/taxi'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginSimpleRouteImport } from './routes/login-simple'
 import { Route as LoginRouteImport } from './routes/login'
@@ -18,9 +19,9 @@ import { Route as HelpRouteImport } from './routes/help'
 import { Route as CarsRouteImport } from './routes/cars'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DriverIndexRouteImport } from './routes/driver/index'
 import { Route as CustomerIndexRouteImport } from './routes/customer/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as DriverIndexRouteImport } from './routes/driver/index'
 import { Route as DriverPanelRouteImport } from './routes/driver/panel'
 import { Route as CustomerProfileRouteImport } from './routes/customer/profile'
 import { Route as CustomerNotificationsRouteImport } from './routes/customer/notifications'
@@ -40,14 +41,19 @@ import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as AdminCarsRouteImport } from './routes/admin/cars'
 import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
 
+const TestRoute = TestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TaxiRoute = TaxiRouteImport.update({
   id: '/taxi',
   path: '/taxi',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TestRoute = TestRouteImport.update({
-  id: '/test',
-  path: '/test',
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -85,6 +91,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DriverIndexRoute = DriverIndexRouteImport.update({
+  id: '/driver/',
+  path: '/driver/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CustomerIndexRoute = CustomerIndexRouteImport.update({
   id: '/customer/',
   path: '/customer/',
@@ -93,11 +104,6 @@ const CustomerIndexRoute = CustomerIndexRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DriverIndexRoute = DriverIndexRouteImport.update({
-  id: '/driver/',
-  path: '/driver/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DriverPanelRoute = DriverPanelRouteImport.update({
@@ -195,11 +201,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
   '/cars': typeof CarsRoute
-  '/taxi': typeof TaxiRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
   '/login-simple': typeof LoginSimpleRoute
   '/signup': typeof SignupRoute
+  '/taxi': typeof TaxiRoute
   '/test': typeof TestRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/cars': typeof AdminCarsRoute
@@ -219,19 +225,19 @@ export interface FileRoutesByFullPath {
   '/customer/notifications': typeof CustomerNotificationsRoute
   '/customer/profile': typeof CustomerProfileRoute
   '/driver/panel': typeof DriverPanelRoute
-  '/driver/': typeof DriverIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/customer/': typeof CustomerIndexRoute
+  '/driver/': typeof DriverIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
   '/cars': typeof CarsRoute
-  '/taxi': typeof TaxiRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
   '/login-simple': typeof LoginSimpleRoute
   '/signup': typeof SignupRoute
+  '/taxi': typeof TaxiRoute
   '/test': typeof TestRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/cars': typeof AdminCarsRoute
@@ -251,20 +257,20 @@ export interface FileRoutesByTo {
   '/customer/notifications': typeof CustomerNotificationsRoute
   '/customer/profile': typeof CustomerProfileRoute
   '/driver/panel': typeof DriverPanelRoute
-  '/driver': typeof DriverIndexRoute
   '/admin': typeof AdminIndexRoute
   '/customer': typeof CustomerIndexRoute
+  '/driver': typeof DriverIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
   '/cars': typeof CarsRoute
-  '/taxi': typeof TaxiRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
   '/login-simple': typeof LoginSimpleRoute
   '/signup': typeof SignupRoute
+  '/taxi': typeof TaxiRoute
   '/test': typeof TestRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/cars': typeof AdminCarsRoute
@@ -284,9 +290,9 @@ export interface FileRoutesById {
   '/customer/notifications': typeof CustomerNotificationsRoute
   '/customer/profile': typeof CustomerProfileRoute
   '/driver/panel': typeof DriverPanelRoute
-  '/driver/': typeof DriverIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/customer/': typeof CustomerIndexRoute
+  '/driver/': typeof DriverIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -294,11 +300,11 @@ export interface FileRouteTypes {
     | '/'
     | '/booking'
     | '/cars'
-    | '/taxi'
     | '/help'
     | '/login'
     | '/login-simple'
     | '/signup'
+    | '/taxi'
     | '/test'
     | '/admin/bookings'
     | '/admin/cars'
@@ -318,19 +324,19 @@ export interface FileRouteTypes {
     | '/customer/notifications'
     | '/customer/profile'
     | '/driver/panel'
-    | '/driver/'
     | '/admin/'
     | '/customer/'
+    | '/driver/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/booking'
     | '/cars'
-    | '/taxi'
     | '/help'
     | '/login'
     | '/login-simple'
     | '/signup'
+    | '/taxi'
     | '/test'
     | '/admin/bookings'
     | '/admin/cars'
@@ -350,19 +356,19 @@ export interface FileRouteTypes {
     | '/customer/notifications'
     | '/customer/profile'
     | '/driver/panel'
-    | '/driver'
     | '/admin'
     | '/customer'
+    | '/driver'
   id:
     | '__root__'
     | '/'
     | '/booking'
     | '/cars'
-    | '/taxi'
     | '/help'
     | '/login'
     | '/login-simple'
     | '/signup'
+    | '/taxi'
     | '/test'
     | '/admin/bookings'
     | '/admin/cars'
@@ -382,20 +388,20 @@ export interface FileRouteTypes {
     | '/customer/notifications'
     | '/customer/profile'
     | '/driver/panel'
-    | '/driver/'
     | '/admin/'
     | '/customer/'
+    | '/driver/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookingRoute: typeof BookingRoute
   CarsRoute: typeof CarsRoute
-  TaxiRoute: typeof TaxiRoute
   HelpRoute: typeof HelpRoute
   LoginRoute: typeof LoginRoute
   LoginSimpleRoute: typeof LoginSimpleRoute
   SignupRoute: typeof SignupRoute
+  TaxiRoute: typeof TaxiRoute
   TestRoute: typeof TestRoute
   AdminBookingsRoute: typeof AdminBookingsRoute
   AdminCarsRoute: typeof AdminCarsRoute
@@ -415,9 +421,9 @@ export interface RootRouteChildren {
   CustomerNotificationsRoute: typeof CustomerNotificationsRoute
   CustomerProfileRoute: typeof CustomerProfileRoute
   DriverPanelRoute: typeof DriverPanelRoute
-  DriverIndexRoute: typeof DriverIndexRoute
   AdminIndexRoute: typeof AdminIndexRoute
   CustomerIndexRoute: typeof CustomerIndexRoute
+  DriverIndexRoute: typeof DriverIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -427,6 +433,20 @@ declare module '@tanstack/react-router' {
       path: '/test'
       fullPath: '/test'
       preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/taxi': {
+      id: '/taxi'
+      path: '/taxi'
+      fullPath: '/taxi'
+      preLoaderRoute: typeof TaxiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -457,13 +477,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/taxi': {
-      id: '/taxi'
-      path: '/taxi'
-      fullPath: '/taxi'
-      preLoaderRoute: typeof TaxiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/cars': {
       id: '/cars'
       path: '/cars'
@@ -485,6 +498,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/driver/': {
+      id: '/driver/'
+      path: '/driver'
+      fullPath: '/driver/'
+      preLoaderRoute: typeof DriverIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/customer/': {
       id: '/customer/'
       path: '/customer'
@@ -504,13 +524,6 @@ declare module '@tanstack/react-router' {
       path: '/driver/panel'
       fullPath: '/driver/panel'
       preLoaderRoute: typeof DriverPanelRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/driver/': {
-      id: '/driver/'
-      path: '/driver'
-      fullPath: '/driver/'
-      preLoaderRoute: typeof DriverIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/customer/profile': {
@@ -639,11 +652,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookingRoute: BookingRoute,
   CarsRoute: CarsRoute,
-  TaxiRoute: TaxiRoute,
   HelpRoute: HelpRoute,
   LoginRoute: LoginRoute,
   LoginSimpleRoute: LoginSimpleRoute,
   SignupRoute: SignupRoute,
+  TaxiRoute: TaxiRoute,
   TestRoute: TestRoute,
   AdminBookingsRoute: AdminBookingsRoute,
   AdminCarsRoute: AdminCarsRoute,
@@ -663,9 +676,9 @@ const rootRouteChildren: RootRouteChildren = {
   CustomerNotificationsRoute: CustomerNotificationsRoute,
   CustomerProfileRoute: CustomerProfileRoute,
   DriverPanelRoute: DriverPanelRoute,
-  DriverIndexRoute: DriverIndexRoute,
   AdminIndexRoute: AdminIndexRoute,
   CustomerIndexRoute: CustomerIndexRoute,
+  DriverIndexRoute: DriverIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

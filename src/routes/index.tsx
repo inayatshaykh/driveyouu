@@ -341,6 +341,7 @@ function LandingPage() {
                 <li><Link to="/booking" className="hover:text-white transition">Book a Driver</Link></li>
                 <li><Link to="/taxi" className="hover:text-white transition">Taxi Services</Link></li>
                 <li><Link to="/cars" className="hover:text-white transition">Car Rentals</Link></li>
+                <li><Link to="/about" className="hover:text-white transition">About Us</Link></li>
                 <li><a href="#how-it-works" className="hover:text-white transition">How it Works</a></li>
                 <li><a href="#contact" className="hover:text-white transition">Contact</a></li>
               </ul>
