@@ -350,14 +350,14 @@ function TaxiPage() {
         <Navbar />
         <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
           <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-3xl font-black text-white mb-3">Booking Confirmed!</h2>
-          <p className="text-slate-400 max-w-sm mb-8">Our team will call you shortly to confirm your taxi. Check your bookings for updates.</p>
+          <h2 className="text-3xl font-black text-gray-900 mb-3">Booking Confirmed!</h2>
+          <p className="text-gray-500 max-w-sm mb-8">Our team will call you shortly to confirm your taxi. Check your bookings for updates.</p>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link to="/taxi" onClick={() => setSubmitted(false)}
               className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors">
               Book Another
             </Link>
-            <Link to="/" className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl transition-colors">
+            <Link to="/" className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition-colors">
               Back to Home
             </Link>
           </div>
@@ -548,31 +548,19 @@ function TaxiPage() {
           </form>
         </div>
 
-        {/* Info cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-          {[
-            { icon: '📍', title: 'One-Way Drop', desc: 'Pay only for the distance to your destination. No return charges.' },
-            { icon: '🔄', title: 'Round Trip', desc: 'Driver waits and brings you back. Total distance × 2 fare.' },
-          ].map(c => (
-            <div key={c.title} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-center">
-              <div className="text-3xl mb-2">{c.icon}</div>
-              <h3 className="font-bold text-white text-sm mb-1">{c.title}</h3>
-              <p className="text-xs text-slate-400">{c.desc}</p>
-            </div>
-          ))}
-        </div>
+        {/* Info cards removed */}
 
       </div>
 
       {/* Footer CTA */}
-      <section className="px-6 py-12 bg-slate-950 border-t border-slate-800 text-center">
-        <p className="text-slate-400 text-sm mb-3">Need help? Call or WhatsApp us directly.</p>
+      <section className="px-6 py-8 bg-gradient-to-br from-gray-50 to-gray-100 text-center">
+        <p className="text-gray-500 text-sm mb-3">Need help? Call or WhatsApp us directly.</p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <a href="tel:+917087010425" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors">
             📞 +91 70870 10425
           </a>
           <a href="https://wa.me/917087010425" target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600/20 hover:bg-green-600/30 text-green-400 font-bold rounded-xl text-sm border border-green-500/30 transition-colors">
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-50 hover:bg-green-100 text-green-700 font-bold rounded-xl text-sm border border-green-300 transition-colors">
             💬 WhatsApp Us
           </a>
         </div>
