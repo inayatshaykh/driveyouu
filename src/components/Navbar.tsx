@@ -94,6 +94,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
           <Link to="/taxi" className="hover:text-white transition">Taxi Services</Link>
           <Link to="/cars" className="hover:text-white transition">Car Rentals</Link>
           <a href="/#how-it-works" className="hover:text-white transition">How It Works</a>
+          <Link to="/about" className="hover:text-white transition">About Us</Link>
           <a href="/help" className="hover:text-white transition">Contact</a>
         </nav>
 
@@ -247,6 +248,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
               <Link to="/taxi" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Taxi Services</Link>
               <Link to="/cars" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Car Rentals</Link>
               <a href="/#how-it-works" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>How It Works</a>
+              <Link to="/about" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>About Us</Link>
               <a href="/help" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Contact</a>
 
               <div className="h-px bg-slate-800 mx-1 my-1" />
