@@ -329,8 +329,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
         {session ? 'My Bookings' : 'Login'}
       </Link>
     </nav>
-    {/* Spacer so content isn't hidden behind bottom nav on mobile */}
-    <div className="md:hidden h-16" />
+    {/* Spacer removed — each page adds pb-16 md:pb-0 instead */}
     </>
   );
 }

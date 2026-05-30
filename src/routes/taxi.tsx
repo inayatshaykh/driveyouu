@@ -346,7 +346,7 @@ function TaxiPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white">
+      <div className="min-h-screen bg-slate-950 text-white pb-16 md:pb-0">
         <Navbar />
         <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
           <div className="text-6xl mb-4">🎉</div>
@@ -367,12 +367,12 @@ function TaxiPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-950 text-white pb-16 md:pb-0">
       <Navbar />
 
       {/* Hero removed */}
 
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto px-4 pt-4 pb-4">
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
 
           {/* Header — matches Book a Driver style */}

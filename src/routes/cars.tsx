@@ -144,11 +144,11 @@ function CarsPage() {
   const filtered = typeFilter === 'all' ? cars : cars.filter(c => c.type === typeFilter);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-950 text-white pb-16 md:pb-0">
       <Navbar />
 
       {/* Hero */}
-      <section className="bg-gradient-to-b from-slate-900 to-slate-950 py-14 px-6 text-center border-b border-slate-800">
+      <section className="bg-gradient-to-b from-slate-900 to-slate-950 py-8 px-6 text-center border-b border-slate-800">
         <h1 className="text-4xl sm:text-5xl font-black text-white mb-3">Car Rentals</h1>
         <p className="text-slate-400 text-lg max-w-xl mx-auto">
           Self-drive or with driver — premium vehicles available for rent. Contact us for pricing.
@@ -159,7 +159,7 @@ function CarsPage() {
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="max-w-6xl mx-auto px-4 py-6 pb-16 md:pb-6">
         {/* Type filters */}
         {types.length > 1 && (
           <div className="flex gap-2 flex-wrap mb-8">

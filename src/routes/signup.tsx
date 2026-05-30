@@ -74,9 +74,9 @@ function SignupPage() {
   }, [otp]);
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-950 pb-16 md:pb-0">
       <Navbar />
-      <div className="max-w-md mx-auto px-4 py-12">
+      <div className="max-w-md mx-auto px-4 py-6">
 
         {/* Header */}
         <div className="text-center mb-8">

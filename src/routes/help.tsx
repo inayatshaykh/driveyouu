@@ -24,10 +24,10 @@ const FAQS = [
 
 function HelpPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-slate-950 text-white pb-16 md:pb-0">
       <Navbar />
 
-      <div className="max-w-3xl mx-auto px-4 py-12 space-y-10">
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-8">
 
         {/* Header */}
         <div className="text-center">

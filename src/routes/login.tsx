@@ -102,7 +102,7 @@ function LoginPage() {
   }, [otp]);
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 pb-16 md:pb-0">
       <div className="w-full max-w-md">
 
         {/* Header */}
