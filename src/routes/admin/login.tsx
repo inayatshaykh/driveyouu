@@ -14,7 +14,7 @@ export const Route = createFileRoute('/admin/login')({
   // If already logged in as admin, skip straight to dashboard
   beforeLoad: () => {
     if (getAdminSession()) {
-      throw redirect({ to: '/admin/dashboard' });
+      throw redirect({ to: '/admin/panel' });
     }
   },
   component: AdminLoginPage,

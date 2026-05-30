@@ -150,7 +150,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                     )}
                     {isAdmin && (
                       <Link
-                        to="/admin/dashboard"
+                        to="/admin/panel"
                         onClick={closeAll}
                         className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-colors"
                       >
@@ -276,7 +276,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                     </Link>
                   )}
                   {isAdmin && (
-                    <Link to="/admin/dashboard" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl text-sm" onClick={closeAll}>
+                    <Link to="/admin/panel" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl text-sm" onClick={closeAll}>
                       <User className="h-4 w-4" /> Admin Panel
                     </Link>
                   )}
