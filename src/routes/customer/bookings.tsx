@@ -213,7 +213,7 @@ function CustomerBookingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 pb-16 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-16 md:pb-0">
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 py-4">
         {/* Header */}

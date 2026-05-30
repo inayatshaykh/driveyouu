@@ -346,7 +346,7 @@ function TaxiPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white pb-16 md:pb-0">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-16 md:pb-0">
         <Navbar />
         <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
           <div className="text-6xl mb-4">🎉</div>
@@ -367,7 +367,7 @@ function TaxiPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white pb-16 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-16 md:pb-0">
       <Navbar />
 
       {/* Hero removed */}
