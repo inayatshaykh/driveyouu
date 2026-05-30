@@ -56,17 +56,16 @@ const SERVICES = [
   { icon: '🕐', title: 'Hourly Basis', desc: 'Minimum 4 hours. Perfect for city meetings, shopping, or quick transfers.' },
   { icon: '📅', title: 'Daily Basis', desc: '8–12 hour full-day service for business itineraries and multi-stop engagements.' },
   { icon: '🗺️', title: 'Multi-Day', desc: 'Long-distance travel, corporate roadshows, and leisure getaways across cities.' },
-  { icon: '🚕', title: 'Taxi Services', desc: 'One-way drop or round trip with auto fare calculation based on distance.' },
+  { icon: '🚕', title: 'Taxi Services', desc: 'Point-to-point taxi for one-way drop or round trip. Fare auto-calculated by distance — no surprises. Instant or scheduled booking.' },
   { icon: '✈️', title: 'Airport Transfers', desc: 'Reliable, on-time airport pickups and drops — any time of day or night.' },
-  { icon: '🏢', title: 'Corporate Accounts', desc: 'Dedicated driver solutions for businesses with monthly billing and priority support.' },
 ];
 
 const TEAM = [
   {
-    name: 'Inayat Shaikh',
+    name: 'Jagjit Gill',
     role: 'Founder & CEO',
     desc: 'Passionate about transforming personal mobility in India. Built UR\'s Chauffeur to solve the real problem of finding a trusted driver for your own vehicle.',
-    initials: 'IS',
+    initials: 'JG',
   },
 ];
 
@@ -121,6 +120,9 @@ function AboutPage() {
             </p>
             <p>
               We noticed a gap in the market. Cab services take you in their car. Car rentals give you a vehicle. But nobody was solving the problem of <span className="text-white font-semibold">providing a trusted driver for your own vehicle</span>. That's exactly what we do.
+            </p>
+            <p>
+              Beyond chauffeur services, we also offer <span className="text-white font-semibold">taxi services</span> — one-way drops and round trips with automatic fare calculation based on distance. Whether you need a driver for your own car or a taxi to get from point A to B, UR's Chauffeur has you covered.
             </p>
             <p>
               In just 3 months since launch, we've completed over 1,000 rides across Delhi, Chandigarh, Chandigarh, and beyond. Our network of 100+ verified drivers continues to grow — each one background-checked, trained, and committed to your safety.
