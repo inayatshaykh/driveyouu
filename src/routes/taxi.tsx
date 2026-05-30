@@ -225,7 +225,7 @@ function LocInput({ label, value, onChange, onSelect, icon = 'pickup', placehold
       </div>
       {icon !== 'drop' && (
         <button type="button" onClick={handleLocate} disabled={locating}
-          className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-blue-700 hover:text-blue-800 disabled:opacity-50 transition-colors">
+          className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 disabled:opacity-50 transition-colors">
           {locating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <LocateFixed className="h-3.5 w-3.5" />}
           {locating ? 'Getting location...' : 'Use current location'}
         </button>
@@ -372,18 +372,18 @@ function TaxiPage() {
       <div className="max-w-2xl mx-auto px-4 py-10">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
 
-          {/* Header */}
-          <div className="bg-gradient-to-r from-blue-800 to-blue-600 text-white px-6 py-5 text-center">
-            <h2 className="text-xl font-bold">Taxi Booking</h2>
-            <p className="text-sm text-blue-100 mt-1">Fare auto-calculated from your locations</p>
+          {/* Header — matches Book a Driver style */}
+          <div className="bg-gradient-to-r from-slate-800 to-emerald-800 text-white px-6 py-6 text-center">
+            <h2 className="text-2xl font-bold">Book a Taxi</h2>
+            <p className="text-sm text-emerald-50 mt-1">Fare auto-calculated from your locations</p>
           </div>
 
-          {/* Trip mode tabs */}
+          {/* Trip mode tabs — emerald to match booking form */}
           <div className="flex border-b border-gray-200 bg-white">
             {(['oneway', 'roundtrip'] as TripMode[]).map(m => (
               <button key={m} type="button" onClick={() => setMode(m)}
                 className={`flex-1 py-4 text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-                  mode === m ? 'border-b-2 border-blue-600 text-blue-700' : 'text-gray-400 hover:text-gray-600'
+                  mode === m ? 'border-b-2 border-emerald-600 text-emerald-700' : 'text-gray-400 hover:text-gray-600'
                 }`}>
                 {m === 'oneway' ? <><ArrowRight size={16} /> One-Way Drop</> : <><ArrowLeftRight size={16} /> Round Trip (Up & Down)</>}
               </button>
@@ -410,7 +410,7 @@ function TaxiPage() {
               </div>
             )}
 
-            {/* Date & Time */}
+            {/* Date & Time — matches booking form style */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -418,14 +418,14 @@ function TaxiPage() {
                 </label>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none" />
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   <Clock className="inline h-4 w-4 mr-1" />Departure Time
                 </label>
                 <input type="time" value={time} onChange={e => setTime(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none" />
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
               </div>
             </div>
 
@@ -437,7 +437,7 @@ function TaxiPage() {
                 </label>
                 <input type="date" value={returnDate} onChange={e => setReturnDate(e.target.value)}
                   min={date || new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none" />
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
               </div>
             )}
 
@@ -457,10 +457,10 @@ function TaxiPage() {
                 {(Object.keys(CAR_INFO) as TaxiCategory[]).map(cat => (
                   <button key={cat} type="button" onClick={() => setCategory(cat)}
                     className={`p-3 rounded-xl border-2 text-left transition-all ${
-                      category === cat ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                      category === cat ? 'border-emerald-600 bg-emerald-50' : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}>
-                    <div className="font-bold text-sm text-gray-800">{cat}</div>
-                    <div className="text-xs text-gray-500">{CAR_INFO[cat].desc}</div>
+                    <div className={`font-bold text-sm ${category === cat ? 'text-emerald-700' : 'text-gray-800'}`}>{cat}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{CAR_INFO[cat].seats} seats</div>
                   </button>
                 ))}
               </div>
@@ -468,8 +468,8 @@ function TaxiPage() {
 
             {/* Fare breakdown */}
             {fare && (
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
-                <h4 className="font-bold text-blue-800 mb-3 text-sm">💰 Fare Estimate</h4>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+                <h4 className="font-bold text-emerald-800 mb-3 text-sm">💰 Fare Estimate</h4>
                 <div className="space-y-2 text-sm">
                   {fare.night > 0 && (
                     <div className="flex justify-between text-orange-600">
@@ -487,11 +487,15 @@ function TaxiPage() {
                       <span className="font-semibold">{inr.format(fare.driverAllowance)}</span>
                     </div>
                   )}
-                  <div className="border-t border-blue-300 pt-2 flex justify-between font-black text-blue-800 text-base">
+                  <div className="border-t border-emerald-300 pt-2 flex justify-between font-bold text-emerald-700 text-base">
                     <span>Total Estimate</span>
                     <span>{inr.format(fare.total)}</span>
                   </div>
-                  <p className="text-xs text-gray-500 pt-1">* Final fare may vary slightly based on actual route & tolls. Min fare: {inr.format(MIN_FARE[category])}</p>
+                  <div className="border-t border-emerald-200 pt-2 flex justify-between text-xs text-gray-600">
+                    <span>Cancellation Charge</span>
+                    <span className="font-semibold">{inr.format(500)}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 pt-1">* Final fare may vary slightly based on actual route & tolls.</p>
                 </div>
               </div>
             )}
@@ -504,7 +508,7 @@ function TaxiPage() {
             )}
 
             <button type="submit" disabled={submitting}
-              className="w-full bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-800 hover:to-blue-700 disabled:opacity-60 text-white font-bold py-4 rounded-2xl transition-all shadow-lg mt-2 flex items-center justify-center gap-2">
+              className="w-full bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-800 hover:to-emerald-700 disabled:opacity-60 text-white font-bold py-4 rounded-2xl transition-all shadow-lg mt-2 flex items-center justify-center gap-2">
               {submitting ? <><Loader2 className="h-5 w-5 animate-spin" />Booking...</> : <>Confirm Taxi Booking <ArrowRight size={18} /></>}
             </button>
             <p className="text-xs text-gray-400 text-center">🔒 Verified drivers · Transparent pricing · Online/Offline payment</p>
@@ -526,38 +530,6 @@ function TaxiPage() {
           ))}
         </div>
 
-        {/* Pricing table */}
-        <div className="mt-8 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <h3 className="text-lg font-bold text-white mb-4">Rate Card</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-700">
-                  <th className="text-left py-2 text-slate-400 font-semibold">Vehicle</th>
-                  <th className="text-right py-2 text-slate-400 font-semibold">Rate/km</th>
-                  <th className="text-right py-2 text-slate-400 font-semibold">Min Fare</th>
-                  <th className="text-right py-2 text-slate-400 font-semibold">Seats</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(Object.keys(CAR_INFO) as TaxiCategory[]).map(cat => (
-                  <tr key={cat} className="border-b border-slate-800 last:border-0">
-                    <td className="py-3 text-white font-semibold">{CAR_INFO[cat].emoji} {cat}</td>
-                    <td className="py-3 text-right text-emerald-400 font-bold">₹{RATE_PER_KM[cat]}</td>
-                    <td className="py-3 text-right text-slate-300">{inr.format(MIN_FARE[cat])}</td>
-                    <td className="py-3 text-right text-slate-400">{CAR_INFO[cat].seats}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-4 space-y-1 text-xs text-slate-500">
-            <p>• Night surcharge +15% applies between 10 PM – 6 AM</p>
-            <p>• Toll & state taxes estimated at ₹{TOLL_PER_100KM}/100 km</p>
-            <p>• Driver allowance ₹{DRIVER_ALLOWANCE_LONG} added for trips over 300 km</p>
-            <p>• Round trip fare = one-way distance × 2</p>
-          </div>
-        </div>
       </div>
 
       {/* Footer CTA */}
