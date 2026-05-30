@@ -184,6 +184,22 @@ function LandingPage() {
                 </p>
               </div>
             </div>
+
+            {/* Card 4: Taxi */}
+            <div className="bg-slate-950 text-white rounded-2xl p-6 flex gap-5 items-start border border-blue-800/40">
+              <div className="text-5xl">🚕</div>
+              <div className="flex-1">
+                <h3 className="text-white font-black text-xl">TAXI SERVICES</h3>
+                <p className="text-slate-500 text-sm">(One-Way & Round Trip)</p>
+                <p className="text-slate-400 text-sm mt-2">
+                  Point-to-point taxi with auto fare calculation based on distance. 
+                  One-way drop or up & down — transparent pricing, no surprises.
+                </p>
+                <Link to="/taxi" className="inline-flex items-center gap-1 mt-3 text-blue-400 text-xs font-semibold hover:text-blue-300 transition">
+                  Book a Taxi →
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -323,6 +339,7 @@ function LandingPage() {
               <ul className="space-y-2 text-sm text-slate-400">
                 <li><Link to="/" className="hover:text-white transition">Home</Link></li>
                 <li><Link to="/booking" className="hover:text-white transition">Book a Driver</Link></li>
+                <li><Link to="/taxi" className="hover:text-white transition">Taxi Services</Link></li>
                 <li><Link to="/cars" className="hover:text-white transition">Car Rentals</Link></li>
                 <li><a href="#how-it-works" className="hover:text-white transition">How it Works</a></li>
                 <li><a href="#contact" className="hover:text-white transition">Contact</a></li>

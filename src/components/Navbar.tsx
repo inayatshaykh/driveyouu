@@ -88,6 +88,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
         <nav className="hidden md:flex items-center gap-6 text-sm text-slate-300">
           <Link to="/" className="hover:text-white transition">Home</Link>
           <Link to="/booking" className="hover:text-white transition">Book a Driver</Link>
+          <Link to="/taxi" className="hover:text-white transition">Taxi Services</Link>
           <Link to="/cars" className="hover:text-white transition">Car Rentals</Link>
           <a href="/#how-it-works" className="hover:text-white transition">How It Works</a>
           <a href="/help" className="hover:text-white transition">Contact</a>
@@ -173,6 +174,14 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                       Book a Driver
                     </Link>
                     <Link
+                      to="/taxi"
+                      onClick={closeAll}
+                      className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-colors"
+                    >
+                      <Car className="h-4 w-4 text-slate-400" />
+                      Taxi Services
+                    </Link>
+                    <Link
                       to="/cars"
                       onClick={closeAll}
                       className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-colors"
@@ -232,6 +241,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
             <nav className="flex flex-col space-y-0.5">
               <Link to="/" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Home</Link>
               <Link to="/booking" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Book a Driver</Link>
+              <Link to="/taxi" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Taxi Services</Link>
               <Link to="/cars" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Car Rentals</Link>
               <a href="/#how-it-works" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>How It Works</a>
               <a href="/help" className="px-4 py-3 text-white hover:bg-slate-800 rounded-xl text-sm" onClick={closeAll}>Contact</a>
