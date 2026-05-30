@@ -549,11 +549,10 @@ function TaxiPage() {
         </div>
 
         {/* Info cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
           {[
             { icon: '📍', title: 'One-Way Drop', desc: 'Pay only for the distance to your destination. No return charges.' },
             { icon: '🔄', title: 'Round Trip', desc: 'Driver waits and brings you back. Total distance × 2 fare.' },
-            { icon: '💰', title: 'Auto Pricing', desc: 'Fare calculated instantly from GPS distance. No surprises.' },
           ].map(c => (
             <div key={c.title} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 text-center">
               <div className="text-3xl mb-2">{c.icon}</div>
