@@ -387,7 +387,7 @@ function LandingPage() {
             </div>
           </div>
           <div className="border-t border-slate-800 mt-8 pt-6 text-center">
-            <p className="text-xs text-slate-600">© 2025 UR's Chauffeur. All rights reserved. Made with ❤️ in India</p>
+            <p className="text-xs text-slate-600">© 2026 UR's Chauffeur. All rights reserved. Made with ❤️ in India</p>
           </div>
         </div>
       </footer>

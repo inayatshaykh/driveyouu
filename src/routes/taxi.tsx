@@ -378,7 +378,6 @@ function TaxiPage() {
           {/* Header — matches Book a Driver style */}
           <div className="bg-gradient-to-r from-slate-800 to-emerald-800 text-white px-6 py-6 text-center">
             <h2 className="text-2xl font-bold">Book a Taxi</h2>
-            <p className="text-sm text-emerald-50 mt-1">Fare auto-calculated from your locations</p>
           </div>
 
           {/* Trip mode tabs — emerald to match booking form */}
