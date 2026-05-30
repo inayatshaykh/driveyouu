@@ -14,7 +14,7 @@ export const Route = createFileRoute("/booking")({
 
 function BookingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-slate-950">
       <Navbar />
       <main className="py-8 px-4 max-w-2xl mx-auto">
         <NewBookingForm />
