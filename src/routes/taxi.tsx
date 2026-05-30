@@ -197,7 +197,9 @@ function LocInput({ label, value, onChange, onSelect, icon = 'pickup', placehold
         <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
         <input type="text" value={value} onChange={handleChange} placeholder={placeholder}
           className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none text-base bg-white"
-          autoComplete="off" autoCorrect="off" spellCheck={false} />
+          autoComplete="off" autoCorrect="off" spellCheck={false}
+          onFocus={() => { if (value.length >= 3 && suggestions.length > 0) setOpen(true); }}
+        />
         <div className="absolute right-3 top-1/2 -translate-y-1/2">
           {loading ? <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
             : value.length > 0 ? <button type="button" onClick={() => { onChange(''); setSuggestions([]); setOpen(false); }} className="text-gray-400 hover:text-gray-600"><X className="h-4 w-4" /></button>
@@ -213,7 +215,7 @@ function LocInput({ label, value, onChange, onSelect, icon = 'pickup', placehold
       )}
       {locErr && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="h-3.5 w-3.5" />{locErr}</p>}
       {open && value.length >= 3 && (
-        <div className="absolute z-50 w-full mt-1 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden" style={{ zIndex: 9999 }}>
           {loading && suggestions.length === 0 ? (
             <div className="px-4 py-3 flex items-center gap-2 text-sm text-gray-400"><Loader2 className="h-4 w-4 animate-spin text-blue-500" />Searching...</div>
           ) : err ? (
@@ -256,9 +258,9 @@ function TaxiPage() {
 
   // Auto-calculate distance whenever both locations are set
   useEffect(() => {
-    if (pickup && drop) {
+    if (pickup && drop && pickup.lat && drop.lat) {
       const km = estimateRoadKm(pickup.lat, pickup.lon, drop.lat, drop.lon);
-      setDistanceKm(km);
+      setDistanceKm(km > 0 ? km : null);
     } else {
       setDistanceKm(null);
     }
@@ -269,7 +271,7 @@ function TaxiPage() {
     : null;
 
   const handlePickupChange = useCallback((v: string) => { setPickupQuery(v); if (!v) setPickup(null); }, []);
-  const handleDropChange = useCallback((v: string) => { setDropQuery(v); if (!v) setDrop(null); }, []);
+  const handleDropChange = useCallback((v: string) => { setDropQuery(v); if (!v) { setDrop(null); setDistanceKm(null); } }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -383,25 +385,23 @@ function TaxiPage() {
 
           <form onSubmit={handleSubmit} className="p-6 space-y-5 bg-white">
 
-            {/* Locations */}
-            <LocInput label="Pickup Location" value={pickupQuery} onChange={handlePickupChange}
-              onSelect={loc => setPickup(loc)} icon="pickup" placeholder="Enter pickup city or address" />
+            {/* Locations — wrapped so dropdowns don't overlap each other */}
+            <div className="space-y-5" style={{ isolation: 'isolate' }}>
+              <LocInput label="Pickup Location" value={pickupQuery} onChange={handlePickupChange}
+                onSelect={loc => setPickup(loc)} icon="pickup" placeholder="Enter pickup city or address" />
 
-            <LocInput label="Destination" value={dropQuery} onChange={handleDropChange}
-              onSelect={loc => setDrop(loc)} icon="drop" placeholder="Enter destination city or address" />
+              <LocInput label="Destination" value={dropQuery} onChange={handleDropChange}
+                onSelect={loc => setDrop(loc)} icon="drop" placeholder="Enter destination city or address" />
+            </div>
 
-            {/* Distance badge */}
-            {distanceKm !== null && distanceKm > 0 ? (
+            {/* Distance badge — only shown after both locations confirmed */}
+            {distanceKm !== null && distanceKm > 0 && (
               <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
                 <span className="text-blue-600 font-bold text-sm">📍 Estimated Distance:</span>
                 <span className="text-blue-800 font-black text-base">{distanceKm} km</span>
                 {mode === 'roundtrip' && <span className="text-blue-500 text-xs">(× 2 = {distanceKm * 2} km total)</span>}
               </div>
-            ) : pickupQuery.length > 2 && dropQuery.length > 2 && (!pickup || !drop) ? (
-              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-                <span className="text-gray-400 text-sm">📍 Select a location from the suggestions to calculate distance</span>
-              </div>
-            ) : null}
+            )}
 
             {/* Date & Time */}
             <div className="grid grid-cols-2 gap-4">
@@ -464,10 +464,6 @@ function TaxiPage() {
               <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
                 <h4 className="font-bold text-blue-800 mb-3 text-sm">💰 Fare Estimate</h4>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between text-gray-700">
-                    <span>Distance ({fare.effectiveKm} km × ₹{RATE_PER_KM[category]}/km)</span>
-                    <span className="font-semibold">{inr.format(fare.base)}</span>
-                  </div>
                   {fare.night > 0 && (
                     <div className="flex justify-between text-orange-600">
                       <span>Night Surcharge (+15%)</span>
