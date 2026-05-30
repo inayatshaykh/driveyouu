@@ -367,17 +367,7 @@ function TaxiPage() {
     <div className="min-h-screen bg-slate-950 text-white">
       <Navbar />
 
-      {/* Hero */}
-      <section className="bg-gradient-to-b from-slate-900 to-slate-950 py-14 px-6 text-center border-b border-slate-800">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-semibold mb-5">
-          <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-          Taxi Services · One-Way & Round Trip
-        </div>
-        <h1 className="text-4xl sm:text-5xl font-black text-white mb-3">Book a Taxi</h1>
-        <p className="text-slate-400 text-lg max-w-xl mx-auto">
-          Instant fare calculation based on distance. Transparent pricing — no hidden charges.
-        </p>
-      </section>
+      {/* Hero removed */}
 
       <div className="max-w-2xl mx-auto px-4 py-10">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
