@@ -53,7 +53,7 @@ function HelpPage() {
           </a>
 
           {/* WhatsApp */}
-          <a href={`https://wa.me/${PHONE}?text=${WHATSAPP_MSG}`} target="_blank" rel="noopener noreferrer"
+          <a href={`https://wa.me/917087010425?text=${WHATSAPP_MSG}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-4 bg-slate-900 border border-slate-800 hover:border-green-500/40 rounded-2xl p-5 transition-all group">
             <div className="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-green-500/20 transition-colors">
               <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-green-400">

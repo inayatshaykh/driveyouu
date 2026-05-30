@@ -571,7 +571,7 @@ function TaxiPage() {
           <a href="tel:+917087010425" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors">
             📞 +91 70870 10425
           </a>
-          <a href="https://wa.me/919988440119" target="_blank" rel="noopener noreferrer"
+          <a href="https://wa.me/917087010425" target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600/20 hover:bg-green-600/30 text-green-400 font-bold rounded-xl text-sm border border-green-500/30 transition-colors">
             💬 WhatsApp Us
           </a>
