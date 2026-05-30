@@ -108,7 +108,7 @@ const Ico = {
 // ── MAIN COMPONENT ────────────────────────────────────────────────────────────
 function AdminPanel() {
   const navigate = useNavigate();
-  const [page, setPage] = useState<'dashboard'|'rides'|'drivers'|'customers'|'revenue'|'settings'|'withdrawals'|'cars'>('dashboard');
+  const [page, setPage] = useState<'dashboard'|'rides'|'drivers'|'customers'|'revenue'|'settings'|'withdrawals'|'cars'|'taxi'>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
@@ -226,6 +226,7 @@ function AdminPanel() {
     { id:'revenue',   label:'Revenue',   icon:Ico.revenue },
     { id:'withdrawals',label:'Withdrawals', icon:Ico.revenue, badge: pendingWithdrawals },
     { id:'cars',      label:'Cars',      icon:Ico.rides },
+    { id:'taxi',      label:'Taxi Services', icon:'🚕' },
     { id:'settings',  label:'Settings',  icon:Ico.settings },
   ] as const;
 
@@ -291,6 +292,7 @@ function AdminPanel() {
           {page === 'revenue'    && <RevenuePage rides={rides} />}
           {page === 'withdrawals' && <WithdrawalsPage withdrawals={withdrawals} loading={withdrawalLoading} drivers={drivers} onRefresh={loadWithdrawals} />}
           {page === 'cars'        && <AdminCarsPageEmbed />}
+          {page === 'taxi'        && <TaxiServicesPage rides={rides} loading={loading} openAssign={openAssign} updateRide={updateRide} />}
           {page === 'settings'   && <SettingsPage fareConfig={fareConfig} setFareConfig={setFareConfig} notifs={notifs} setNotifs={setNotifs} />}
         </main>
       </div>
@@ -852,6 +854,180 @@ function SettingsPage({ fareConfig, setFareConfig, notifs, setNotifs }: {
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── TAXI SERVICES ─────────────────────────────────────────────────────────────
+function TaxiServicesPage({ rides, loading, openAssign, updateRide }: {
+  rides: Ride[];
+  loading: boolean;
+  openAssign: (id: string) => void;
+  updateRide: (id: string, status: RideStatus) => void;
+}) {
+  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled'>('all');
+
+  const taxiRides = rides.filter(r =>
+    r.type?.startsWith('taxi') || r.type === 'taxi_oneway_instant' || r.type === 'taxi_oneway_schedule' || r.type === 'taxi_roundtrip_instant' || r.type === 'taxi_roundtrip_schedule'
+  );
+
+  const filtered = filter === 'all' ? taxiRides : taxiRides.filter(r => r.status === filter);
+
+  const counts = {
+    all: taxiRides.length,
+    pending: taxiRides.filter(r => r.status === 'pending').length,
+    confirmed: taxiRides.filter(r => r.status === 'confirmed').length,
+    active: taxiRides.filter(r => r.status === 'active').length,
+    completed: taxiRides.filter(r => r.status === 'completed').length,
+    cancelled: taxiRides.filter(r => r.status === 'cancelled').length,
+  };
+
+  const STATUS_COLORS: Record<string, string> = {
+    pending:   'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+    confirmed: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+    active:    'bg-purple-500/20 text-purple-400 border border-purple-500/30',
+    completed: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
+    cancelled: 'bg-red-500/20 text-red-400 border border-red-500/30',
+  };
+
+  const TRIP_LABELS: Record<string, string> = {
+    taxi_oneway_instant:   '📍 One-Way · Instant',
+    taxi_oneway_schedule:  '📍 One-Way · Scheduled',
+    taxi_roundtrip_instant:'🔄 Round Trip · Instant',
+    taxi_roundtrip_schedule:'🔄 Round Trip · Scheduled',
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">🚕 Taxi Services</h1>
+          <p className="text-slate-400 mt-1 text-sm">{taxiRides.length} total taxi bookings</p>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          { label: 'Total', count: counts.all, color: 'text-white' },
+          { label: 'Pending', count: counts.pending, color: 'text-amber-400' },
+          { label: 'Active', count: counts.active, color: 'text-purple-400' },
+          { label: 'Completed', count: counts.completed, color: 'text-emerald-400' },
+        ].map(s => (
+          <div key={s.label} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+            <div className={`text-2xl font-black ${s.color}`}>{s.count}</div>
+            <div className="text-xs text-slate-500 mt-1">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Filter tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {(['all','pending','confirmed','active','completed','cancelled'] as const).map(s => (
+          <button key={s} onClick={() => setFilter(s)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all ${
+              filter === s ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700'
+            }`}>
+            {s} ({counts[s as keyof typeof counts] ?? taxiRides.length})
+          </button>
+        ))}
+      </div>
+
+      {/* Bookings list */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+        {loading ? (
+          <div className="py-12 flex justify-center">
+            <svg className="w-8 h-8 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+            </svg>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-12 text-center text-slate-500 text-sm">No taxi bookings found</div>
+        ) : (
+          <div className="divide-y divide-slate-800">
+            {filtered.map(r => (
+              <div key={r.id} className="p-4 sm:p-5">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="text-xs font-mono text-emerald-400">#{r.id.slice(0,8).toUpperCase()}</span>
+                      <span className={`px-2 py-0.5 rounded-lg text-xs font-semibold ${STATUS_COLORS[r.status] ?? 'bg-slate-700 text-slate-300'}`}>
+                        {r.status}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-lg text-xs font-semibold bg-blue-500/15 text-blue-400">
+                        {TRIP_LABELS[r.type] ?? r.type}
+                      </span>
+                    </div>
+                    <div className="text-sm font-semibold text-white truncate">📍 {r.pickup}</div>
+                    {r.drop && <div className="text-xs text-slate-400 truncate mt-0.5">→ {r.drop}</div>}
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-lg font-bold text-white">₹{r.fare?.toLocaleString()}</div>
+                    <div className="text-xs text-slate-500">{new Date(r.created).toLocaleDateString('en-IN', { day:'numeric', month:'short' })}</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs mb-3">
+                  <div className="bg-slate-800 rounded-lg p-2">
+                    <div className="text-slate-500">Customer</div>
+                    <div className="text-white font-semibold truncate">{r.customer}</div>
+                    <div className="text-slate-400">{r.phone}</div>
+                  </div>
+                  <div className="bg-slate-800 rounded-lg p-2">
+                    <div className="text-slate-500">Vehicle</div>
+                    <div className="text-white font-semibold">{r._raw.car_category ?? '—'}</div>
+                  </div>
+                  {r.driver ? (
+                    <div className="bg-emerald-900/30 border border-emerald-800/40 rounded-lg p-2">
+                      <div className="text-slate-500">Driver</div>
+                      <div className="text-emerald-400 font-semibold truncate">{r.driver}</div>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-800 rounded-lg p-2">
+                      <div className="text-slate-500">Driver</div>
+                      <div className="text-slate-400">Not assigned</div>
+                    </div>
+                  )}
+                </div>
+
+                {r._raw.admin_notes && (
+                  <div className="bg-slate-800/60 rounded-lg px-3 py-2 text-xs text-slate-400 mb-3">
+                    📝 {r._raw.admin_notes}
+                  </div>
+                )}
+
+                <div className="flex gap-2 flex-wrap">
+                  {r.status === 'pending' && (
+                    <button onClick={() => openAssign(r.id)}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors">
+                      Assign Driver
+                    </button>
+                  )}
+                  {r.status === 'confirmed' && (
+                    <button onClick={() => updateRide(r.id, 'active')}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors">
+                      Start Ride
+                    </button>
+                  )}
+                  {r.status === 'active' && (
+                    <button onClick={() => updateRide(r.id, 'completed')}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors">
+                      Complete
+                    </button>
+                  )}
+                  {(r.status === 'pending' || r.status === 'confirmed') && (
+                    <button onClick={() => updateRide(r.id, 'cancelled')}
+                      className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs font-bold rounded-lg border border-red-500/30 transition-colors">
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
