@@ -111,6 +111,16 @@ function DriverPanel() {
     if (!driver) return;
     const amount = Number(withdrawAmount);
     if (!amount || amount <= 0) { toast.error('Enter a valid amount'); return; }
+    const MIN_BALANCE = 1000;
+    const available = (walletData?.balance ?? 0) - MIN_BALANCE;
+    if (available <= 0) {
+      toast.error('Minimum wallet balance of ₹1,000 must be maintained. Nothing available to withdraw.');
+      return;
+    }
+    if (amount > available) {
+      toast.error(`You can withdraw up to ₹${available.toLocaleString()} (₹1,000 minimum balance must remain).`);
+      return;
+    }
     setWithdrawing(true);
     const { error } = await createWithdrawalRequest(driver.id, driver.name, driver.phone, amount);
     setWithdrawing(false);
@@ -341,15 +351,23 @@ function DriverPanel() {
             </div>
             {/* Withdrawal request */}
             <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl p-5">
-              <h3 className="font-bold text-white mb-3">Request Withdrawal</h3>
+              <h3 className="font-bold text-white mb-1">Request Withdrawal</h3>
+              <p className="text-xs text-slate-400 mb-3">
+                Available to withdraw:{' '}
+                <span className="text-emerald-400 font-bold">
+                  {inr(Math.max(0, (walletData?.balance ?? 0) - 1000))}
+                </span>
+                <span className="text-slate-500"> (₹1,000 min. balance required)</span>
+              </p>
               <div className="flex gap-3">
                 <div className="flex-1 flex items-stretch rounded-xl overflow-hidden border border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500">
                   <span className="flex items-center px-3 bg-slate-800 text-slate-400 text-sm border-r border-slate-700">₹</span>
                   <input type="number" value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)}
                     placeholder="Enter amount"
+                    max={Math.max(0, (walletData?.balance ?? 0) - 1000)}
                     className="flex-1 px-3 py-2.5 bg-slate-800 text-white text-sm focus:outline-none" />
                 </div>
-                <button onClick={handleWithdraw} disabled={withdrawing || !withdrawAmount}
+                <button onClick={handleWithdraw} disabled={withdrawing || !withdrawAmount || (walletData?.balance ?? 0) <= 1000}
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold rounded-xl text-sm transition-colors">
                   {withdrawing ? '...' : 'Request'}
                 </button>
