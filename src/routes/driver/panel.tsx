@@ -141,7 +141,7 @@ function DriverPanel() {
   ] as const;
 
   if (loading) return (
-    <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
       <div className="text-center">
         <div className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-slate-400 text-sm">Loading...</p>
@@ -150,7 +150,7 @@ function DriverPanel() {
   );
 
   if (!driver) return (
-    <div className="min-h-screen bg-[#0f1117] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
       <div className="text-center max-w-sm">
         <div className="text-5xl mb-4">🚫</div>
         <h2 className="text-xl font-bold text-white mb-2">Not Registered as Driver</h2>
@@ -161,9 +161,9 @@ function DriverPanel() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0f1117] text-white flex flex-col">
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
       {/* Header */}
-      <header className="bg-[#111827] border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+      <header className="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img src="/logo.png" alt="UR's Chauffeur" className="w-8 h-8 rounded-lg object-cover" />
           <div>
@@ -207,24 +207,24 @@ function DriverPanel() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl p-4">
+              <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-4">
                 <div className="text-xs text-slate-400 mb-1">Wallet Balance</div>
                 <div className={`text-xl font-black ${walletData.balance < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                   {walletData.balance < 0 ? '-' : ''}{inr(Math.abs(walletData.balance))}
                 </div>
                 <div className="text-xs text-slate-500 mt-0.5">Available</div>
               </div>
-              <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl p-4">
+              <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-4">
                 <div className="text-xs text-slate-400 mb-1">Active Rides</div>
                 <div className="text-xl font-black text-purple-400">{activeRides.length}</div>
                 <div className="text-xs text-slate-500 mt-0.5">In progress</div>
               </div>
-              <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl p-4">
+              <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-4">
                 <div className="text-xs text-slate-400 mb-1">Total Earned</div>
                 <div className="text-xl font-black text-blue-400">{inr(walletData.totalEarned)}</div>
                 <div className="text-xs text-slate-500 mt-0.5">Lifetime (75%)</div>
               </div>
-              <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl p-4">
+              <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-4">
                 <div className="text-xs text-slate-400 mb-1">Commission Paid</div>
                 <div className="text-xl font-black text-amber-400">{inr(walletData.totalCommission)}</div>
                 <div className="text-xs text-slate-500 mt-0.5">To company (25%)</div>
@@ -232,7 +232,7 @@ function DriverPanel() {
             </div>
             {/* Active rides quick view */}
             {activeRides.length > 0 && (
-              <div className="bg-[#1a2332] border border-emerald-500/30 rounded-2xl overflow-hidden">
+              <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-slate-700/50 flex items-center justify-between">
                   <h3 className="font-bold text-white text-sm">Active Rides</h3>
                   <button onClick={() => setPage('rides')} className="text-xs text-emerald-400">View all →</button>
@@ -265,7 +265,7 @@ function DriverPanel() {
                 { label: 'Completed', count: completedRides.length, color: 'text-emerald-400' },
                 { label: 'Active', count: activeRides.length, color: 'text-purple-400' },
               ].map(s => (
-                <div key={s.label} className="bg-[#1a2332] border border-slate-700/50 rounded-xl p-3">
+                <div key={s.label} className="bg-slate-900 border border-slate-700/50 rounded-xl p-3">
                   <div className={`text-xl font-black ${s.color}`}>{s.count}</div>
                   <div className="text-xs text-slate-500">{s.label}</div>
                 </div>
@@ -276,7 +276,7 @@ function DriverPanel() {
             ) : (
               <div className="space-y-3">
                 {bookings.map(b => (
-                  <div key={b.id} className="bg-[#1a2332] border border-slate-700/50 rounded-2xl p-4">
+                  <div key={b.id} className="bg-slate-900 border border-slate-700/50 rounded-2xl p-4">
                     <div className="flex items-start justify-between mb-2">
                       <span className="text-xs font-mono text-emerald-400">#{b.id.slice(0, 8).toUpperCase()}</span>
                       <span className={`px-2 py-0.5 rounded-lg text-xs font-semibold ${STATUS_CFG[b.status]?.cls ?? 'bg-slate-700 text-slate-300'}`}>
@@ -338,19 +338,19 @@ function DriverPanel() {
             </div>
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl p-4">
+              <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-4">
                 <div className="text-xs text-slate-400 mb-1">Total Earned</div>
                 <div className="text-xl font-black text-blue-400">{inr(walletData.totalEarned)}</div>
                 <div className="text-xs text-slate-500">Lifetime (75% of fares)</div>
               </div>
-              <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl p-4">
+              <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-4">
                 <div className="text-xs text-slate-400 mb-1">Commission Deducted</div>
                 <div className="text-xl font-black text-amber-400">{inr(walletData.totalCommission)}</div>
                 <div className="text-xs text-slate-500">Company's 25%</div>
               </div>
             </div>
             {/* Withdrawal request */}
-            <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl p-5">
+            <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-5">
               <h3 className="font-bold text-white mb-1">Request Withdrawal</h3>
               <p className="text-xs text-slate-400 mb-3">
                 Available to withdraw:{' '}
@@ -375,7 +375,7 @@ function DriverPanel() {
               <p className="text-xs text-slate-500 mt-2">Admin will review and process your request manually.</p>
             </div>
             {/* Transaction history */}
-            <div className="bg-[#1a2332] border border-slate-700/50 rounded-2xl overflow-hidden">
+            <div className="bg-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-700/50">
                 <h3 className="font-bold text-white text-sm">Transaction History</h3>
               </div>
@@ -406,7 +406,7 @@ function DriverPanel() {
       </main>
 
       {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-[#111827] border-t border-slate-800 flex">
+      <nav className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 flex">
         {nav.map(item => (
           <button key={item.id} onClick={() => setPage(item.id)}
             className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-semibold transition-colors relative ${
@@ -427,7 +427,7 @@ function DriverPanel() {
       {paymentModal && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
           <button className="absolute inset-0 bg-black/60" onClick={() => setPaymentModal(null)} />
-          <div className="relative w-full max-w-sm bg-[#111827] border border-slate-700 rounded-2xl p-6 shadow-2xl">
+          <div className="relative w-full max-w-sm bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl">
             <h2 className="text-lg font-bold text-white mb-1">Complete Ride</h2>
             <p className="text-xs text-slate-400 mb-4">
               Total fare: <span className="text-white font-bold">₹{paymentModal.booking.total_fare?.toLocaleString()}</span>

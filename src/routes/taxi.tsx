@@ -259,6 +259,7 @@ function LocInput({ label, value, onChange, onSelect, icon = 'pickup', placehold
 function TaxiPage() {
   const [mode, setMode] = useState<TripMode>('oneway');
   const [category, setCategory] = useState<TaxiCategory>('Sedan');
+  const [bookingType, setBookingType] = useState<'instant' | 'schedule'>('instant');
 
   const [pickupQuery, setPickupQuery] = useState('');
   const [dropQuery, setDropQuery] = useState('');
@@ -294,9 +295,11 @@ function TaxiPage() {
     e.preventDefault();
     if (!pickup) { toast.error('Please select pickup location'); return; }
     if (!drop) { toast.error('Please select destination'); return; }
-    if (!date) { toast.error('Please select travel date'); return; }
-    if (!time) { toast.error('Please select departure time'); return; }
-    if (mode === 'roundtrip' && !returnDate) { toast.error('Please select return date'); return; }
+    if (bookingType === 'schedule') {
+      if (!date) { toast.error('Please select travel date'); return; }
+      if (!time) { toast.error('Please select departure time'); return; }
+      if (mode === 'roundtrip' && !returnDate) { toast.error('Please select return date'); return; }
+    }
 
     setSubmitting(true);
     try {
@@ -311,13 +314,13 @@ function TaxiPage() {
         customer_id: session?.mobile ?? 'guest',
         customer_name: session?.name ?? 'Guest',
         customer_phone: session?.mobile ?? '',
-        booking_type: `taxi_${mode}`,
+        booking_type: `taxi_${mode}_${bookingType}`,
         status: 'pending',
         pickup_address: pickup.address,
         drop_address: drop.address,
-        scheduled_date: date,
-        scheduled_time: time,
-        duration: mode === 'roundtrip' ? `Return: ${returnDate}` : null,
+        scheduled_date: bookingType === 'schedule' ? date : null,
+        scheduled_time: bookingType === 'schedule' ? time : null,
+        duration: bookingType === 'schedule' && mode === 'roundtrip' ? `Return: ${returnDate}` : null,
         days: null,
         car_category: category,
         transmission: 'Any',
@@ -410,42 +413,72 @@ function TaxiPage() {
               </div>
             )}
 
-            {/* Date & Time — matches booking form style */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <Calendar className="inline h-4 w-4 mr-1" />Travel Date
-                </label>
-                <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <Clock className="inline h-4 w-4 mr-1" />Departure Time
-                </label>
-                <input type="time" value={time} onChange={e => setTime(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
+            {/* Instant / Schedule toggle */}
+            <div>
+              <h3 className="text-base font-bold text-gray-700 mb-3">When do you need the taxi?</h3>
+              <div className="relative">
+                <select value={bookingType} onChange={e => setBookingType(e.target.value as 'instant' | 'schedule')}
+                  className="w-full px-4 py-4 pr-10 text-base text-gray-700 bg-white border border-gray-300 rounded-xl appearance-none focus:ring-2 focus:ring-emerald-600 focus:outline-none cursor-pointer">
+                  <option value="instant">Now (Instant Booking)</option>
+                  <option value="schedule">Schedule for Later</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
 
-            {/* Return date for round trip */}
-            {mode === 'roundtrip' && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  <Calendar className="inline h-4 w-4 mr-1" />Return Date
-                </label>
-                <input type="date" value={returnDate} onChange={e => setReturnDate(e.target.value)}
-                  min={date || new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
+            {/* Instant booking notice */}
+            {bookingType === 'instant' && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+                <p className="text-sm text-emerald-800">
+                  <span className="font-semibold">⚡ Instant Booking:</span> Driver will be assigned immediately and arrive within 1–3 hours
+                </p>
               </div>
             )}
 
-            {/* Night surcharge notice */}
-            {isNightTime(time) && (
-              <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
-                <p className="text-sm text-orange-700 font-semibold">🌙 Night surcharge applies (10 PM – 6 AM): +15%</p>
-              </div>
+            {/* Date & Time — only for scheduled */}
+            {bookingType === 'schedule' && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Calendar className="inline h-4 w-4 mr-1" />Travel Date
+                    </label>
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Clock className="inline h-4 w-4 mr-1" />Departure Time
+                    </label>
+                    <input type="time" value={time} onChange={e => setTime(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
+                  </div>
+                </div>
+
+                {/* Return date for round trip */}
+                {mode === 'roundtrip' && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Calendar className="inline h-4 w-4 mr-1" />Return Date
+                    </label>
+                    <input type="date" value={returnDate} onChange={e => setReturnDate(e.target.value)}
+                      min={date || new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:outline-none" />
+                  </div>
+                )}
+
+                {/* Night surcharge notice */}
+                {isNightTime(time) && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+                    <p className="text-sm text-orange-700 font-semibold">🌙 Night surcharge applies (10 PM – 6 AM): +15%</p>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Vehicle selector */}
