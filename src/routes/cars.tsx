@@ -112,7 +112,7 @@ function EnquiryModal({ car, onClose }: { car: CarWithAvailability; onClose: () 
           </button>
         </div>
         <p className="text-xs text-slate-500 text-center mt-3">
-          📞 We'll call you within 30 minutes with pricing details
+          📞 We'll call you within 3 hours with pricing details
         </p>
       </div>
     </div>

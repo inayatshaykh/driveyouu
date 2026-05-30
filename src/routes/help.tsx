@@ -77,7 +77,7 @@ function HelpPage() {
           </div>
           <div>
             <div className="text-sm font-semibold text-white">Support Hours</div>
-            <div className="text-xs text-slate-400 mt-0.5">Available 24/7 — We respond within 30 minutes</div>
+            <div className="text-xs text-slate-400 mt-0.5">Available 24/7 — We respond within 3 hours</div>
           </div>
         </div>
 

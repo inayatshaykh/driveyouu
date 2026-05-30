@@ -11,7 +11,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Book professional drivers for your vehicle. On-demand, scheduled, hourly, airport & outstation. Background-verified chauffeurs. 30-min arrival.",
+          "Book professional drivers for your vehicle. On-demand, scheduled, hourly, airport & outstation. 100+ verified & trusted drivers. Instant booking.",
       },
       { property: "og:title", content: "UR's Chauffeur — Professional Driver Service" },
       {
@@ -86,7 +86,7 @@ function LandingPage() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-semibold mb-8">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            300+ Verified Drivers · Available 24/7
+            100+ Verified & Trusted Drivers · Available 24/7
           </div>
 
           {/* Headline */}
@@ -134,7 +134,7 @@ function LandingPage() {
       {/* STATS BAR */}
       <section className="bg-slate-900 border-t border-b border-slate-800 py-8">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-slate-400 text-sm font-medium">300+ drivers available 24/7</p>
+          <p className="text-slate-400 text-sm font-medium">100+ verified & trusted drivers available 24/7 · 1000+ rides completed in 3 months</p>
         </div>
       </section>
 
@@ -291,7 +291,7 @@ function LandingPage() {
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold">Ready for your next ride?</h2>
           <p className="mt-3 text-slate-300">
-            A verified professional driver is 30 minutes away. We provide the driver for your vehicle.
+            A verified, trusted professional driver arrives within 1–3 hours. We provide the driver for your vehicle.
           </p>
           <Link 
             to="/booking" 

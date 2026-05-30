@@ -147,7 +147,7 @@ export function NewBookingForm() {
       driverNeeded,
       date:
         activeTab === 'hourly'
-          ? driverNeeded === 'now' ? 'Now (within 30 min)' : formatDateLabel(bookingDate)
+          ? driverNeeded === 'now' ? 'Now (within 1–3 hrs)' : formatDateLabel(bookingDate)
           : activeTab === 'multiday'
             ? `${formatDateLabel(startDate)} – ${formatDateLabel(endDate)}`
             : `${formatDateLabel(outstationStartDate)} – ${formatDateLabel(outstationEndDate)}`,
@@ -396,7 +396,7 @@ export function NewBookingForm() {
               {driverNeeded === 'now' && (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
                   <p className="text-sm text-emerald-800">
-                    <span className="font-semibold">⚡ Instant Booking:</span> Driver will be assigned immediately and arrive within 30 minutes
+                    <span className="font-semibold">⚡ Instant Booking:</span> Driver will be assigned immediately and arrive within 1–3 hours
                   </p>
                 </div>
               )}
@@ -637,7 +637,7 @@ export function NewBookingForm() {
             type="submit"
             className="w-full bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-800 hover:to-emerald-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg mt-2"
           >
-            Book Now
+            Instant Booking
           </button>
           <p className="text-xs text-gray-400 text-center">
             🔒 Professional Driver · Your Own Vehicle · Online/Offline Payment

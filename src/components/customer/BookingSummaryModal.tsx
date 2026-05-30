@@ -67,7 +67,7 @@ export const BookingSummaryModal = memo(function BookingSummaryModal({
           {data.driverNeeded && (
             <p>
               <span className="text-gray-500">⚡ Driver Needed:</span>{' '}
-              <span className="font-medium">{data.driverNeeded === 'now' ? 'Now (within 30 min)' : 'Scheduled'}</span>
+              <span className="font-medium">{data.driverNeeded === 'now' ? 'Now (within 1–3 hrs)' : 'Scheduled'}</span>
             </p>
           )}
           <p><span className="text-gray-500">📍 Pickup:</span> <span className="font-medium">{data.pickup}</span></p>
