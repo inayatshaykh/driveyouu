@@ -157,7 +157,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                     )}
                     {isDriver && (
                       <Link
-                        to="/driver"
+                        to="/driver/panel"
                         onClick={closeAll}
                         className="flex items-center gap-3 px-3 py-2.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-colors"
                       >
@@ -278,7 +278,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
                     </Link>
                   )}
                   {isDriver && (
-                    <Link to="/driver" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl text-sm" onClick={closeAll}>
+                    <Link to="/driver/panel" className="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl text-sm" onClick={closeAll}>
                       <Car className="h-4 w-4" /> Driver Portal
                     </Link>
                   )}

@@ -20,6 +20,7 @@ import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CustomerIndexRouteImport } from './routes/customer/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as DriverIndexRouteImport } from './routes/driver/index'
 import { Route as DriverPanelRouteImport } from './routes/driver/panel'
 import { Route as CustomerProfileRouteImport } from './routes/customer/profile'
 import { Route as CustomerNotificationsRouteImport } from './routes/customer/notifications'
@@ -92,6 +93,11 @@ const CustomerIndexRoute = CustomerIndexRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DriverIndexRoute = DriverIndexRouteImport.update({
+  id: '/driver/',
+  path: '/driver/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DriverPanelRoute = DriverPanelRouteImport.update({
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/customer/notifications': typeof CustomerNotificationsRoute
   '/customer/profile': typeof CustomerProfileRoute
   '/driver/panel': typeof DriverPanelRoute
+  '/driver/': typeof DriverIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/customer/': typeof CustomerIndexRoute
 }
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/customer/notifications': typeof CustomerNotificationsRoute
   '/customer/profile': typeof CustomerProfileRoute
   '/driver/panel': typeof DriverPanelRoute
+  '/driver': typeof DriverIndexRoute
   '/admin': typeof AdminIndexRoute
   '/customer': typeof CustomerIndexRoute
 }
@@ -276,6 +284,7 @@ export interface FileRoutesById {
   '/customer/notifications': typeof CustomerNotificationsRoute
   '/customer/profile': typeof CustomerProfileRoute
   '/driver/panel': typeof DriverPanelRoute
+  '/driver/': typeof DriverIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/customer/': typeof CustomerIndexRoute
 }
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/customer/notifications'
     | '/customer/profile'
     | '/driver/panel'
+    | '/driver/'
     | '/admin/'
     | '/customer/'
   fileRoutesByTo: FileRoutesByTo
@@ -340,6 +350,7 @@ export interface FileRouteTypes {
     | '/customer/notifications'
     | '/customer/profile'
     | '/driver/panel'
+    | '/driver'
     | '/admin'
     | '/customer'
   id:
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
     | '/customer/notifications'
     | '/customer/profile'
     | '/driver/panel'
+    | '/driver/'
     | '/admin/'
     | '/customer/'
   fileRoutesById: FileRoutesById
@@ -403,6 +415,7 @@ export interface RootRouteChildren {
   CustomerNotificationsRoute: typeof CustomerNotificationsRoute
   CustomerProfileRoute: typeof CustomerProfileRoute
   DriverPanelRoute: typeof DriverPanelRoute
+  DriverIndexRoute: typeof DriverIndexRoute
   AdminIndexRoute: typeof AdminIndexRoute
   CustomerIndexRoute: typeof CustomerIndexRoute
 }
@@ -491,6 +504,13 @@ declare module '@tanstack/react-router' {
       path: '/driver/panel'
       fullPath: '/driver/panel'
       preLoaderRoute: typeof DriverPanelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/driver/': {
+      id: '/driver/'
+      path: '/driver'
+      fullPath: '/driver/'
+      preLoaderRoute: typeof DriverIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/customer/profile': {
@@ -643,6 +663,7 @@ const rootRouteChildren: RootRouteChildren = {
   CustomerNotificationsRoute: CustomerNotificationsRoute,
   CustomerProfileRoute: CustomerProfileRoute,
   DriverPanelRoute: DriverPanelRoute,
+  DriverIndexRoute: DriverIndexRoute,
   AdminIndexRoute: AdminIndexRoute,
   CustomerIndexRoute: CustomerIndexRoute,
 }
