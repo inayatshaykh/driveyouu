@@ -48,7 +48,7 @@ const VALUES = [
   {
     icon: '🌍',
     title: 'Nationwide Reach',
-    desc: 'From Delhi NCR to outstation trips across India — we operate wherever you need us.',
+    desc: 'From Chandigarh to outstation trips across India — we operate wherever you need us.',
   },
 ];
 
@@ -117,13 +117,13 @@ function AboutPage() {
           <h2 className="text-3xl font-black text-white mb-6">Our Story</h2>
           <div className="space-y-4 text-slate-400 leading-relaxed text-base">
             <p>
-              UR's Chauffeur started in Delhi NCR with one mission: make professional driver services accessible to every car owner in India. Whether you've had a long night out, a medical appointment, or simply don't want to drive on a highway — we're here.
+              UR's Chauffeur started in Chandigarh with one mission: make professional driver services accessible to every car owner in India. Whether you've had a long night out, a medical appointment, or simply don't want to drive on a highway — we're here.
             </p>
             <p>
               We noticed a gap in the market. Cab services take you in their car. Car rentals give you a vehicle. But nobody was solving the problem of <span className="text-white font-semibold">providing a trusted driver for your own vehicle</span>. That's exactly what we do.
             </p>
             <p>
-              In just 3 months since launch, we've completed over 1,000 rides across Delhi, Gurugram, Chandigarh, and beyond. Our network of 100+ verified drivers continues to grow — each one background-checked, trained, and committed to your safety.
+              In just 3 months since launch, we've completed over 1,000 rides across Delhi, Chandigarh, Chandigarh, and beyond. Our network of 100+ verified drivers continues to grow — each one background-checked, trained, and committed to your safety.
             </p>
             <p>
               We're not just a service. We're a movement towards safer roads, empowered drivers, and stress-free travel for every Indian family.

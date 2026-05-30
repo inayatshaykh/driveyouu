@@ -29,7 +29,7 @@ const FALLBACK_REVIEWS: Review[] = [
   {
     id: '1',
     name: "Rohan Sharma",
-    city: "New Delhi",
+    city: "Chandigarh",
     rating: 5,
     quote: "Booked a driver for an airport drop at 4 AM. Driver was professional, on time, and handled my BMW like his own.",
     visible: true,
@@ -38,7 +38,7 @@ const FALLBACK_REVIEWS: Review[] = [
   {
     id: '2',
     name: "Anjali Verma",
-    city: "Gurugram",
+    city: "Chandigarh",
     rating: 5,
     quote: "I use UR's Chauffeur every weekend for parties. No more worrying about driving back home — totally worth it.",
     visible: true,
@@ -104,7 +104,7 @@ function LandingPage() {
           {/* Subtext */}
           <p className="text-lg sm:text-xl text-slate-400 max-w-xl mx-auto mb-10 leading-relaxed">
             Professional, background-verified chauffeurs for your vehicle —
-            on-demand or scheduled, across Delhi NCR.
+            on-demand or scheduled, across Chandigarh.
           </p>
 
           {/* CTA Buttons */}
@@ -329,7 +329,7 @@ function LandingPage() {
                 <div className="font-bold text-lg text-white">UR's Chauffeur</div>
               </div>
               <p className="text-sm text-slate-500">
-                Professional drivers nationwide
+                Professional drivers � Chandigarh
               </p>
             </div>
 
