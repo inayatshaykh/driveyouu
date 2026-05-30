@@ -43,7 +43,11 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   customer_id         TEXT NOT NULL,
   customer_name       TEXT NOT NULL,
   customer_phone      TEXT NOT NULL,
-  booking_type        TEXT NOT NULL CHECK (booking_type IN ('hourly','multiday','outstation')),
+  booking_type        TEXT NOT NULL CHECK (booking_type IN (
+                        'hourly','multiday','outstation',
+                        'taxi_oneway_instant','taxi_oneway_schedule',
+                        'taxi_roundtrip_instant','taxi_roundtrip_schedule'
+                      )),
   status              TEXT NOT NULL DEFAULT 'pending'
                         CHECK (status IN ('pending','confirmed','in_progress','completed','cancelled')),
   pickup_address      TEXT NOT NULL,
