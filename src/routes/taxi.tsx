@@ -43,10 +43,10 @@ const RATE_PER_KM: Record<TaxiCategory, number> = {
 
 // Minimum fare (₹) by category
 const MIN_FARE: Record<TaxiCategory, number> = {
-  Hatchback: 300,
-  Sedan: 400,
-  SUV: 600,
-  Luxury: 1200,
+  Hatchback: 100,
+  Sedan: 100,
+  SUV: 100,
+  Luxury: 100,
 };
 
 // Night surcharge multiplier (10 PM – 6 AM)
