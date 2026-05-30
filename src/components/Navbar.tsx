@@ -307,7 +307,8 @@ export function Navbar({ onLoginClick }: NavbarProps) {
     </header>
 
     {/* Mobile bottom nav bar */}
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 flex items-stretch h-16 shadow-2xl">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950 border-t border-slate-800 flex items-stretch shadow-2xl" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="flex w-full h-16">
       <Link to="/booking" onClick={closeAll}
         className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors ${currentPath === '/booking' ? 'text-emerald-400' : 'text-slate-400 hover:text-white'}`}>
         <Car className="h-5 w-5" />
@@ -328,6 +329,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
         <Calendar className="h-5 w-5" />
         {session ? 'My Bookings' : 'Login'}
       </Link>
+      </div>
     </nav>
     {/* Spacer removed — each page adds pb-16 md:pb-0 instead */}
     </>
