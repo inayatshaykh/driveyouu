@@ -308,6 +308,11 @@ export function Navbar({ onLoginClick }: NavbarProps) {
 
     {/* Mobile bottom nav bar */}
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 flex items-stretch h-16 shadow-2xl">
+      <Link to="/" onClick={closeAll}
+        className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors ${currentPath === '/' ? 'text-emerald-400' : 'text-slate-400 hover:text-white'}`}>
+        <Home className="h-5 w-5" />
+        Home
+      </Link>
       <Link to="/booking" onClick={closeAll}
         className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors ${currentPath === '/booking' ? 'text-emerald-400' : 'text-slate-400 hover:text-white'}`}>
         <Car className="h-5 w-5" />
@@ -316,12 +321,7 @@ export function Navbar({ onLoginClick }: NavbarProps) {
       <Link to="/taxi" onClick={closeAll}
         className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors ${currentPath === '/taxi' ? 'text-emerald-400' : 'text-slate-400 hover:text-white'}`}>
         <MapPin className="h-5 w-5" />
-        Taxi
-      </Link>
-      <Link to="/" onClick={closeAll}
-        className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors ${currentPath === '/' ? 'text-emerald-400' : 'text-slate-400 hover:text-white'}`}>
-        <Home className="h-5 w-5" />
-        Home
+        Taxi Service
       </Link>
       {session ? (
         <Link to={isCustomer ? '/customer/bookings' : isDriver ? '/driver/panel' : '/admin/dashboard'} onClick={closeAll}
