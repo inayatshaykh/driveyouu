@@ -12,9 +12,11 @@ const config: CapacitorConfig = {
   },
   android: {
     backgroundColor: '#0f1117',
+    initialPath: '/booking',
   },
   ios: {
     backgroundColor: '#0f1117',
+    initialPath: '/booking',
   },
 };
 
