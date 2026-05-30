@@ -172,16 +172,21 @@ function AdminPanel() {
   // Assign driver → update Supabase status to 'confirmed' + assigned_driver
   const confirmAssign = useCallback(async (driverName: string) => {
     if (!assigningRideId) return;
-    const driver = drivers.find(d => d.name === driverName);
-    await updateBookingStatus(assigningRideId, 'confirmed', driverName, undefined, driver?.phone);
-    if (driver) await updateDriverStatus(driver.id, 'offline');
-    setRides(prev => prev.map(r =>
-      r.id === assigningRideId ? { ...r, status: 'active' as RideStatus, driver: driverName } : r
-    ));
-    setDrivers(prev => prev.map(d =>
-      d.name === driverName ? { ...d, status: 'offline' as DriverStatus } : d
-    ));
+    // Close modal immediately so UI feels instant
     setAssigningRideId(null);
+    const driver = drivers.find(d => d.name === driverName);
+    try {
+      await updateBookingStatus(assigningRideId, 'confirmed', driverName, undefined, driver?.phone);
+      if (driver) await updateDriverStatus(driver.id, 'offline');
+      setRides(prev => prev.map(r =>
+        r.id === assigningRideId ? { ...r, status: 'active' as RideStatus, driver: driverName } : r
+      ));
+      setDrivers(prev => prev.map(d =>
+        d.name === driverName ? { ...d, status: 'offline' as DriverStatus } : d
+      ));
+    } catch (e) {
+      console.error('Assign driver error:', e);
+    }
   }, [assigningRideId, drivers]);
 
   // Update ride status → write to Supabase so customer sees it
