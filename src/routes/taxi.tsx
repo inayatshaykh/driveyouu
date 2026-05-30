@@ -134,6 +134,7 @@ interface LocInputProps {
 }
 
 function LocInput({ label, value, onChange, onSelect, icon = 'pickup', placeholder = 'Type to search...' }: LocInputProps) {
+  const [inputVal, setInputVal] = useState(value);
   const [suggestions, setSuggestions] = useState<LocationResult[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -143,6 +144,11 @@ function LocInput({ label, value, onChange, onSelect, icon = 'pickup', placehold
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // Sync if parent clears the value externally
+  useEffect(() => {
+    if (value === '') setInputVal('');
+  }, [value]);
+
   useEffect(() => {
     const h = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
@@ -151,8 +157,9 @@ function LocInput({ label, value, onChange, onSelect, icon = 'pickup', placehold
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
+    setInputVal(v);
     onChange(v);
     setErr(false);
     clearTimeout(debounceRef.current);
@@ -165,28 +172,38 @@ function LocInput({ label, value, onChange, onSelect, icon = 'pickup', placehold
       } catch { setSuggestions([]); setErr(true); }
       finally { setLoading(false); }
     }, 350);
-  }, [onChange]);
+  };
 
-  const handleSelect = useCallback((s: LocationResult) => {
-    onSelect({ address: s.name, lat: s.lat, lon: s.lon });
-    onChange(s.name);
+  const handleSelect = (s: LocationResult) => {
+    const addr = s.name;
+    setInputVal(addr);
+    onChange(addr);
+    onSelect({ address: addr, lat: s.lat, lon: s.lon });
     setSuggestions([]); setOpen(false); setLoading(false); setErr(false);
-  }, [onSelect, onChange]);
+  };
 
-  const handleLocate = useCallback(() => {
+  const handleClear = () => {
+    setInputVal('');
+    onChange('');
+    setSuggestions([]); setOpen(false); setLoading(false); setErr(false);
+  };
+
+  const handleLocate = () => {
     if (!navigator.geolocation) { setLocErr('Geolocation not supported'); return; }
     setLocating(true); setLocErr(null);
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
         const addr = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+        setInputVal(addr);
         onChange(addr);
         onSelect({ address: addr, lat: pos.coords.latitude, lon: pos.coords.longitude });
       } catch {
         const fb = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
-        onChange(fb); onSelect({ address: fb, lat: pos.coords.latitude, lon: pos.coords.longitude });
+        setInputVal(fb); onChange(fb);
+        onSelect({ address: fb, lat: pos.coords.latitude, lon: pos.coords.longitude });
       } finally { setLocating(false); }
     }, () => { setLocating(false); setLocErr('Could not get location. Please type manually.'); }, { timeout: 10000 });
-  }, [onChange, onSelect]);
+  };
 
   const Icon = icon === 'drop' ? Navigation : MapPin;
 
@@ -195,14 +212,14 @@ function LocInput({ label, value, onChange, onSelect, icon = 'pickup', placehold
       <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
       <div className="relative">
         <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-        <input type="text" value={value} onChange={handleChange} placeholder={placeholder}
+        <input type="text" value={inputVal} onChange={handleChange} placeholder={placeholder}
           className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:outline-none text-base bg-white"
           autoComplete="off" autoCorrect="off" spellCheck={false}
-          onFocus={() => { if (value.length >= 3 && suggestions.length > 0) setOpen(true); }}
+          onFocus={() => { if (inputVal.length >= 3 && suggestions.length > 0) setOpen(true); }}
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2">
           {loading ? <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-            : value.length > 0 ? <button type="button" onClick={() => { onChange(''); setSuggestions([]); setOpen(false); }} className="text-gray-400 hover:text-gray-600"><X className="h-4 w-4" /></button>
+            : inputVal.length > 0 ? <button type="button" onClick={handleClear} className="text-gray-400 hover:text-gray-600"><X className="h-4 w-4" /></button>
             : null}
         </div>
       </div>
@@ -214,7 +231,7 @@ function LocInput({ label, value, onChange, onSelect, icon = 'pickup', placehold
         </button>
       )}
       {locErr && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="h-3.5 w-3.5" />{locErr}</p>}
-      {open && value.length >= 3 && (
+      {open && inputVal.length >= 3 && (
         <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden" style={{ zIndex: 9999 }}>
           {loading && suggestions.length === 0 ? (
             <div className="px-4 py-3 flex items-center gap-2 text-sm text-gray-400"><Loader2 className="h-4 w-4 animate-spin text-blue-500" />Searching...</div>
