@@ -391,13 +391,17 @@ function TaxiPage() {
               onSelect={loc => setDrop(loc)} icon="drop" placeholder="Enter destination city or address" />
 
             {/* Distance badge */}
-            {distanceKm !== null && (
+            {distanceKm !== null && distanceKm > 0 ? (
               <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
                 <span className="text-blue-600 font-bold text-sm">📍 Estimated Distance:</span>
                 <span className="text-blue-800 font-black text-base">{distanceKm} km</span>
                 {mode === 'roundtrip' && <span className="text-blue-500 text-xs">(× 2 = {distanceKm * 2} km total)</span>}
               </div>
-            )}
+            ) : pickupQuery.length > 2 && dropQuery.length > 2 && (!pickup || !drop) ? (
+              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                <span className="text-gray-400 text-sm">📍 Select a location from the suggestions to calculate distance</span>
+              </div>
+            ) : null}
 
             {/* Date & Time */}
             <div className="grid grid-cols-2 gap-4">
@@ -448,10 +452,8 @@ function TaxiPage() {
                     className={`p-3 rounded-xl border-2 text-left transition-all ${
                       category === cat ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}>
-                    <div className="text-2xl mb-1">{CAR_INFO[cat].emoji}</div>
                     <div className="font-bold text-sm text-gray-800">{cat}</div>
                     <div className="text-xs text-gray-500">{CAR_INFO[cat].desc}</div>
-                    <div className="text-xs text-blue-600 font-semibold mt-1">₹{RATE_PER_KM[cat]}/km</div>
                   </button>
                 ))}
               </div>
