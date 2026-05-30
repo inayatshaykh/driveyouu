@@ -8,7 +8,7 @@ export const Route = createFileRoute('/help')({
   component: HelpPage,
 });
 
-const PHONE = '+919988440119';
+const PHONE = '+917087010425';
 const WHATSAPP_MSG = encodeURIComponent("Hi, I need help with my booking on UR's Chauffeur.");
 
 const FAQS = [
@@ -47,7 +47,7 @@ function HelpPage() {
             </div>
             <div>
               <div className="text-xs text-slate-500 mb-0.5">Call Us</div>
-              <div className="text-lg font-bold text-white">+91 99884 40119</div>
+              <div className="text-lg font-bold text-white">+91 70870 10425</div>
               <div className="text-xs text-emerald-400 mt-0.5">Tap to call</div>
             </div>
           </a>
@@ -62,8 +62,38 @@ function HelpPage() {
             </div>
             <div>
               <div className="text-xs text-slate-500 mb-0.5">WhatsApp</div>
-              <div className="text-lg font-bold text-white">+91 99884 40119</div>
+              <div className="text-lg font-bold text-white">+91 70870 10425</div>
               <div className="text-xs text-green-400 mt-0.5">Chat with us</div>
+            </div>
+          </a>
+
+          {/* Facebook */}
+          <a href="https://www.facebook.com/share/1C55J9hTkw/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-4 bg-slate-900 border border-slate-800 hover:border-blue-500/40 rounded-2xl p-5 transition-all group">
+            <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/20 transition-colors">
+              <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-blue-400">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+              </svg>
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 mb-0.5">Facebook</div>
+              <div className="text-base font-bold text-white">UR's Chauffeur</div>
+              <div className="text-xs text-blue-400 mt-0.5">Follow us</div>
+            </div>
+          </a>
+
+          {/* Instagram */}
+          <a href="https://www.instagram.com/urs_chauffeur?igsh=Ymg4dzlyaDRhZm1x&utm_source=qr" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-4 bg-slate-900 border border-slate-800 hover:border-pink-500/40 rounded-2xl p-5 transition-all group">
+            <div className="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-pink-500/20 transition-colors">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6 text-pink-400">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+              </svg>
+            </div>
+            <div>
+              <div className="text-xs text-slate-500 mb-0.5">Instagram</div>
+              <div className="text-base font-bold text-white">@urs_chauffeur</div>
+              <div className="text-xs text-pink-400 mt-0.5">Follow us</div>
             </div>
           </a>
         </div>

@@ -155,7 +155,7 @@ function CarsPage() {
         </p>
         <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-sm font-semibold">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          Call us: +91 99884 40119
+          Call us: +91 70870 10425
         </div>
       </section>
 
@@ -183,7 +183,7 @@ function CarsPage() {
             <div className="text-5xl mb-4">🚗</div>
             <p className="text-lg font-semibold text-slate-400">No vehicles available right now</p>
             <p className="text-sm mt-2">Check back soon or call us directly</p>
-            <a href="tel:+919988440119" className="mt-4 inline-block px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors">
+            <a href="tel:+917087010425" className="mt-4 inline-block px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors">
               📞 Call Now
             </a>
           </div>
@@ -259,8 +259,8 @@ function CarsPage() {
           <h3 className="text-xl font-bold text-white mb-2">Need help choosing?</h3>
           <p className="text-slate-400 text-sm mb-4">Call us directly and we'll help you find the right vehicle at the best price.</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="tel:+919988440119" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors">
-              📞 +91 99884 40119
+            <a href="tel:+917087010425" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors">
+              📞 +91 70870 10425
             </a>
             <a href="https://wa.me/919988440119" target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600/20 hover:bg-green-600/30 text-green-400 font-bold rounded-xl text-sm border border-green-500/30 transition-colors">
