@@ -136,3 +136,20 @@
 @keyframes drawCheck {
   to { stroke-dashoffset: 0; }
 }
+
+/* ── Mobile bottom nav safe area fix ─────────────────────────────────────────
+   Extends the dark nav background into the Android/iOS home indicator area
+   so no white gap appears on any device.
+*/
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Fallback: ensure body background matches nav on mobile */
+@media (max-width: 767px) {
+  html, body {
+    background-color: #020617; /* slate-950 */
+  }
+}
