@@ -4,6 +4,7 @@ export interface WalletTransaction {
   id: string;
   driver_id: string;
   type: 'credit' | 'debit' | 'commission' | 'withdrawal';
+  payment_method: 'cash' | 'online' | null;
   amount: number;
   description: string;
   booking_id: string | null;
@@ -25,28 +26,39 @@ export interface WithdrawalRequest {
 // ── Wallet balance helpers ────────────────────────────────────────────────────
 
 export async function getDriverWallet(driverId: string): Promise<{
-  balance: number; totalEarned: number; totalCommission: number; error: string | null
+  balance: number;
+  totalEarned: number;
+  totalCommission: number;
+  cashRides: number;
+  onlineRides: number;
+  cashEarned: number;
+  onlineEarned: number;
+  error: string | null;
 }> {
   const { data, error } = await supabase
     .from('drivers')
     .select('earnings')
     .eq('id', driverId)
     .single();
-  if (error) return { balance: 0, totalEarned: 0, totalCommission: 0, error: error.message };
+  if (error) return { balance: 0, totalEarned: 0, totalCommission: 0, cashRides: 0, onlineRides: 0, cashEarned: 0, onlineEarned: 0, error: error.message };
 
-  // Get transaction totals
   const { data: txns } = await supabase
     .from('wallet_transactions')
-    .select('type, amount')
+    .select('type, amount, payment_method')
     .eq('driver_id', driverId);
 
-  const totalEarned = (txns ?? []).filter(t => t.type === 'credit').reduce((s, t) => s + t.amount, 0);
+  const credits = (txns ?? []).filter(t => t.type === 'credit');
+  const totalEarned = credits.reduce((s, t) => s + t.amount, 0);
   const totalCommission = (txns ?? []).filter(t => t.type === 'commission').reduce((s, t) => s + t.amount, 0);
+  const cashRides = credits.filter(t => t.payment_method === 'cash').length;
+  const onlineRides = credits.filter(t => t.payment_method === 'online').length;
+  const cashEarned = credits.filter(t => t.payment_method === 'cash').reduce((s, t) => s + t.amount, 0);
+  const onlineEarned = credits.filter(t => t.payment_method === 'online').reduce((s, t) => s + t.amount, 0);
 
-  return { balance: data.earnings ?? 0, totalEarned, totalCommission, error: null };
+  return { balance: data.earnings ?? 0, totalEarned, totalCommission, cashRides, onlineRides, cashEarned, onlineEarned, error: null };
 }
 
-// ── Cash payment: deduct 25% commission from wallet immediately ───────────────
+// ── Cash payment: driver collects cash → 25% commission auto-deducted from wallet ──
 export async function processCashPayment(
   driverId: string,
   bookingId: string,
@@ -55,25 +67,26 @@ export async function processCashPayment(
   const driverShare = Math.round(totalFare * 0.75);
   const commission = Math.round(totalFare * 0.25);
 
-  // Get current balance
   const { data: driver } = await supabase.from('drivers').select('earnings, rides').eq('id', driverId).single();
   if (!driver) return { error: 'Driver not found' };
 
-  const newBalance = (driver.earnings ?? 0) + driverShare - commission;
+  // Cash: driver gets full fare in hand, but 25% commission is deducted from wallet balance
+  // Net effect: wallet goes DOWN by commission amount (driver owes company)
+  const newBalance = (driver.earnings ?? 0) - commission;
 
-  // Update wallet balance and rides count
   const { error } = await supabase.from('drivers').update({
     earnings: newBalance,
     rides: (driver.rides ?? 0) + 1,
   }).eq('id', driverId);
   if (error) return { error: error.message };
 
-  // Log credit transaction
+  // Log the full fare as credit (cash collected)
   await supabase.from('wallet_transactions').insert({
     driver_id: driverId,
     type: 'credit',
+    payment_method: 'cash',
     amount: driverShare,
-    description: `Cash ride fare (75%) — ₹${totalFare.toLocaleString()} total`,
+    description: `💵 Cash ride — collected ₹${totalFare.toLocaleString()} · Your share: ₹${driverShare.toLocaleString()}`,
     booking_id: bookingId,
   });
 
@@ -81,36 +94,51 @@ export async function processCashPayment(
   await supabase.from('wallet_transactions').insert({
     driver_id: driverId,
     type: 'commission',
+    payment_method: 'cash',
     amount: commission,
-    description: `Company commission (25%) — Cash ride`,
+    description: `🏢 Commission (25%) deducted — Cash ride · ₹${commission.toLocaleString()}`,
     booking_id: bookingId,
   });
 
   return { error: null };
 }
 
-// ── Online payment: credit 75% to driver wallet ───────────────────────────────
+// ── Online payment: 75% credited to wallet, 25% never enters wallet ──────────
 export async function processOnlinePayment(
   driverId: string,
   bookingId: string,
   totalFare: number
 ): Promise<{ error: string | null }> {
   const driverShare = Math.round(totalFare * 0.75);
+  const commission = Math.round(totalFare * 0.25);
 
   const { data: driver } = await supabase.from('drivers').select('earnings, rides').eq('id', driverId).single();
   if (!driver) return { error: 'Driver not found' };
 
+  // Online: only 75% credited to wallet, 25% goes directly to company
   const { error } = await supabase.from('drivers').update({
     earnings: (driver.earnings ?? 0) + driverShare,
     rides: (driver.rides ?? 0) + 1,
   }).eq('id', driverId);
   if (error) return { error: error.message };
 
+  // Log 75% credit
   await supabase.from('wallet_transactions').insert({
     driver_id: driverId,
     type: 'credit',
+    payment_method: 'online',
     amount: driverShare,
-    description: `Online ride fare (75%) — ₹${totalFare.toLocaleString()} total`,
+    description: `📱 Online ride — ₹${driverShare.toLocaleString()} credited (75% of ₹${totalFare.toLocaleString()})`,
+    booking_id: bookingId,
+  });
+
+  // Log commission (informational — not deducted from wallet, already withheld)
+  await supabase.from('wallet_transactions').insert({
+    driver_id: driverId,
+    type: 'commission',
+    payment_method: 'online',
+    amount: commission,
+    description: `🏢 Commission (25%) withheld — Online ride · ₹${commission.toLocaleString()}`,
     booking_id: bookingId,
   });
 

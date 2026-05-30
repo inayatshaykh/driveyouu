@@ -34,7 +34,7 @@ function DriverPanel() {
   const [bookings, setBookings] = useState<SupabaseBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(false);
-  const [walletData, setWalletData] = useState({ balance: 0, totalEarned: 0, totalCommission: 0 });
+  const [walletData, setWalletData] = useState({ balance: 0, totalEarned: 0, totalCommission: 0, cashRides: 0, onlineRides: 0, cashEarned: 0, onlineEarned: 0 });
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [paymentModal, setPaymentModal] = useState<{ booking: SupabaseBooking } | null>(null);
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -58,7 +58,7 @@ function DriverPanel() {
       fetchWalletTransactions(data.id),
     ]);
     setBookings(rides);
-    setWalletData({ balance: wallet.balance, totalEarned: wallet.totalEarned, totalCommission: wallet.totalCommission });
+    setWalletData({ balance: wallet.balance, totalEarned: wallet.totalEarned, totalCommission: wallet.totalCommission, cashRides: wallet.cashRides, onlineRides: wallet.onlineRides, cashEarned: wallet.cashEarned, onlineEarned: wallet.onlineEarned });
     setTransactions(txns);
     setLoading(false);
   }, [session?.mobile]);
@@ -349,6 +349,31 @@ function DriverPanel() {
                 <div className="text-xs text-slate-500">Company's 25%</div>
               </div>
             </div>
+
+            {/* Cash vs Online breakdown */}
+            <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-4">
+              <h3 className="font-bold text-white text-sm mb-3">Payment Breakdown</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-base">💵</span>
+                    <span className="text-xs font-semibold text-amber-400">Cash Rides</span>
+                  </div>
+                  <div className="text-lg font-black text-white">{walletData.cashRides}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">Earned: {inr(walletData.cashEarned)}</div>
+                  <div className="text-xs text-slate-500">25% auto-deducted from wallet</div>
+                </div>
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-base">📱</span>
+                    <span className="text-xs font-semibold text-blue-400">Online Rides</span>
+                  </div>
+                  <div className="text-lg font-black text-white">{walletData.onlineRides}</div>
+                  <div className="text-xs text-slate-400 mt-0.5">Earned: {inr(walletData.onlineEarned)}</div>
+                  <div className="text-xs text-slate-500">75% credited to wallet</div>
+                </div>
+              </div>
+            </div>
             {/* Withdrawal request */}
             <div className="bg-slate-900 border border-slate-700/50 rounded-2xl p-5">
               <h3 className="font-bold text-white mb-1">Request Withdrawal</h3>
@@ -386,6 +411,10 @@ function DriverPanel() {
                   {transactions.map(t => (
                     <div key={t.id} className="px-4 py-3 flex items-center justify-between">
                       <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          {t.payment_method === 'cash' && <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded font-bold">💵 CASH</span>}
+                          {t.payment_method === 'online' && <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded font-bold">📱 ONLINE</span>}
+                        </div>
                         <div className="text-sm text-white truncate">{t.description}</div>
                         <div className="text-xs text-slate-500">{new Date(t.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                       </div>
